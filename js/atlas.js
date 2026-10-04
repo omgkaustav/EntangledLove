@@ -107,6 +107,31 @@ export function normalizeBitstringKey(rawKey) {
 export function expandToShotList(rawResult, expectedShots = 1024, seed = 7) {
   const rng = mulberry32(seed);
 
+  // Case 0: Moth Atlas graph-v1 output.measurements array
+  // Shape: { result: { output: { measurements: [ { bitstring: "0101", count: 120 }, ... ] } } }
+  const measurements = rawResult.result?.output?.measurements
+    || rawResult.output?.measurements
+    || rawResult.measurements;
+
+  if (Array.isArray(measurements) && measurements.length > 0) {
+    const shotPool = [];
+    for (const m of measurements) {
+      const bitstring = normalizeBitstringKey(m.bitstring);
+      const count = typeof m.count === 'number' ? m.count : parseInt(m.count, 10) || 0;
+      for (let i = 0; i < count; i++) {
+        shotPool.push(bitstring);
+      }
+    }
+    // Fisher-Yates shuffle the pool with seed PRNG so order appears natural across evenings
+    for (let i = shotPool.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      const temp = shotPool[i];
+      shotPool[i] = shotPool[j];
+      shotPool[j] = temp;
+    }
+    return shotPool;
+  }
+
   // Case 1: samples array
   if (Array.isArray(rawResult.samples) && rawResult.samples.length > 0) {
     return rawResult.samples.map(s => {
@@ -183,7 +208,43 @@ export class AtlasClient {
    */
   async submitGraphJob(seed = 7, onProgress = () => {}) {
     const candidatePayloads = [
-      // Primary candidate
+      // Candidate 1 (Verified Working on Moth Atlas): Superpositions + ZZ relationship on pair (0, 2)
+      {
+        name: 'bloch_and_relationship_zz_graph',
+        body: {
+          params: {
+            mode: 'emu',
+            num_qubits: 4,
+            shots: 1024,
+            seed: seed,
+            coupling_map: [[0, 2], [1, 3]],
+            operations: [
+              { type: 'bloch', qubit: 0, paulis: { 'X': 1.0 } },
+              { type: 'bloch', qubit: 1, paulis: { 'X': 1.0 } },
+              { type: 'bloch', qubit: 2, paulis: { 'X': 1.0 } },
+              { type: 'bloch', qubit: 3, paulis: { 'X': 1.0 } },
+              { type: 'relationship', qubits: [0, 2], paulis: { 'ZZ': 0.85 } }
+            ]
+          }
+        }
+      },
+      // Candidate 2: Direct relationship with paulis ZZ
+      {
+        name: 'relationship_paulis_zz_graph',
+        body: {
+          params: {
+            mode: 'emu',
+            num_qubits: 4,
+            shots: 1024,
+            seed: seed,
+            coupling_map: [[0, 2], [1, 3]],
+            operations: [
+              { type: 'relationship', qubits: [0, 2], paulis: { 'ZZ': 0.85 } }
+            ]
+          }
+        }
+      },
+      // Candidate 3: Prompt's original schema attempt
       {
         name: 'standard_qubits_target',
         body: {
