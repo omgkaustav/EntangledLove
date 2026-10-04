@@ -28,29 +28,30 @@ export function mulberry32(seed) {
 
 /**
  * Local Quantum Simulator Mode
- * Produces 1024 shots of a 4-qubit graph state with qubits 0 and 2 coupled (target ~0.85)
- * and qubits 1 and 3 uncoupled (free).
+ * Produces 1024 shots of a 4-qubit graph state with qubits 0 and 2 coupled in an exact
+ * Bell state (100% correlation) and qubits 1 and 3 uncoupled (50/50 free choice).
  * 
- * Qubit 0, 1: Person A (00: bed, 01: thinking, 10: playing, 11: cooking)
- * Qubit 2, 3: Person B (00: bed, 01: thinking, 10: playing, 11: cooking)
+ * Qubit 0, 1: Leo in London (00: bed, 01: thinking, 10: playing, 11: cooking)
+ * Qubit 2, 3: Mia in Tokyo  (00: bed, 01: thinking, 10: playing, 11: cooking)
  */
-export function simulateLocalGraphBatch(seed = 7, shotsCount = 1024, targetCorr = 0.85) {
+export function simulateLocalGraphBatch(seed = 7, shotsCount = 1024, targetCorr = 1.0) {
   const rng = mulberry32(seed);
   const shots = [];
   const counts = {};
 
   for (let i = 0; i < shotsCount; i++) {
-    // Qubit 0: 50/50 basis state
-    const b0 = rng() < 0.5 ? 0 : 1;
-
-    // Qubit 2: coupled to Qubit 0 with target correlation (default 0.85)
-    // When correlated, b2 matches b0 with probability targetCorr
+    // Phase bit: Bell-state mood shared between Leo (b0) and Mia (b2)
+    // 0 = Resting Mood (bed / thinking)
+    // 1 = Active Mood (gaming / cooking)
+    const phase = rng() < 0.5 ? 0 : 1;
+    const b0 = phase;
+    // When targetCorr is 1.0, b2 is 100% Bell-correlated with b0
     const b2 = rng() < targetCorr ? b0 : (1 - b0);
 
-    // Qubit 1: free / uncoupled
+    // Qubit 1: Leo's specific activity within his mood (50/50 independent choice)
     const b1 = rng() < 0.5 ? 0 : 1;
 
-    // Qubit 3: free / uncoupled
+    // Qubit 3: Mia's specific activity within her mood (50/50 independent choice)
     const b3 = rng() < 0.5 ? 0 : 1;
 
     // A shot is four bits b0 b1 b2 b3
@@ -225,7 +226,7 @@ export class AtlasClient {
               { type: 'bloch', qubit: 1, paulis: { 'X': 1.0 } },
               { type: 'bloch', qubit: 2, paulis: { 'X': 1.0 } },
               { type: 'bloch', qubit: 3, paulis: { 'X': 1.0 } },
-              { type: 'relationship', qubits: [0, 2], paulis: { 'ZZ': 0.85 } }
+              { type: 'relationship', qubits: [0, 2], paulis: { 'ZZ': 1.0 } }
             ]
           }
         }
@@ -241,7 +242,7 @@ export class AtlasClient {
             seed: seed,
             coupling_map: [[0, 2], [1, 3]],
             operations: [
-              { type: 'relationship', qubits: [0, 2], paulis: { 'ZZ': 0.85 } }
+              { type: 'relationship', qubits: [0, 2], paulis: { 'ZZ': 1.0 } }
             ]
           }
         }

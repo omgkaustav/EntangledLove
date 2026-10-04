@@ -1,26 +1,25 @@
 /**
- * stats.js - Quantum Correlation Statement Builder (Simplified 5-Item Checklist)
+ * stats.js - Quantum Correlation Statement Builder & Evaluator
  * 
- * Computes empirical correlations across the 16 observed days and generates
- * 5 natural, low-cognitive-load statements using clear quantum patterns:
- * - "This never happens with this."
- * - "When this happens, this always happens."
- * - "When this happens, either this or this happens."
+ * Defines the fixed, unambiguous 5-item Field Notebook deductions.
+ * Leo and Mia are entangled in an exact Bell state on qubits (0, 2):
+ * - Qubit 0 & Qubit 2 are 100% correlated: their overall moods (resting vs active) ALWAYS match.
+ * - Qubits 1 & 3 are 50/50 uncoupled: their specific activity within that mood is an independent coin flip.
  * 
- * Exactly 5 statements: balanced 3 True / 2 False (or 2 True / 3 False).
+ * Ground truth rules are 100% absolute (True or False, no fuzzy 85% decimals):
+ * - 3 True statements, 2 False statements.
+ * - Questions are permanently fixed for this level/chapter.
  */
-
-import { mulberry32 } from './atlas.js';
 
 export const ACTIVITIES = [
   { code: 0, bits: '00', name: 'in bed', label: 'resting in bed' },
   { code: 1, bits: '01', name: 'thinking', label: 'thinking of the other' },
   { code: 2, bits: '10', name: 'playing a game', label: 'playing a game' },
-  { code: 3, bits: '11', name: 'cooking', label: 'cooking' }
+  { code: 3, bits: '11', name: 'cooking', label: 'cooking dinner' }
 ];
 
 /**
- * Computes frequency stats over the current 16 days (or full batch)
+ * Computes frequency stats over all observed shots in the batch
  */
 export function computeStatistics(shots) {
   const total = shots.length;
@@ -41,9 +40,9 @@ export function computeStatistics(shots) {
     countAB[a][b]++;
   }
 
-  // Grouped counts:
-  // Rest = 0 (bed) or 1 (thinking) [bit 0 / bit 2 = 0]
-  // Active = 2 (playing) or 3 (cooking) [bit 0 / bit 2 = 1]
+  // Mood groupings:
+  // Resting: bed (0) or thinking (1) [b0 / b2 = 0]
+  // Active:  gaming (2) or cooking (3) [b0 / b2 = 1]
   const aRest = countA[0] + countA[1];
   const aActive = countA[2] + countA[3];
   const bRest = countB[0] + countB[1];
@@ -67,131 +66,56 @@ export function computeStatistics(shots) {
 }
 
 /**
- * Generates exactly 5 simplified, qualitative statements (3 True, 2 False or vice-versa)
- * based on quantum correlation rules from the batch.
+ * Fixed 5 deduction items for the Field Notebook.
+ * Completely deterministic and stable (no random reshuffling).
  */
-export function generateStatementList(stats, seed = 7) {
-  const rng = mulberry32(seed + 42);
-
-  // Pool of TRUE statement candidates
-  const poolTrue = [
-    {
-      id: 't1',
-      text: 'When Leo is cooking, Mia is never in bed.',
-      isTrue: true,
-      ruleType: 'never',
-      explanation: 'Accurate! Cooking means Leo is in the active phase (bit 0 = 1). Entanglement on qubits (0, 2) ensures Mia is also active (gaming or cooking) and is never asleep.'
-    },
-    {
-      id: 't2',
-      text: 'When Leo is in bed or thinking, Mia is always in bed or thinking.',
-      isTrue: true,
-      ruleType: 'always_group',
-      explanation: 'Accurate! Resting modes share bit 0 = 0. The quantum graph state keeps both lovers synchronized in resting activities.'
-    },
-    {
-      id: 't3',
-      text: 'When Mia is playing a game, Leo is always playing or cooking.',
-      isTrue: true,
-      ruleType: 'always_group',
-      explanation: 'Accurate! When Mia is gaming (bit 2 = 1), quantum correlation ensures Leo is also active in his flat (playing or cooking, bit 0 = 1).'
-    },
-    {
-      id: 't4',
-      text: 'When Leo is thinking of Mia, Mia is either in bed or thinking.',
-      isTrue: true,
-      ruleType: 'either_or',
-      explanation: 'Accurate! Thinking sets bit 0 = 0. Therefore Mia is always in her resting mode: either asleep in bed or also thinking of Leo.'
-    },
-    {
-      id: 't5',
-      text: 'When Leo is in bed, Mia is never cooking.',
-      isTrue: true,
-      ruleType: 'never',
-      explanation: 'Accurate! When Leo is resting in bed (bit 0 = 0), Mia is coupled to resting states and never stirs the pot in her kitchen.'
-    },
-    {
-      id: 't6',
-      text: 'When Mia is cooking, Leo is either playing a game or cooking.',
-      isTrue: true,
-      ruleType: 'either_or',
-      explanation: 'Accurate! When Mia cooks (bit 2 = 1), Leo is in the coupled active phase: either gaming or cooking.'
-    }
-  ];
-
-  // Pool of FALSE statement candidates
-  const poolFalse = [
-    {
-      id: 'f1',
-      text: 'When Leo is cooking, Mia is always in bed.',
-      isTrue: false,
-      ruleType: 'false_always',
-      explanation: 'False! In reality, when Leo is cooking, Mia is never in bed. They are correlated in the active phase (cooking or gaming).'
-    },
-    {
-      id: 'f2',
-      text: 'When Leo is in bed or thinking, Mia is always playing a game or cooking.',
-      isTrue: false,
-      ruleType: 'false_opposite',
-      explanation: 'False! The lovers are positively correlated, not opposite. When Leo is resting, Mia is also resting in bed or thinking.'
-    },
-    {
-      id: 'f3',
-      text: 'When Mia is playing a game, Leo is always in bed.',
-      isTrue: false,
-      ruleType: 'false_opposite',
-      explanation: 'False! When Mia is gaming, Leo is active (playing or cooking), never asleep in bed.'
-    },
-    {
-      id: 'f4',
-      text: 'When Leo is in bed, Mia is always cooking.',
-      isTrue: false,
-      ruleType: 'false_opposite',
-      explanation: 'False! When Leo is in bed, Mia is never cooking. Mia is always resting in bed or thinking.'
-    },
-    {
-      id: 'f5',
-      text: 'When Mia is in bed, Leo is always playing a game.',
-      isTrue: false,
-      ruleType: 'false_opposite',
-      explanation: 'False! When Mia is in bed, Leo is never playing games. Leo is resting in bed or thinking.'
-    }
-  ];
-
-  // Shuffle pools
-  function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      const t = arr[i];
-      arr[i] = arr[j];
-      arr[j] = t;
-    }
-    return arr;
+export const FIXED_STATEMENTS = [
+  {
+    id: 0,
+    text: 'When Leo is cooking, Mia is never in bed.',
+    isTrue: true,
+    ruleType: 'never',
+    explanation: 'True! Cooking is Leo’s active mood. Because their moods are 100% entangled in a Bell state, Mia is also active (gaming or cooking) and is never asleep in bed.'
+  },
+  {
+    id: 1,
+    text: 'When Leo is in bed or thinking, Mia is always in bed or thinking.',
+    isTrue: true,
+    ruleType: 'always_group',
+    explanation: 'True! Resting in bed and thinking share the quiet mood. Whenever Leo rests, Mia is always resting too across the 9,560 km.'
+  },
+  {
+    id: 2,
+    text: 'When Mia is playing a game, Leo is always in bed.',
+    isTrue: false,
+    ruleType: 'false_opposite',
+    explanation: 'False! Gaming is Mia’s active mood. Quantum correlation guarantees Leo is also active (gaming or cooking), never asleep in bed.'
+  },
+  {
+    id: 3,
+    text: 'When Leo is thinking of Mia, Mia is always either in bed or thinking.',
+    isTrue: true,
+    ruleType: 'either_or',
+    explanation: 'True! Thinking is part of the resting mood. Mia is strictly bound to resting activities: either also thinking of Leo, or resting in bed.'
+  },
+  {
+    id: 4,
+    text: 'When Leo is in bed, Mia is always cooking.',
+    isTrue: false,
+    ruleType: 'false_opposite',
+    explanation: 'False! When Leo is in bed, Mia is never in her kitchen cooking. She is always in bed or thinking.'
   }
+];
 
-  shuffle(poolTrue);
-  shuffle(poolFalse);
-
-  // Pick 3 True and 2 False (Total exactly 5 statements)
-  const selected = [
-    poolTrue[0],
-    poolTrue[1],
-    poolTrue[2],
-    poolFalse[0],
-    poolFalse[1]
-  ];
-
-  shuffle(selected);
-
-  // Assign clean sequential IDs
-  return selected.map((st, index) => ({
-    ...st,
-    id: index
-  }));
+/**
+ * Returns the fixed 5-item statement list
+ */
+export function generateStatementList() {
+  return FIXED_STATEMENTS.map(st => ({ ...st }));
 }
 
 /**
- * Score the 5 statements
+ * Scores user deduction answers against the ground truth
  */
 export function scoreNotebook(statements, userAnswers) {
   let correctCount = 0;

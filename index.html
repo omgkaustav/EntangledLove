@@ -117,8 +117,8 @@
                 <span class="wax-seal-icon">✦</span>
                 <span class="wax-seal-text">SEAL OBSERVATIONS</span>
               </button>
-              <button id="btn-new-journey" class="btn-subtle-turn">
-                <span>↻ New Investigation</span>
+              <button id="btn-new-journey" class="btn-subtle-turn" title="Clear all pencil marks and start over from Day 1">
+                <span>↻ Clear Logbook & Restart</span>
               </button>
             </div>
           </div>
@@ -212,45 +212,43 @@
         <button id="btn-close-guide" class="modal-close" title="Close Guide">✕</button>
       </div>
       <div class="modal-body modal-guide-text">
-        <h3>The Quantum Bond</h3>
+        <p style="font-size: 0.95rem; color: #f1f5f9; line-height: 1.45;">
+          Leo lives in London. Mia lives in Tokyo. Across 9,560 km of oceans and continents, their hearts share a quiet, unspoken rhythm under the night sky.
+        </p>
+
+        <h3>Two Night-time Moods</h3>
         <p>
-          Leo (in London) and Mia (in Tokyo) are separated by 9,560 km. Every evening, their routines are governed by
-          a 4-qubit entangled graph state.
+          Each evening, both Leo and Mia fall into one of two moods:
         </p>
         <div class="guide-grid">
           <div class="guide-col">
-            <strong>Leo's Room (London): Qubits 0 & 1</strong>
-            <ul>
-              <li><code>00</code>: Resting in bed</li>
-              <li><code>01</code>: Thinking of Mia</li>
-              <li><code>10</code>: Playing a game</li>
-              <li><code>11</code>: Cooking in kitchen</li>
-            </ul>
+            <strong>🌙 Resting Mood (50% of nights)</strong>
+            <span>Either <em>resting in bed</em> or <em>thinking of the other</em>.</span>
           </div>
           <div class="guide-col">
-            <strong>Mia's Room (Tokyo): Qubits 2 & 3</strong>
-            <ul>
-              <li><code>00</code>: Resting in bed</li>
-              <li><code>01</code>: Thinking of Leo</li>
-              <li><code>10</code>: Playing a game</li>
-              <li><code>11</code>: Cooking in kitchen</li>
-            </ul>
+            <strong>✨ Active Mood (50% of nights)</strong>
+            <span>Either <em>playing a video game</em> or <em>cooking dinner</em>.</span>
           </div>
         </div>
-        <h3>The Physics</h3>
+
+        <h3>The Quantum Bond (A Pure Bell State)</h3>
         <p>
-          Qubits <strong>0 and 2</strong> are coupled strongly with a quantum relationship operation (target 0.85). 
-          This means their high bits tend to agree: when one rests (bed/thinking), the other usually rests; 
-          when one is active (gaming/cooking), the other is usually active.
+          Their evenings are bound together by an exact quantum Bell state:
         </p>
-        <h3>How to Play</h3>
         <ul>
-          <li>Press <kbd>Z</kbd> or click left window to turn on Leo's light.</li>
-          <li>Press <kbd>X</kbd> or click right window to turn on Mia's light.</li>
-          <li>Press <kbd>C</kbd> to turn both lights on at once.</li>
-          <li>Press <kbd>N</kbd> to advance to the next evening.</li>
-          <li>Mark your deductions as <strong>✓ True</strong> or <strong>✗ False</strong> in the Field Notebook.</li>
-          <li>Observe as many evenings as you want! When you are confident, click <strong>SEAL OBSERVATIONS</strong> to score your accuracy.</li>
+          <li><strong>Synchronized Moods:</strong> When Leo is in his resting mood, Mia is <em>always</em> in her resting mood. When Leo is active, Mia is <em>always</em> active.</li>
+          <li><strong>Never Mismatched:</strong> You will <em>never</em> see one resting in bed while the other is cooking or playing games.</li>
+          <li><strong>Gentle Freedom:</strong> Within their shared mood, what they specifically do (bed vs thinking, gaming vs cooking) is a soft 50/50 coin flip.</li>
+        </ul>
+
+        <h3>How to Observe & Deduce</h3>
+        <ul>
+          <li>Press <kbd>Z</kbd> to toggle Leo's light in London.</li>
+          <li>Press <kbd>X</kbd> to toggle Mia's light in Tokyo.</li>
+          <li>Press <kbd>C</kbd> to toggle both lights together.</li>
+          <li>Press <kbd>N</kbd> to turn the page to the next evening.</li>
+          <li>Mark each deduction in your Field Notebook as <strong>✓ True</strong> or <strong>✗ False</strong>.</li>
+          <li>Take as many evenings as you need to be sure! When you are ready, click <strong>SEAL OBSERVATIONS</strong> to reveal your score.</li>
         </ul>
       </div>
       <div class="modal-footer" style="justify-content: flex-end;">

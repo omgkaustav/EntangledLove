@@ -3,13 +3,12 @@
  * 
  * Features:
  * - Observational quantum game across London (Leo) & Tokyo (Mia)
- * - 4-qubit graph state prepared by Moth Atlas graph-v1 engine (or local simulation)
- * - Diegetic Field Notebook with pencil tick [✓] and cross [✗] marks
- * - Unlimited days of observation: player advances at their own pace and submits when confident
- * - Day counter and time-lapse celestial transition
- * - Tactile light switches: keyboard shortcuts [Z] Leo, [X] Mia, [C] Both, [N] Next Evening
- * - Ambient room audio loops and WebAudio synth fallbacks
- * - Zero build step, vanilla ES modules
+ * - 4-qubit graph state with 100% Bell-correlated moods on qubits (0, 2)
+ * - Diegetic Field Notebook with tactile pencil marks [✓] and [✗]
+ * - Fixed, permanent 5 questions with absolute True/False Bell state truths
+ * - Perfectly synchronized audio: room ambient sound plays strictly while light is ON,
+ *   and instantly stops the moment the light is turned OFF or when advancing the day
+ * - Keyboard shortcuts: [Z] Leo, [X] Mia, [C] Both, [N] Next Evening
  */
 
 import {
@@ -35,7 +34,8 @@ import {
 } from './draw.js';
 
 /**
- * Audio Manager: tactile light switches, pencil graphite scribbles, celestial transitions, and ambient room loops
+ * Audio Manager: tactile light switches, pencil scribbles, celestial transition chime,
+ * and isolated room ambient loops that stop instantly when light switches off.
  */
 class AudioManager {
   constructor() {
@@ -43,8 +43,7 @@ class AudioManager {
     this.audioContext = null;
     this.audioUnlocked = false;
 
-    // HTML5 Audio Elements
-    this.soundFiles = {
+    this.soundPaths = {
       click: 'assets/audio/switch_click.wav',
       pencil: 'assets/audio/pencil_check.wav',
       swipe: 'assets/audio/curtain_swipe.wav',
@@ -54,25 +53,17 @@ class AudioManager {
       cooking: 'assets/audio/simmer_loop.wav'
     };
 
-    this.audioElements = {};
-    this.initAudioElements();
+    // Dedicated room sound slots for Leo (A) and Mia (B)
+    this.roomAudio = {
+      A: { key: null, audio: null },
+      B: { key: null, audio: null }
+    };
 
+    // Active synth loops fallback
     this.activeSynthLoops = {
       A: null,
       B: null
     };
-  }
-
-  initAudioElements() {
-    for (const [key, path] of Object.entries(this.soundFiles)) {
-      const audio = new Audio();
-      audio.src = path;
-      audio.preload = 'auto';
-      if (key !== 'click' && key !== 'pencil' && key !== 'swipe') {
-        audio.loop = true;
-      }
-      this.audioElements[key] = audio;
-    }
   }
 
   unlockAudioContext() {
@@ -100,12 +91,11 @@ class AudioManager {
   playLightSwitch() {
     if (this.isMuted) return;
     this.unlockAudioContext();
-    const click = this.audioElements.click;
-    if (click) {
+    try {
+      const click = new Audio(this.soundPaths.click);
       click.volume = 0.35;
-      click.currentTime = 0;
       click.play().catch(() => this.synthSwitchClick());
-    } else {
+    } catch (_) {
       this.synthSwitchClick();
     }
   }
@@ -113,12 +103,11 @@ class AudioManager {
   playPencilCheck() {
     if (this.isMuted) return;
     this.unlockAudioContext();
-    const pencil = this.audioElements.pencil;
-    if (pencil) {
+    try {
+      const pencil = new Audio(this.soundPaths.pencil);
       pencil.volume = 0.45;
-      pencil.currentTime = 0;
       pencil.play().catch(() => this.synthPencilScratch());
-    } else {
+    } catch (_) {
       this.synthPencilScratch();
     }
   }
@@ -129,7 +118,7 @@ class AudioManager {
     try {
       const ctx = this.audioContext;
       if (!ctx) return;
-      // Celestial harmonic chord (C5, E5, G5)
+      // Celestial harmonic chime (C5, E5, G5)
       [523.25, 659.25, 783.99].forEach((freq, idx) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -145,60 +134,86 @@ class AudioManager {
     } catch (_) {}
   }
 
+  /**
+   * Updates ambient room audio based strictly on whether the light is on or off.
+   * If a light is off, the room's sound stops immediately!
+   */
   updateActivityLoops(isLitA, actA, isLitB, actB) {
     if (this.isMuted) {
-      this.stopAllLoops();
+      this.stopRoomSound('A');
+      this.stopRoomSound('B');
       return;
     }
     this.unlockAudioContext();
 
     const actKeys = ['bed', 'thinking', 'gaming', 'cooking'];
 
-    // Room A Audio Loop (plays only while Light A is ON)
+    // Room A (Leo in London)
     if (isLitA) {
-      this.playRoomAudio('A', actKeys[actA], actA);
+      const neededKey = actKeys[actA];
+      this.playRoomSound('A', neededKey, actA);
     } else {
-      this.stopRoomAudio('A');
+      this.stopRoomSound('A');
     }
 
-    // Room B Audio Loop (plays only while Light B is ON)
+    // Room B (Mia in Tokyo)
     if (isLitB) {
-      this.playRoomAudio('B', actKeys[actB], actB);
+      const neededKey = actKeys[actB];
+      this.playRoomSound('B', neededKey, actB);
     } else {
-      this.stopRoomAudio('B');
+      this.stopRoomSound('B');
     }
   }
 
-  playRoomAudio(roomKey, soundKey, actCode) {
-    const audio = this.audioElements[soundKey];
-    if (audio) {
-      audio.volume = 0.22;
-      if (audio.paused) {
-        audio.play().catch(() => this.synthActivityLoop(roomKey, actCode));
+  playRoomSound(roomKey, soundKey, actCode) {
+    const slot = this.roomAudio[roomKey];
+
+    // If this room is already playing this exact sound loop, let it continue
+    if (slot.key === soundKey && slot.audio && !slot.audio.paused) {
+      return;
+    }
+
+    // Stop whatever previous sound was playing in this room
+    this.stopRoomSound(roomKey);
+
+    const path = this.soundPaths[soundKey];
+    if (path) {
+      try {
+        const audio = new Audio(path);
+        audio.loop = true;
+        audio.volume = 0.18; // gentle, non-intrusive volume
+        slot.key = soundKey;
+        slot.audio = audio;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            this.synthActivityLoop(roomKey, actCode);
+          });
+        }
+      } catch (_) {
+        this.synthActivityLoop(roomKey, actCode);
       }
     } else {
       this.synthActivityLoop(roomKey, actCode);
     }
   }
 
-  stopRoomAudio(roomKey) {
-    if (this.activeSynthLoops[roomKey]) {
-      try { this.activeSynthLoops[roomKey].stop(); } catch (_) {}
-      this.activeSynthLoops[roomKey] = null;
+  stopRoomSound(roomKey) {
+    const slot = this.roomAudio[roomKey];
+    if (slot.audio) {
+      try {
+        slot.audio.pause();
+        slot.audio.currentTime = 0;
+      } catch (_) {}
+      slot.audio = null;
     }
+    slot.key = null;
+    this.stopSynthLoop(roomKey);
   }
 
   stopAllLoops() {
-    for (const [key, audio] of Object.entries(this.audioElements)) {
-      if (key !== 'click' && key !== 'pencil' && key !== 'swipe') {
-        try {
-          audio.pause();
-          audio.currentTime = 0;
-        } catch (_) {}
-      }
-    }
-    this.stopRoomAudio('A');
-    this.stopRoomAudio('B');
+    this.stopRoomSound('A');
+    this.stopRoomSound('B');
   }
 
   synthSwitchClick() {
@@ -247,7 +262,8 @@ class AudioManager {
 
   synthActivityLoop(roomKey, actCode) {
     if (!this.audioContext || this.isMuted) return;
-    if (this.activeSynthLoops[roomKey]) return;
+    this.stopSynthLoop(roomKey);
+
     try {
       const ctx = this.audioContext;
       const osc = ctx.createOscillator();
@@ -255,35 +271,39 @@ class AudioManager {
 
       if (actCode === 0) {
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(60, ctx.currentTime);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        osc.frequency.setValueAtTime(55, ctx.currentTime);
+        gain.gain.setValueAtTime(0.05, ctx.currentTime);
       } else if (actCode === 1) {
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(432, ctx.currentTime);
-        gain.gain.setValueAtTime(0.03, ctx.currentTime);
-      } else if (actCode === 2) {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(220, ctx.currentTime);
         gain.gain.setValueAtTime(0.02, ctx.currentTime);
+      } else if (actCode === 2) {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(220, ctx.currentTime);
+        gain.gain.setValueAtTime(0.015, ctx.currentTime);
       } else {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(95, ctx.currentTime);
-        gain.gain.setValueAtTime(0.025, ctx.currentTime);
+        gain.gain.setValueAtTime(0.018, ctx.currentTime);
       }
 
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
 
-      this.activeSynthLoops[roomKey] = {
-        stop: () => {
-          try {
-            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
-            osc.stop(ctx.currentTime + 0.1);
-          } catch (_) {}
-        }
-      };
+      this.activeSynthLoops[roomKey] = { osc, gain };
     } catch (_) {}
+  }
+
+  stopSynthLoop(roomKey) {
+    const loop = this.activeSynthLoops[roomKey];
+    if (loop) {
+      try {
+        loop.gain.gain.setValueAtTime(0.0001, this.audioContext.currentTime);
+        loop.osc.stop(this.audioContext.currentTime + 0.04);
+      } catch (_) {}
+      this.activeSynthLoops[roomKey] = null;
+    }
   }
 }
 
@@ -297,12 +317,11 @@ export class EntangledLoveApp {
     this.audio = new AudioManager();
 
     // Game state
-    this.journey = 1;
     this.seed = 7;
     this.shots = [];
-    this.dayIndex = 0; // 0 to this.shots.length - 1 (NO hard cap!)
+    this.dayIndex = 0; // 0 to 1023 (player-paced)
     this.stats = null;
-    this.statements = [];
+    this.statements = generateStatementList(); // Fixed, permanent 5 questions
     this.userAnswers = {};
     this.isSubmitted = false;
     this.mode = 'simulator';
@@ -331,7 +350,7 @@ export class EntangledLoveApp {
       scoreInsight: document.getElementById('score-insight'),
       checklistCards: document.getElementById('checklist-cards'),
       btnSubmitChecklist: document.getElementById('btn-submit-checklist'),
-      btnNewJourney: document.getElementById('btn-new-journey'),
+      btnResetChecklist: document.getElementById('btn-new-journey'),
 
       // Settings Modal
       settingsModal: document.getElementById('settings-modal'),
@@ -367,7 +386,6 @@ export class EntangledLoveApp {
   }
 
   autoBootstrapGame() {
-    // Check cached credentials
     const cachedKey = sessionStorage.getItem(STORAGE_KEY_API_KEY);
     if (cachedKey) {
       this.dom.inputApiKey.value = cachedKey;
@@ -389,7 +407,7 @@ export class EntangledLoveApp {
       } catch (_) {}
     }
 
-    // Default to instant play via Local Quantum Simulator
+    // Default to instant play via Local Quantum Simulator (0 credits)
     this.startWithSimulator();
   }
 
@@ -461,7 +479,7 @@ export class EntangledLoveApp {
       this.dom.corsModal.classList.add('hidden');
     });
 
-    // Settings Modal actions
+    // Settings actions
     this.dom.btnConnectAtlas.addEventListener('click', () => this.startWithAtlas());
     this.dom.btnPlaySimulator.addEventListener('click', () => {
       this.startWithSimulator();
@@ -501,7 +519,7 @@ export class EntangledLoveApp {
 
     // Field Notebook Actions
     this.dom.btnSubmitChecklist.addEventListener('click', () => this.submitNotebook());
-    this.dom.btnNewJourney.addEventListener('click', () => this.startNewJourney());
+    this.dom.btnResetChecklist.addEventListener('click', () => this.resetLogbook());
   }
 
   /**
@@ -578,9 +596,6 @@ export class EntangledLoveApp {
     this.dom.statusLog.className = isError ? 'status-console error' : 'status-console active';
   }
 
-  /**
-   * Start or Switch to Moth Atlas API
-   */
   async startWithAtlas() {
     const apiKey = this.dom.inputApiKey.value.trim();
     if (!apiKey) {
@@ -598,7 +613,7 @@ export class EntangledLoveApp {
 
     this.dom.btnConnectAtlas.disabled = true;
     this.dom.btnPlaySimulator.disabled = true;
-    this.logStatus('Submitting 4-qubit graph state job to Moth Atlas (5 credits)...');
+    this.logStatus('Submitting 4-qubit Bell state job to Moth Atlas (5 credits)...');
 
     const client = new AtlasClient(apiKey, endpoint);
 
@@ -651,8 +666,8 @@ export class EntangledLoveApp {
   }
 
   startWithSimulator() {
-    this.logStatus('Generating 1,024 shots with Local Quantum Graph Simulator...');
-    const batchData = simulateLocalGraphBatch(this.seed, 1024, 0.85);
+    this.logStatus('Generating 1,024 shots with Local Quantum Bell State Simulator...');
+    const batchData = simulateLocalGraphBatch(this.seed, 1024, 1.0);
 
     try {
       sessionStorage.setItem(STORAGE_KEY_SHOTS, JSON.stringify(batchData));
@@ -680,13 +695,12 @@ export class EntangledLoveApp {
     this.seed = batchData.seed || 7;
     this.dayIndex = 0;
 
-    // Compute ground truth statistics across the whole batch
     this.stats = computeStatistics(this.shots);
-    this.statements = generateStatementList(this.stats, this.seed);
+    this.statements = generateStatementList(); // Fixed, permanent questions
     this.userAnswers = {};
     this.isSubmitted = false;
 
-    // Render Diegetic Notebook
+    // Render Notebook
     this.renderChecklist();
     this.dom.scoreBanner.classList.add('hidden');
     this.dom.btnSubmitChecklist.disabled = false;
@@ -695,7 +709,7 @@ export class EntangledLoveApp {
       <span class="wax-seal-text">SEAL OBSERVATIONS</span>
     `;
 
-    // Update HUD & Badges
+    // Update HUD
     this.dom.modeBadge.textContent = this.mode === 'atlas'
       ? `Moth Atlas (${batchData.jobId ? batchData.jobId.slice(0, 8) : 'graph-v1'})`
       : 'Local Simulator';
@@ -705,19 +719,23 @@ export class EntangledLoveApp {
   }
 
   /**
-   * Advance to the next evening: player can observe as many days as they need!
+   * Advance to the next evening.
+   * Player can advance through as many days as they need!
    */
   nextDay() {
     if (this.shots.length === 0) return;
 
     if (this.dayIndex + 1 < this.shots.length) {
       this.dayIndex++;
+      // Turning to next day automatically turns off both lights
       this.renderer.triggerDayTransition(this.dayIndex + 1);
+      // Immediately stop any room sounds while the sky transitions
+      this.audio.stopAllLoops();
       this.audio.playDayTransition();
       this.applyDay(this.dayIndex);
       this.updateControlsUI();
     } else {
-      alert('You have reached the end of this 1,024-shot batch! Click "New Investigation" to generate another quantum chapter.');
+      alert('You have reached the end of this 1,024-shot batch! Take your time to review your field notes.');
     }
   }
 
@@ -741,7 +759,7 @@ export class EntangledLoveApp {
   }
 
   /**
-   * Render the 5 statements in the Diegetic Field Notebook with authentic pencil checkboxes
+   * Render the fixed 5 statements in the Field Notebook with tactile pencil checkboxes
    */
   renderChecklist() {
     const container = this.dom.checklistCards;
@@ -848,11 +866,11 @@ export class EntangledLoveApp {
 
     let narrative = '';
     if (scoring.score === 5) {
-      narrative = 'Flawless deduction! You unveiled the quantum bond: Leo and Mia are correlated by an entangled graph state on qubits 0 & 2, linking their resting and active cycles across 9,560 km.';
+      narrative = 'Flawless deduction! You decoded their quantum bond: Leo and Mia’s moods are 100% entangled in a Bell state, synchronizing their resting and active evenings across 9,560 km.';
     } else if (scoring.score >= 3) {
-      narrative = 'Strong observational insight! You detected the core rule: when one rests, the other tends to rest; when one is active, the other is active.';
+      narrative = 'Strong observational insight! You detected the golden rule: when one rests, the other always rests; when one is active, the other is active.';
     } else {
-      narrative = 'Quantum superpositions can deceive the eye. Read the inked notes below to see how Leo and Mia were secretly entangled.';
+      narrative = 'Quantum superpositions can be tricky. Read the inked notes below to see how Leo and Mia’s moods were entangled.';
     }
     this.dom.scoreInsight.textContent = narrative;
 
@@ -878,16 +896,44 @@ export class EntangledLoveApp {
     `;
   }
 
-  startNewJourney() {
-    this.journey += 1;
-    this.seed = (this.seed * 31 + 17) % 9999 + 1;
+  /**
+   * Resets field observations back to Day 1 and clears pencil marks
+   * without changing or refreshing the 5 fixed deduction questions.
+   */
+  resetLogbook() {
     this.dayIndex = 0;
+    this.userAnswers = {};
+    this.isSubmitted = false;
 
-    if (this.mode === 'simulator') {
-      this.startWithSimulator();
-    } else {
-      this.startWithAtlas();
-    }
+    // Reset UI
+    this.dom.scoreBanner.classList.add('hidden');
+    this.dom.btnSubmitChecklist.disabled = false;
+    this.dom.btnSubmitChecklist.innerHTML = `
+      <span class="wax-seal-icon">✦</span>
+      <span class="wax-seal-text">SEAL OBSERVATIONS</span>
+    `;
+
+    // Clear all checkmarks and result annotations from entries
+    this.statements.forEach((st) => {
+      const entry = document.getElementById(`journal-entry-${st.id}`);
+      if (!entry) return;
+      const btnTrue = entry.querySelector('.true-btn');
+      const btnFalse = entry.querySelector('.false-btn');
+      if (btnTrue) btnTrue.classList.remove('selected');
+      if (btnFalse) btnFalse.classList.remove('selected');
+
+      const resultEl = document.getElementById(`entry-result-${st.id}`);
+      if (resultEl) {
+        resultEl.classList.add('hidden');
+        resultEl.innerHTML = '';
+      }
+    });
+
+    // Reset day and lights
+    this.renderer.setLights(false, false);
+    this.audio.stopAllLoops();
+    this.applyDay(0);
+    this.updateControlsUI();
   }
 
   startRenderLoop() {
