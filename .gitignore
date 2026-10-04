@@ -1,0 +1,11 @@
+# Environment & API keys (Never commit API keys!)
+.env
+*.env
+
+# Python bytecode & caches
+__pycache__/
+*.pyc
+
+# OS metadata
+.DS_Store
+Thumbs.db
