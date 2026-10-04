@@ -117,7 +117,21 @@ export default {
 
 ---
 
-## How to Publish to GitHub Pages
+## Deployment Options
+
+### Option A: Deploy to Vercel (Recommended for Live Moth Atlas API)
+
+Vercel is the fastest and easiest way to deploy this project with live Moth Atlas API support because this repository includes a built-in Vercel Edge proxy (`api/[...path].js`):
+
+1. Push your repository to GitHub.
+2. Go to [vercel.com](https://vercel.com) and click **Add New Project** &rarr; Import your GitHub repo.
+3. Leave all default settings (no build command or framework preset needed) and click **Deploy**.
+4. **Why this works seamlessly**:
+   - The web app automatically detects the `.vercel.app` domain and routes API calls to `/api/v1` on the **same origin**.
+   - **Zero CORS issues**: Browser requests stay on the same domain, and the Vercel Edge proxy forwards them to Moth Atlas with your Bearer token.
+   - No external proxies or Cloudflare Workers needed!
+
+### Option B: Deploy to GitHub Pages (Static Hosting)
 
 1. **Initialize Git repository**:
    ```bash
@@ -140,6 +154,7 @@ export default {
    - Select branch `main` and folder `/ (root)`, then click **Save**.
    - The `.nojekyll` file included in this repository ensures that assets and folders are served cleanly without Jekyll processing.
    - Within 1–2 minutes, your site will be live at `https://<your-username>.github.io/entangled-love/`.
+   - Visitors can play in **Local Simulator Mode** with zero setup, or use a Cloudflare Worker for live Atlas calls.
 
 ---
 

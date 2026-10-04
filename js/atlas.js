@@ -5,7 +5,9 @@
  * and local offline simulation for "Entangled Love".
  */
 
-export const ATLAS_DEFAULT_BASE_URL = 'https://api.mothquantum.com/api/v1';
+export const ATLAS_DEFAULT_BASE_URL = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
+  ? `${window.location.origin}/api/v1`
+  : 'https://api.mothquantum.com/api/v1';
 export const STORAGE_KEY_API_KEY = 'entangled_love_atlas_api_key';
 export const STORAGE_KEY_ENDPOINT = 'entangled_love_atlas_endpoint';
 export const STORAGE_KEY_SHOTS = 'entangled_love_shots_cache';
