@@ -1,8 +1,14 @@
 /**
  * game.js - Core State Controller, Audio Manager, and Interaction Engine
  * 
- * Manages evenings, shot progression, curtains, notebook scoring,
- * audio playback (HTML5 Audio + WebAudio synth fallback), and title screen.
+ * Features:
+ * - 16-Day Journey through the 4-qubit quantum graph state
+ * - Light switch window mechanic (no curtains)
+ * - Keybindings: [Z] Window A, [X] Window B, [C] Both Windows, [N] Next Day
+ * - Day-transition celestial animation
+ * - Simplified 5-item qualitative checklist with automatic evaluation after 16 days
+ * - Integrated single-screen layout (no vertical scrolling)
+ * - Audio manager with switch clicks, activity loops, and WebAudio fallback
  */
 
 import {
@@ -11,7 +17,6 @@ import {
   STORAGE_KEY_API_KEY,
   STORAGE_KEY_ENDPOINT,
   STORAGE_KEY_SHOTS,
-  STORAGE_KEY_META,
   ATLAS_DEFAULT_BASE_URL
 } from './atlas.js';
 
@@ -28,9 +33,10 @@ import {
   WINDOW_B
 } from './draw.js';
 
+export const MAX_DAYS = 16;
+
 /**
- * Audio Manager: handles curtain swipe and quiet activity loops
- * Supports both vendored WAV files and procedural WebAudio fallback.
+ * Audio Manager: handles tactile light switches, ambient room loops, and day transitions
  */
 class AudioManager {
   constructor() {
@@ -40,6 +46,7 @@ class AudioManager {
 
     // HTML5 Audio Elements
     this.soundFiles = {
+      click: 'assets/audio/switch_click.wav',
       swipe: 'assets/audio/curtain_swipe.wav',
       bed: 'assets/audio/bed_tone.wav',
       thinking: 'assets/audio/thinking_loop.wav',
@@ -50,7 +57,6 @@ class AudioManager {
     this.audioElements = {};
     this.initAudioElements();
 
-    // WebAudio active loop nodes for fallback
     this.activeSynthLoops = {
       A: null,
       B: null
@@ -62,7 +68,7 @@ class AudioManager {
       const audio = new Audio();
       audio.src = path;
       audio.preload = 'auto';
-      if (key !== 'swipe') {
+      if (key !== 'click' && key !== 'swipe') {
         audio.loop = true;
       }
       this.audioElements[key] = audio;
@@ -80,10 +86,7 @@ class AudioManager {
         }
       }
       this.audioUnlocked = true;
-      console.log('[Audio] Audio context initialized and unlocked');
-    } catch (e) {
-      console.warn('[Audio] Could not initialize WebAudio context:', e);
-    }
+    } catch (_) {}
   }
 
   toggleMute() {
@@ -94,24 +97,42 @@ class AudioManager {
     return this.isMuted;
   }
 
-  playCurtainSwipe() {
+  playLightSwitch() {
     if (this.isMuted) return;
     this.unlockAudioContext();
-
-    const swipe = this.audioElements.swipe;
-    if (swipe) {
-      swipe.volume = 0.28;
-      swipe.currentTime = 0;
-      swipe.play().catch(() => {
-        // Fallback to WebAudio synth swipe
-        this.synthCurtainSwipe();
-      });
+    const click = this.audioElements.click;
+    if (click) {
+      click.volume = 0.35;
+      click.currentTime = 0;
+      click.play().catch(() => this.synthSwitchClick());
     } else {
-      this.synthCurtainSwipe();
+      this.synthSwitchClick();
     }
   }
 
-  updateActivityLoops(isOpenA, actA, isOpenB, actB) {
+  playDayTransition() {
+    if (this.isMuted) return;
+    this.unlockAudioContext();
+    try {
+      const ctx = this.audioContext;
+      if (!ctx) return;
+      // Celestial harmonic chime
+      [523.25, 659.25, 783.99].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.05);
+        gain.gain.setValueAtTime(0.07, ctx.currentTime + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.65);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.05);
+        osc.stop(ctx.currentTime + 0.7);
+      });
+    } catch (_) {}
+  }
+
+  updateActivityLoops(isLitA, actA, isLitB, actB) {
     if (this.isMuted) {
       this.stopAllLoops();
       return;
@@ -120,18 +141,16 @@ class AudioManager {
 
     const actKeys = ['bed', 'thinking', 'gaming', 'cooking'];
 
-    // Room A Audio Loop
-    const keyA = actKeys[actA];
-    if (isOpenA) {
-      this.playRoomAudio('A', keyA, actA);
+    // Room A Audio Loop (plays only while Light A is ON)
+    if (isLitA) {
+      this.playRoomAudio('A', actKeys[actA], actA);
     } else {
       this.stopRoomAudio('A');
     }
 
-    // Room B Audio Loop
-    const keyB = actKeys[actB];
-    if (isOpenB) {
-      this.playRoomAudio('B', keyB, actB);
+    // Room B Audio Loop (plays only while Light B is ON)
+    if (isLitB) {
+      this.playRoomAudio('B', actKeys[actB], actB);
     } else {
       this.stopRoomAudio('B');
     }
@@ -140,11 +159,9 @@ class AudioManager {
   playRoomAudio(roomKey, soundKey, actCode) {
     const audio = this.audioElements[soundKey];
     if (audio) {
-      audio.volume = 0.22; // Quiet ambient loop per requirements
+      audio.volume = 0.22;
       if (audio.paused) {
-        audio.play().catch(() => {
-          this.synthActivityLoop(roomKey, actCode);
-        });
+        audio.play().catch(() => this.synthActivityLoop(roomKey, actCode));
       }
     } else {
       this.synthActivityLoop(roomKey, actCode);
@@ -152,18 +169,15 @@ class AudioManager {
   }
 
   stopRoomAudio(roomKey) {
-    // If WebAudio synth loop was active for this room
     if (this.activeSynthLoops[roomKey]) {
-      try {
-        this.activeSynthLoops[roomKey].stop();
-      } catch (_) {}
+      try { this.activeSynthLoops[roomKey].stop(); } catch (_) {}
       this.activeSynthLoops[roomKey] = null;
     }
   }
 
   stopAllLoops() {
     for (const [key, audio] of Object.entries(this.audioElements)) {
-      if (key !== 'swipe') {
+      if (key !== 'click' && key !== 'swipe') {
         try {
           audio.pause();
           audio.currentTime = 0;
@@ -174,55 +188,45 @@ class AudioManager {
     this.stopRoomAudio('B');
   }
 
-  // Procedural WebAudio synthesis fallback methods
-  synthCurtainSwipe() {
+  synthSwitchClick() {
     if (!this.audioContext || this.isMuted) return;
     try {
       const ctx = this.audioContext;
-      const bufferSize = ctx.sampleRate * 0.4;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * (i / bufferSize));
-      }
-      const noise = ctx.createBufferSource();
-      noise.buffer = buffer;
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(450, ctx.currentTime);
-      filter.Q.setValueAtTime(1.5, ctx.currentTime);
+      const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.18, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.38);
-
-      noise.connect(filter);
-      filter.connect(gain);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1400, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+      osc.connect(gain);
       gain.connect(ctx.destination);
-      noise.start();
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
     } catch (_) {}
   }
 
   synthActivityLoop(roomKey, actCode) {
     if (!this.audioContext || this.isMuted) return;
-    if (this.activeSynthLoops[roomKey]) return; // already playing
+    if (this.activeSynthLoops[roomKey]) return;
     try {
       const ctx = this.audioContext;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      if (actCode === 0) { // Bed: deep warm 60Hz hum
+      if (actCode === 0) {
         osc.type = 'sine';
         osc.frequency.setValueAtTime(60, ctx.currentTime);
         gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      } else if (actCode === 1) { // Thinking: soft 432Hz ambient chime
+      } else if (actCode === 1) {
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(432, ctx.currentTime);
         gain.gain.setValueAtTime(0.03, ctx.currentTime);
-      } else if (actCode === 2) { // Game: gentle pulse
+      } else if (actCode === 2) {
         osc.type = 'square';
         osc.frequency.setValueAtTime(220, ctx.currentTime);
         gain.gain.setValueAtTime(0.02, ctx.currentTime);
-      } else { // Cooking: soft low filtered rumble
+      } else {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(95, ctx.currentTime);
         gain.gain.setValueAtTime(0.025, ctx.currentTime);
@@ -253,18 +257,16 @@ export class EntangledLoveApp {
     this.renderer = new SceneRenderer(this.canvas);
     this.audio = new AudioManager();
 
-    // State Variables
-    this.chapter = 1;
+    // Game state
+    this.journey = 1;
     this.seed = 7;
     this.shots = [];
-    this.counts = {};
-    this.shotIndex = 0; // Current evening [0..shots.length-1]
+    this.dayIndex = 0; // 0 to MAX_DAYS - 1 (16 days total)
     this.stats = null;
     this.statements = [];
-    this.userAnswers = {}; // id -> boolean
-    this.isNotebookSubmitted = false;
-    this.notebookScore = null;
-    this.mode = 'simulator'; // 'atlas' or 'simulator'
+    this.userAnswers = {};
+    this.isSubmitted = false;
+    this.mode = 'simulator';
 
     // UI Elements
     this.dom = {
@@ -280,35 +282,36 @@ export class EntangledLoveApp {
       advancedFields: document.getElementById('advanced-fields'),
       btnSetProxy: document.getElementById('btn-set-proxy'),
       btnSetDirect: document.getElementById('btn-set-direct'),
-      
-      // Top bar & Evening Controls
-      topChapter: document.getElementById('chapter-indicator'),
-      topEvening: document.getElementById('evening-indicator'),
+
+      // Header Badges
+      topJourney: document.getElementById('journey-indicator'),
+      topDay: document.getElementById('day-indicator'),
       topModeBadge: document.getElementById('mode-badge'),
       btnMute: document.getElementById('btn-mute'),
-      btnToggleCurtains: document.getElementById('btn-toggle-curtains'),
-      btnRefreshEvening: document.getElementById('btn-refresh-evening'),
-      btnOpenNotebook: document.getElementById('btn-open-notebook'),
-      eveningProgress: document.getElementById('evening-progress'),
-      eveningProgressBar: document.getElementById('evening-progress-bar'),
 
-      // Notebook Panel
-      notebookPanel: document.getElementById('notebook-panel'),
-      btnCloseNotebook: document.getElementById('btn-close-notebook'),
-      statementList: document.getElementById('statement-list'),
-      btnSubmitNotebook: document.getElementById('btn-submit-notebook'),
-      btnNewChapter: document.getElementById('btn-new-chapter'),
-      notebookScoreBanner: document.getElementById('notebook-score-banner'),
-      scoreText: document.getElementById('score-text'),
-      scoreInsights: document.getElementById('score-insights'),
+      // Canvas Hotkey Action Buttons
+      btnLightA: document.getElementById('btn-light-a'),
+      btnLightB: document.getElementById('btn-light-b'),
+      btnLightBoth: document.getElementById('btn-light-both'),
+      btnNextDay: document.getElementById('btn-next-day'),
+      dayProgressBar: document.getElementById('day-progress-bar'),
 
-      // CORS proxy modal
+      // Checklist Panel (Integrated side panel - no scroll down!)
+      checklistCards: document.getElementById('checklist-cards'),
+      btnSubmitChecklist: document.getElementById('btn-submit-checklist'),
+      btnNewJourney: document.getElementById('btn-new-journey'),
+      scoreBanner: document.getElementById('score-banner'),
+      scoreNumber: document.getElementById('score-number'),
+      scoreInsight: document.getElementById('score-insight'),
+
+      // CORS Modal
       btnCorsHelp: document.getElementById('btn-cors-help'),
       corsModal: document.getElementById('cors-modal'),
       btnCloseCors: document.getElementById('btn-close-cors')
     };
 
     this.initEventListeners();
+    this.initKeyboardBindings();
     this.checkCachedSession();
     this.startRenderLoop();
   }
@@ -336,22 +339,18 @@ export class EntangledLoveApp {
   }
 
   initEventListeners() {
-    // Window Resize
     window.addEventListener('resize', () => this.renderer.resize());
 
-    // Canvas click interaction (toggling curtains A & B)
+    // Canvas click interaction: toggles light in Window A or B
     this.canvas.addEventListener('click', (e) => {
       this.audio.unlockAudioContext();
       const hit = this.renderer.hitTest(e.clientX, e.clientY);
       if (hit === 'A' || hit === 'B') {
-        const isNowOpen = this.renderer.toggleCurtain(hit);
-        this.audio.playCurtainSwipe();
-        this.syncAudioState();
-        this.updateCurtainsButtonLabel();
+        this.toggleWindowLight(hit);
       }
     });
 
-    // Canvas hover feedback
+    // Canvas mouse move hover
     this.canvas.addEventListener('mousemove', (e) => {
       const hit = this.renderer.hitTest(e.clientX, e.clientY);
       this.renderer.hoverWindow = hit;
@@ -363,6 +362,24 @@ export class EntangledLoveApp {
       this.canvas.style.cursor = 'default';
     });
 
+    // Toolbar buttons
+    this.dom.btnLightA.addEventListener('click', () => this.toggleWindowLight('A'));
+    this.dom.btnLightB.addEventListener('click', () => this.toggleWindowLight('B'));
+    this.dom.btnLightBoth.addEventListener('click', () => this.toggleBothLights());
+    this.dom.btnNextDay.addEventListener('click', () => this.nextDay());
+
+    // Mute button
+    this.dom.btnMute.addEventListener('click', () => {
+      const isMuted = this.audio.toggleMute();
+      this.dom.btnMute.textContent = isMuted ? 'Audio: Muted' : 'Audio: On';
+      this.dom.btnMute.classList.toggle('muted', isMuted);
+    });
+
+    // Title modal buttons
+    this.dom.btnConnectAtlas.addEventListener('click', () => this.startWithAtlas());
+    this.dom.btnPlaySimulator.addEventListener('click', () => this.startWithSimulator());
+    this.dom.btnResumeCache.addEventListener('click', () => this.resumeCachedBatch());
+
     // API Key visibility toggle
     this.dom.btnToggleKeyVisibility.addEventListener('click', () => {
       const isPass = this.dom.inputApiKey.type === 'password';
@@ -370,66 +387,13 @@ export class EntangledLoveApp {
       this.dom.btnToggleKeyVisibility.textContent = isPass ? 'Hide' : 'Show';
     });
 
-    // Advanced fields toggle
+    // Advanced toggle
     this.dom.advancedToggle.addEventListener('click', (e) => {
       e.preventDefault();
       this.dom.advancedFields.classList.toggle('hidden');
     });
 
-    // Connect to Atlas API
-    this.dom.btnConnectAtlas.addEventListener('click', () => this.startWithAtlas());
-
-    // Play in Local Simulator Mode (No API key needed)
-    this.dom.btnPlaySimulator.addEventListener('click', () => this.startWithSimulator());
-
-    // Resume Cached Batch
-    this.dom.btnResumeCache.addEventListener('click', () => this.resumeCachedBatch());
-
-    // Audio Mute Toggle
-    this.dom.btnMute.addEventListener('click', () => {
-      const isMuted = this.audio.toggleMute();
-      this.dom.btnMute.textContent = isMuted ? 'Audio: Muted' : 'Audio: On';
-      this.dom.btnMute.classList.toggle('muted', isMuted);
-    });
-
-    // Button: Toggle Both Curtains
-    this.dom.btnToggleCurtains.addEventListener('click', () => {
-      this.audio.unlockAudioContext();
-      const bothOpen = this.renderer.targetCurtainA > 0.5 && this.renderer.targetCurtainB > 0.5;
-      const nextState = !bothOpen;
-      this.renderer.setCurtains(nextState, nextState);
-      this.audio.playCurtainSwipe();
-      this.syncAudioState();
-      this.updateCurtainsButtonLabel();
-    });
-
-    // Button: Refresh (Take next shot from batch, close curtains, no API call!)
-    this.dom.btnRefreshEvening.addEventListener('click', () => this.nextEvening());
-
-    // Button: Open/Close Notebook
-    this.dom.btnOpenNotebook.addEventListener('click', () => {
-      this.dom.notebookPanel.classList.toggle('hidden');
-    });
-    this.dom.btnCloseNotebook.addEventListener('click', () => {
-      this.dom.notebookPanel.classList.add('hidden');
-    });
-
-    // Notebook submission
-    this.dom.btnSubmitNotebook.addEventListener('click', () => this.submitNotebook());
-
-    // New Chapter Button
-    this.dom.btnNewChapter.addEventListener('click', () => this.startNewChapter());
-
-    // CORS Help Modal
-    this.dom.btnCorsHelp.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.dom.corsModal.classList.remove('hidden');
-    });
-    this.dom.btnCloseCors.addEventListener('click', () => {
-      this.dom.corsModal.classList.add('hidden');
-    });
-
-    // Preset Base URL buttons (Proxy vs Direct)
+    // Proxy preset buttons
     if (this.dom.btnSetProxy) {
       this.dom.btnSetProxy.addEventListener('click', () => {
         this.dom.inputEndpoint.value = 'http://localhost:8787/api/v1';
@@ -445,20 +409,87 @@ export class EntangledLoveApp {
         this.logStatus('Base URL switched to direct: ' + ATLAS_DEFAULT_BASE_URL);
       });
     }
+
+    // Checklist buttons
+    this.dom.btnSubmitChecklist.addEventListener('click', () => this.submitNotebook(false));
+    this.dom.btnNewJourney.addEventListener('click', () => this.startNewJourney());
+
+    // CORS help modal
+    this.dom.btnCorsHelp.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.dom.corsModal.classList.remove('hidden');
+    });
+    this.dom.btnCloseCors.addEventListener('click', () => {
+      this.dom.corsModal.classList.add('hidden');
+    });
   }
 
-  updateCurtainsButtonLabel() {
-    const bothOpen = this.renderer.targetCurtainA > 0.5 && this.renderer.targetCurtainB > 0.5;
-    this.dom.btnToggleCurtains.textContent = bothOpen ? 'Close Both Curtains' : 'Peek / Open Both';
+  /**
+   * Keyboard shortcuts:
+   * Z: Toggle Window A Light
+   * X: Toggle Window B Light
+   * C: Toggle Both Lights
+   * N: Next Day
+   */
+  initKeyboardBindings() {
+    window.addEventListener('keydown', (e) => {
+      // Don't intercept when user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      const key = e.key.toLowerCase();
+      if (key === 'z') {
+        e.preventDefault();
+        this.toggleWindowLight('A');
+      } else if (key === 'x') {
+        e.preventDefault();
+        this.toggleWindowLight('B');
+      } else if (key === 'c') {
+        e.preventDefault();
+        this.toggleBothLights();
+      } else if (key === 'n') {
+        e.preventDefault();
+        this.nextDay();
+      }
+    });
+  }
+
+  toggleWindowLight(winKey) {
+    this.audio.unlockAudioContext();
+    const isNowOn = this.renderer.toggleLight(winKey);
+    this.audio.playLightSwitch();
+    this.syncAudioState();
+    this.updateToolbarLabels();
+  }
+
+  toggleBothLights() {
+    this.audio.unlockAudioContext();
+    const isNowOn = this.renderer.toggleBothLights();
+    this.audio.playLightSwitch();
+    this.syncAudioState();
+    this.updateToolbarLabels();
+  }
+
+  updateToolbarLabels() {
+    const isLitA = this.renderer.targetLightA > 0.5;
+    const isLitB = this.renderer.targetLightB > 0.5;
+    const bothLit = isLitA && isLitB;
+
+    this.dom.btnLightA.textContent = isLitA ? '[Z] Light A (ON)' : '[Z] Light A (OFF)';
+    this.dom.btnLightA.classList.toggle('active-light', isLitA);
+
+    this.dom.btnLightB.textContent = isLitB ? '[X] Light B (ON)' : '[X] Light B (OFF)';
+    this.dom.btnLightB.classList.toggle('active-light', isLitB);
+
+    this.dom.btnLightBoth.textContent = bothLit ? '[C] Turn Both Off' : '[C] Turn Both On';
   }
 
   syncAudioState() {
-    const isOpenA = this.renderer.targetCurtainA > 0.5;
-    const isOpenB = this.renderer.targetCurtainB > 0.5;
+    const isLitA = this.renderer.targetLightA > 0.5;
+    const isLitB = this.renderer.targetLightB > 0.5;
     this.audio.updateActivityLoops(
-      isOpenA,
+      isLitA,
       this.renderer.activityA,
-      isOpenB,
+      isLitB,
       this.renderer.activityB
     );
   }
@@ -481,7 +512,6 @@ export class EntangledLoveApp {
 
     const endpoint = this.dom.inputEndpoint.value.trim() || ATLAS_DEFAULT_BASE_URL;
 
-    // Save strictly to sessionStorage (never disk or repo)
     try {
       sessionStorage.setItem(STORAGE_KEY_API_KEY, apiKey);
       sessionStorage.setItem(STORAGE_KEY_ENDPOINT, endpoint);
@@ -489,7 +519,7 @@ export class EntangledLoveApp {
 
     this.dom.btnConnectAtlas.disabled = true;
     this.dom.btnPlaySimulator.disabled = true;
-    this.logStatus('Connecting to Atlas API and preparing graph-v1 job...');
+    this.logStatus('Connecting to Moth Atlas graph-v1 engine (5 credits)...');
 
     const client = new AtlasClient(apiKey, endpoint);
 
@@ -506,8 +536,6 @@ export class EntangledLoveApp {
       let errMsg = err.message || 'Unknown API error';
 
       if (errMsg.includes('CORS') || errMsg.includes('Network')) {
-        // Direct browser call was blocked by CORS.
-        // Check if local proxy is active on http://localhost:8787/api/v1
         this.logStatus('Browser CORS policy blocked direct connection. Checking local proxy on http://localhost:8787...');
         try {
           const testProxy = await fetch('http://localhost:8787/api/v1/engines', {
@@ -515,7 +543,7 @@ export class EntangledLoveApp {
             headers: { 'Authorization': `Bearer ${apiKey}` }
           });
           if (testProxy.ok) {
-            this.logStatus('Local CORS Proxy detected! Automatically switching to http://localhost:8787/api/v1 and retrying...');
+            this.logStatus('Local CORS Proxy detected! Automatically routing through http://localhost:8787/api/v1...');
             this.dom.inputEndpoint.value = 'http://localhost:8787/api/v1';
             try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, 'http://localhost:8787/api/v1'); } catch (_) {}
             
@@ -528,11 +556,9 @@ export class EntangledLoveApp {
             this.dom.titleModal.classList.add('hidden');
             return;
           }
-        } catch (_) {
-          // Proxy not running
-        }
+        } catch (_) {}
 
-        errMsg = 'Browser CORS blocked direct API access. Run "python3 proxy.py" in terminal or click "Use Local Proxy" above, or switch to Simulator Mode.';
+        errMsg = 'Browser CORS blocked direct access. Run "python3 proxy.py" in terminal or click "Use Local Proxy" above, or switch to Simulator Mode.';
       }
 
       this.logStatus(errMsg, true);
@@ -541,11 +567,8 @@ export class EntangledLoveApp {
     }
   }
 
-  /**
-   * Start with Offline Local Quantum Simulator
-   */
   startWithSimulator() {
-    this.logStatus('Running offline quantum graph-state simulator (1024 shots)...');
+    this.logStatus('Starting Local Quantum Simulator (1024 shots generated)...');
     const batchData = simulateLocalGraphBatch(this.seed, 1024, 0.85);
 
     try {
@@ -557,9 +580,6 @@ export class EntangledLoveApp {
     this.dom.titleModal.classList.add('hidden');
   }
 
-  /**
-   * Resume Cached Batch from sessionStorage
-   */
   resumeCachedBatch() {
     const cachedRaw = sessionStorage.getItem(STORAGE_KEY_SHOTS);
     if (!cachedRaw) return;
@@ -573,93 +593,76 @@ export class EntangledLoveApp {
     }
   }
 
-  /**
-   * Load batch of 1024 shots, compute statistics, generate statements
-   */
   loadBatch(batchData) {
     this.shots = batchData.shots;
-    this.counts = batchData.counts;
     this.seed = batchData.seed || 7;
-    this.shotIndex = 0;
+    this.dayIndex = 0;
 
-    console.log(`[Batch Loaded] ${this.shots.length} shots. Mode: ${this.mode}. Seed: ${this.seed}`);
-
-    // Compute ground-truth empirical statistics from the 1024 shots
-    this.stats = computeStatistics(this.shots);
-
-    // Generate the 8 correlation statements scored against this histogram
+    // Use 16-day subset for this playthrough
+    const sixteenDaysShots = this.shots.slice(0, MAX_DAYS);
+    this.stats = computeStatistics(sixteenDaysShots);
     this.statements = generateStatementList(this.stats, this.seed);
     this.userAnswers = {};
-    this.isNotebookSubmitted = false;
-    this.notebookScore = null;
+    this.isSubmitted = false;
 
-    // Reset UI
-    this.renderNotebookStatements();
-    this.dom.notebookScoreBanner.classList.add('hidden');
-    this.dom.btnSubmitNotebook.disabled = false;
-    this.dom.btnSubmitNotebook.textContent = 'Submit Notebook';
+    this.renderChecklist();
+    this.dom.scoreBanner.classList.add('hidden');
+    this.dom.btnSubmitChecklist.disabled = false;
+    this.dom.btnSubmitChecklist.textContent = 'Submit Observations';
 
-    // Update Header Badges
-    this.dom.topChapter.textContent = `Chapter ${this.chapter}`;
+    // Header Badges
+    this.dom.topJourney.textContent = `Journey ${this.journey}`;
     this.dom.topModeBadge.textContent = this.mode === 'atlas'
-      ? `Moth Atlas (Job: ${batchData.jobId || 'graph-v1'})`
+      ? `Moth Atlas (${batchData.jobId ? batchData.jobId.slice(0, 8) : 'graph-v1'})`
       : 'Local Quantum Simulator';
     this.dom.topModeBadge.className = `mode-badge ${this.mode}`;
 
-    // Apply first evening
-    this.applyEvening(0);
+    this.applyDay(0);
   }
 
   /**
-   * Advance to the next unused shot from the batch.
-   * Both curtains close.
-   * This is a new evening, NOT a new API job.
+   * Advance to Next Day (N key or Next Day button)
    */
-  nextEvening() {
+  nextDay() {
     if (this.shots.length === 0) return;
 
-    // Advance evening index
-    this.shotIndex = (this.shotIndex + 1) % this.shots.length;
-
-    // Smoothly close both curtains for the new evening
-    this.renderer.setCurtains(false, false);
-    this.audio.playCurtainSwipe();
-    this.audio.stopAllLoops();
-    this.updateCurtainsButtonLabel();
-
-    // Apply the new evening's activities under the closed curtains
-    this.applyEvening(this.shotIndex);
+    if (this.dayIndex + 1 < MAX_DAYS) {
+      this.dayIndex++;
+      this.renderer.triggerDayTransition(this.dayIndex + 1);
+      this.audio.playDayTransition();
+      this.applyDay(this.dayIndex);
+      this.updateToolbarLabels();
+    } else {
+      // Reached Day 16: Automatically submit the observations!
+      if (!this.isSubmitted) {
+        this.submitNotebook(true);
+      } else {
+        alert('You have completed all 16 days of this journey! Click "New 16-Day Journey" to explore the next set of days.');
+      }
+    }
   }
 
-  /**
-   * Apply shot at current index to Room A and Room B
-   */
-  applyEvening(index) {
+  applyDay(index) {
     const shot = this.shots[index];
     if (!shot) return;
 
-    // Window A reads b0 b1
     const actA = parseInt(shot.slice(0, 2), 2);
-    // Window B reads b2 b3
     const actB = parseInt(shot.slice(2, 4), 2);
 
     this.renderer.setActivities(actA, actB);
     this.syncAudioState();
 
-    // Update UI evening counter and progress
-    const currentNum = index + 1;
-    const totalNum = this.shots.length;
-    this.dom.topEvening.textContent = `Evening ${currentNum} of ${totalNum}`;
-    this.dom.eveningProgress.textContent = `${currentNum} / ${totalNum}`;
-    const pct = (currentNum / totalNum) * 100;
-    this.dom.eveningProgressBar.style.width = `${pct}%`;
+    const currentDay = index + 1;
+    this.dom.topDay.textContent = `Day ${currentDay} of ${MAX_DAYS}`;
+    const pct = (currentDay / MAX_DAYS) * 100;
+    this.dom.dayProgressBar.style.width = `${pct}%`;
   }
 
   /**
-   * Render notebook statement list
+   * Render the 5 simplified checklist statements in the side panel
    */
-  renderNotebookStatements() {
-    const container = this.dom.statementList;
+  renderChecklist() {
+    const container = this.dom.checklistCards;
     container.innerHTML = '';
 
     this.statements.forEach((st) => {
@@ -674,14 +677,12 @@ export class EntangledLoveApp {
       const choiceGroup = document.createElement('div');
       choiceGroup.className = 'choice-group';
 
-      // True Button
       const btnTrue = document.createElement('button');
       btnTrue.type = 'button';
       btnTrue.className = 'choice-btn true-btn';
       btnTrue.textContent = 'True';
       btnTrue.addEventListener('click', () => this.selectAnswer(st.id, true));
 
-      // False Button
       const btnFalse = document.createElement('button');
       btnFalse.type = 'button';
       btnFalse.className = 'choice-btn false-btn';
@@ -691,7 +692,6 @@ export class EntangledLoveApp {
       choiceGroup.appendChild(btnTrue);
       choiceGroup.appendChild(btnFalse);
 
-      // Result details container (shown after submit)
       const resultEl = document.createElement('div');
       resultEl.className = 'statement-result hidden';
       resultEl.id = `statement-result-${st.id}`;
@@ -704,7 +704,7 @@ export class EntangledLoveApp {
   }
 
   selectAnswer(statementId, value) {
-    if (this.isNotebookSubmitted) return;
+    if (this.isSubmitted) return;
 
     this.userAnswers[statementId] = value;
     const card = document.getElementById(`statement-card-${statementId}`);
@@ -723,117 +723,90 @@ export class EntangledLoveApp {
   }
 
   /**
-   * Submit notebook and score against the empirical histogram
+   * Submit the 5 statements and reveal score
    */
-  submitNotebook() {
-    // Check if all 8 questions answered
+  submitNotebook(isAuto = false) {
+    if (this.isSubmitted) return;
+
+    // If submitted manually early, ensure at least some answers are chosen
     const answeredCount = Object.keys(this.userAnswers).length;
-    if (answeredCount < this.statements.length) {
-      alert(`Please answer all ${this.statements.length} correlation statements before submitting. (${answeredCount}/${this.statements.length} answered)`);
-      return;
+    if (!isAuto && answeredCount < this.statements.length) {
+      const confirmEarly = confirm(`You have answered ${answeredCount} of ${this.statements.length} observations. Submit early?`);
+      if (!confirmEarly) return;
     }
 
     const scoring = scoreNotebook(this.statements, this.userAnswers);
-    this.notebookScore = scoring;
-    this.isNotebookSubmitted = true;
+    this.isSubmitted = true;
 
-    // Display score banner
-    this.dom.notebookScoreBanner.classList.remove('hidden');
-    this.dom.scoreText.textContent = `${scoring.score} / ${scoring.total} Correct (${scoring.percentage}%)`;
+    this.dom.scoreBanner.classList.remove('hidden');
+    this.dom.scoreNumber.textContent = `${scoring.score} / ${scoring.total} Correct (${scoring.percentage}%)`;
 
-    let insightMsg = '';
-    if (scoring.score === 8) {
-      insightMsg = 'Flawless intuition! You have deciphered the quantum graph state: qubits 0 and 2 are strongly entangled, keeping resting and active states synchronized, while qubits 1 and 3 remain uncorrelated coin flips.';
-    } else if (scoring.score >= 6) {
-      insightMsg = 'Great observational acuity! You picked up on the primary correlation between person A and person B. Notice how individual activities split 50/50 among correlated pairs.';
+    let msg = '';
+    if (scoring.score === 5) {
+      msg = 'Perfection! You decoded the quantum bond: qubits 0 & 2 are entangled, keeping resting and active states completely synchronized across 9,560 km.';
+    } else if (scoring.score >= 3) {
+      msg = 'Strong observational intuition! You noticed the primary rule: when one rests, the other rests; when one is active, the other is active.';
     } else {
-      insightMsg = 'Quantum correlation can be subtle. Review the measured percentages below to see how the graph state prepared by the engine behaved.';
+      msg = 'Quantum correlations can be surprising. Check the explanations below to discover how the lovers were entangled!';
     }
-    this.dom.scoreInsights.textContent = insightMsg;
+    this.dom.scoreInsight.textContent = msg;
 
-    // Update each statement card with measured percentage and explanation
     scoring.results.forEach((res) => {
       const card = document.getElementById(`statement-card-${res.id}`);
       const resultEl = document.getElementById(`statement-result-${res.id}`);
       if (!card || !resultEl) return;
 
       card.classList.add(res.isCorrect ? 'card-correct' : 'card-incorrect');
-
       resultEl.classList.remove('hidden');
       resultEl.innerHTML = `
         <div class="result-badge ${res.isCorrect ? 'badge-correct' : 'badge-incorrect'}">
-          ${res.isCorrect ? '✓ Correct' : '✗ Incorrect'} (Ground Truth: ${res.groundTruth ? 'TRUE' : 'FALSE'})
+          ${res.isCorrect ? '✓ Correct' : '✗ Incorrect'} (Truth: ${res.groundTruth ? 'TRUE' : 'FALSE'})
         </div>
-        <div class="result-measured"><strong>Empirical Histogram:</strong> ${res.measuredText}</div>
         <div class="result-explanation">${res.explanation}</div>
       `;
     });
 
-    this.dom.btnSubmitNotebook.disabled = true;
-    this.dom.btnSubmitNotebook.textContent = 'Notebook Submitted';
-    this.dom.notebookScoreBanner.scrollIntoView({ behavior: 'smooth' });
+    this.dom.btnSubmitChecklist.disabled = true;
+    this.dom.btnSubmitChecklist.textContent = isAuto ? '16 Days Complete (Submitted)' : 'Submitted';
   }
 
-  /**
-   * Start New Chapter: spends one more job with a new seed
-   */
-  async startNewChapter() {
-    const nextSeed = (this.seed * 31 + 17) % 9999 + 1;
-    this.chapter += 1;
-    this.seed = nextSeed;
+  startNewJourney() {
+    this.journey += 1;
+    // Shift shots array or advance seed for the next 16 days
+    if (this.shots.length > (this.journey * MAX_DAYS)) {
+      const next16 = this.shots.slice((this.journey - 1) * MAX_DAYS, this.journey * MAX_DAYS);
+      this.dayIndex = 0;
+      this.stats = computeStatistics(next16);
+      this.statements = generateStatementList(this.stats, this.seed + this.journey);
+      this.userAnswers = {};
+      this.isSubmitted = false;
 
-    if (this.mode === 'atlas') {
-      const confirmSpend = confirm(`Start Chapter ${this.chapter}? This will submit a new 1024-shot job to the Moth Atlas graph-v1 engine (5 credits, seed: ${this.seed}). Proceed?`);
-      if (!confirmSpend) return;
-
-      const apiKey = sessionStorage.getItem(STORAGE_KEY_API_KEY) || this.dom.inputApiKey.value.trim();
-      const endpoint = sessionStorage.getItem(STORAGE_KEY_ENDPOINT) || ATLAS_DEFAULT_BASE_URL;
-      const client = new AtlasClient(apiKey, endpoint);
-
-      this.dom.notebookPanel.classList.add('hidden');
-      this.dom.titleModal.classList.remove('hidden');
-      this.dom.btnConnectAtlas.disabled = true;
-      this.dom.btnPlaySimulator.disabled = true;
-
-      try {
-        const batchData = await client.fetchBatch(this.seed, (statusText) => {
-          this.logStatus(statusText);
-        });
-        this.loadBatch(batchData);
-        this.dom.titleModal.classList.add('hidden');
-      } catch (err) {
-        this.logStatus(`Chapter ${this.chapter} failed: ${err.message}`, true);
-        this.dom.btnConnectAtlas.disabled = false;
-        this.dom.btnPlaySimulator.disabled = false;
-      }
+      this.renderChecklist();
+      this.dom.scoreBanner.classList.add('hidden');
+      this.dom.btnSubmitChecklist.disabled = false;
+      this.dom.btnSubmitChecklist.textContent = 'Submit Observations';
+      this.dom.topJourney.textContent = `Journey ${this.journey}`;
+      this.applyDay(0);
     } else {
-      // Simulator mode
+      // Generate new batch
+      this.seed = (this.seed * 31 + 17) % 9999 + 1;
       this.startWithSimulator();
-      this.dom.notebookPanel.classList.add('hidden');
     }
   }
 
-  /**
-   * Main Animation & Render Loop
-   */
   startRenderLoop() {
     let lastTime = performance.now();
-
     const loop = (now) => {
       const dt = Math.min(0.1, (now - lastTime) / 1000);
       lastTime = now;
-
       this.renderer.update(dt);
       this.renderer.render();
-
       requestAnimationFrame(loop);
     };
-
     requestAnimationFrame(loop);
   }
 }
 
-// Bootstrap on DOMContentLoaded
 window.addEventListener('DOMContentLoaded', () => {
   window.app = new EntangledLoveApp();
 });

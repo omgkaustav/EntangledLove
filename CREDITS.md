@@ -8,12 +8,12 @@ An observational quantum piece created for the Moth Hackathon 2026.
 
 All sound effects in this project are licensed under the **Creative Commons CC0 1.0 Universal (Public Domain Dedication)**. You can copy, modify, distribute, and perform the work, even for commercial purposes, without asking permission.
 
-1. **Curtain Swipe** (`assets/audio/curtain_swipe.wav`)
-   - **Title**: Fabric Whoosh / Curtain Swipe
+1. **Curtain Swipe & Light Switch** (`assets/audio/curtain_swipe.wav`, `assets/audio/switch_click.wav`)
+   - **Title**: Fabric Whoosh & Tactile Mechanical Switch Click
    - **Author**: Antigravity Studio / Moth Hack
-   - **Source**: Procedural acoustic physical model synthesis (`generate_sounds.py`)
+   - **Source**: Procedural acoustic physical model synthesis
    - **License**: CC0 1.0 Universal (Public Domain) - https://creativecommons.org/publicdomain/zero/1.0/
-   - **Description**: Soft textured cloth swipe with resonant air decay (0.45s).
+   - **Description**: Crisp mechanical toggle click (0.08s) and soft cloth swipe (0.45s).
 
 2. **Room Tone / In Bed Loop** (`assets/audio/bed_tone.wav`)
    - **Title**: Warm Nighttime Room Tone

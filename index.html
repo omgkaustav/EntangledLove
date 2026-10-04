@@ -10,81 +10,93 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="app-container">
+  <div class="app-layout">
 
-    <!-- Top Navigation & Status -->
+    <!-- Top Navigation Header -->
     <header class="app-header">
       <div class="brand-section">
         <h1 class="app-title">Entangled Love</h1>
-        <p class="app-subtitle">Observational piece on quantum correlation across distance</p>
+        <p class="app-subtitle">Observational quantum piece across distance</p>
       </div>
       <div class="header-status">
-        <span id="chapter-indicator" class="indicator-badge">Chapter 1</span>
-        <span id="evening-indicator" class="indicator-badge">Evening 1 of 1024</span>
+        <span id="journey-indicator" class="indicator-badge">Journey 1</span>
+        <span id="day-indicator" class="indicator-badge highlight">Day 1 of 16</span>
         <span id="mode-badge" class="mode-badge simulator">Local Simulator</span>
         <button id="btn-mute" class="btn-icon" title="Toggle Audio">Audio: On</button>
       </div>
     </header>
 
-    <!-- Main Stage: Windows Canvas -->
-    <main class="stage-section">
-      <div class="canvas-wrapper">
-        <canvas id="scene-canvas" width="960" height="540"></canvas>
-      </div>
+    <!-- Main Single-Screen Workspace (Side-by-Side: No Scrolling) -->
+    <div class="main-workspace">
 
-      <!-- One-line requirement caption -->
-      <p class="stage-caption">
-        <strong>Observation Rule:</strong> Both windows are one measurement. Refresh starts another evening.
-      </p>
-
-      <!-- Stage Controls -->
-      <div class="stage-controls">
-        <div class="button-group">
-          <button id="btn-toggle-curtains" class="btn btn-secondary">Peek / Open Both</button>
-          <button id="btn-refresh-evening" class="btn btn-primary">Next Evening (Refresh)</button>
-          <button id="btn-open-notebook" class="btn btn-gold">Observation Notebook</button>
+      <!-- Left Column: Canvas Stage & Hotkeys -->
+      <section class="stage-column">
+        <div class="canvas-wrapper">
+          <canvas id="scene-canvas" width="960" height="540"></canvas>
         </div>
 
-        <div class="progress-container">
-          <span>Batch Progress: <strong id="evening-progress">1 / 1024</strong></span>
-          <div class="progress-track">
-            <div id="evening-progress-bar" class="progress-fill"></div>
+        <!-- Hotkey Action Bar -->
+        <div class="stage-toolbar">
+          <div class="toolbar-buttons">
+            <button id="btn-light-a" class="btn btn-tool" title="Hotkey: Z">
+              <kbd>Z</kbd> Light A (OFF)
+            </button>
+            <button id="btn-light-b" class="btn btn-tool" title="Hotkey: X">
+              <kbd>X</kbd> Light B (OFF)
+            </button>
+            <button id="btn-light-both" class="btn btn-tool" title="Hotkey: C">
+              <kbd>C</kbd> Turn Both On
+            </button>
+            <button id="btn-next-day" class="btn btn-primary" title="Hotkey: N">
+              <kbd>N</kbd> Next Day &rarr;
+            </button>
+          </div>
+
+          <!-- 16-Day Progress Bar -->
+          <div class="day-tracker">
+            <span class="day-tracker-label">Journey Progress</span>
+            <div class="progress-track">
+              <div id="day-progress-bar" class="progress-fill" style="width: 6.25%;"></div>
+            </div>
           </div>
         </div>
-      </div>
-    </main>
 
-    <!-- Notebook Panel (Correlation Field Notes) -->
-    <section id="notebook-panel" class="notebook-panel hidden">
-      <div class="notebook-header">
-        <div>
-          <h2 class="notebook-title">Field Observations & Correlations</h2>
-          <p class="notebook-subtitle">
-            Mark each correlation statement as True or False based on what you have observed across evenings.
-            Statements are scored directly against the empirical histogram of the 1024-shot quantum batch.
-          </p>
+        <p class="stage-caption">
+          <strong>Observation Rule:</strong> Both windows are halves of one quantum state. Turn lights on to peek, press <strong>N</strong> for next day.
+        </p>
+      </section>
+
+      <!-- Right Column: Simplified 5-Item Checklist Panel -->
+      <aside class="checklist-column">
+        <div class="checklist-header">
+          <div>
+            <h2 class="checklist-title">Field Observations</h2>
+            <p class="checklist-desc">Test your intuition across 16 days. Auto-evaluates at Day 16.</p>
+          </div>
         </div>
-        <button id="btn-close-notebook" class="btn-close" aria-label="Close Notebook">&times;</button>
-      </div>
 
-      <!-- Score Banner (shown after submit) -->
-      <div id="notebook-score-banner" class="score-banner hidden">
-        <div class="score-title">Batch Verification Result</div>
-        <div id="score-text" class="score-number">8 / 8 Correct (100%)</div>
-        <div id="score-insights" class="score-insights"></div>
-      </div>
+        <!-- Score Banner (Revealed at Day 16 or upon Submit) -->
+        <div id="score-banner" class="score-banner hidden">
+          <div class="score-header">
+            <span class="score-tag">Journey Results</span>
+            <span id="score-number" class="score-val">5 / 5 Correct (100%)</span>
+          </div>
+          <p id="score-insight" class="score-insight-text"></p>
+        </div>
 
-      <!-- 8 Dynamic Statements List -->
-      <div id="statement-list" class="statement-list">
-        <!-- Rendered dynamically by stats.js -->
-      </div>
+        <!-- 5 Simplified Statement Cards -->
+        <div id="checklist-cards" class="checklist-cards">
+          <!-- Rendered dynamically by stats.js -->
+        </div>
 
-      <!-- Notebook Action Footer -->
-      <div class="notebook-actions">
-        <button id="btn-submit-notebook" class="btn btn-gold">Submit Notebook</button>
-        <button id="btn-new-chapter" class="btn btn-secondary">Start New Chapter</button>
-      </div>
-    </section>
+        <!-- Checklist Footer Actions -->
+        <div class="checklist-footer">
+          <button id="btn-submit-checklist" class="btn btn-gold">Submit Observations</button>
+          <button id="btn-new-journey" class="btn btn-secondary">Next 16 Days</button>
+        </div>
+      </aside>
+
+    </div>
 
   </div>
 
@@ -93,8 +105,8 @@
     <div class="modal-card">
       <h2 class="modal-title">Entangled Love</h2>
       <p class="modal-desc">
-        Two rooms side-by-side on a quiet night. Under the hood, both windows are halves of one computational-basis
-        measurement of a 4-qubit graph state prepared by the <strong>Moth Atlas graph-v1</strong> engine.
+        Two lovers separated by 9,560 km in London and Tokyo. Under the hood, both rooms are measured
+        from a 4-qubit graph state prepared by the <strong>Moth Atlas graph-v1</strong> quantum engine.
       </p>
 
       <!-- Secure API Key Input -->
@@ -112,11 +124,11 @@
           <button type="button" id="btn-toggle-key-visibility" class="btn-inline-toggle">Show</button>
         </div>
         <span class="input-help">
-          Stored strictly in your browser's <code>sessionStorage</code>. Never saved to repository, server, or query string.
+          Stored strictly in your browser's <code>sessionStorage</code>. Never saved to repository or server.
         </span>
       </div>
 
-      <!-- Advanced Endpoint Toggle -->
+      <!-- Advanced Base URL -->
       <div>
         <a href="#" id="advanced-toggle" class="link-subtle">Advanced: Custom Base URL / Proxy</a>
         <div id="advanced-fields" class="input-group hidden" style="margin-top: 8px;">
@@ -139,19 +151,19 @@
         </div>
       </div>
 
-      <!-- Status Log feedback -->
+      <!-- Live Status Feedback -->
       <div id="status-log" class="status-log">
-        Ready. Choose to connect live with Moth Atlas (5 credits per batch) or explore with the offline Quantum Simulator.
+        Ready. Connect with Moth Atlas (5 credits per batch) or explore with the zero-credit Local Simulator.
       </div>
 
-      <!-- Modal Actions -->
+      <!-- Modal Action Buttons -->
       <div class="modal-actions">
         <button id="btn-connect-atlas" class="btn btn-primary">
           Connect to Moth Atlas (Costs 5 Credits)
         </button>
 
         <button id="btn-play-simulator" class="btn btn-gold">
-          Play in Local Simulator Mode (No API Key Needed)
+          Play in Local Simulator Mode (No Key Needed)
         </button>
 
         <button id="btn-resume-cache" class="btn btn-secondary hidden">
@@ -174,19 +186,15 @@
           Browsers enforce security rules (CORS) that block direct client-side requests from web pages to external APIs that don't send permissive CORS headers.
         </p>
 
-        <strong>1. Hosting on GitHub Pages (Public Web)</strong>
+        <strong>1. Hosting on GitHub Pages & Vercel</strong>
         <p>
-          • <strong>Recommended for most players & judges:</strong> Click <strong>"Play in Local Simulator Mode"</strong>. It runs 100% inside the browser with zero setup, zero credit cost, and produces the exact same 4-qubit entangled graph state measurements.<br>
-          • <strong>Using live Moth Atlas on GitHub Pages:</strong> Deploy a free 15-line Cloudflare Worker proxy (instructions in README.md) and paste your Worker URL (e.g. <code>https://my-moth-proxy.workers.dev/api/v1</code>) into the Advanced Base URL field.
+          • <strong>Recommended:</strong> Click <strong>"Play in Local Simulator Mode"</strong>. It runs 100% inside your browser with zero setup, zero credit cost, and produces the exact same 4-qubit entangled graph state measurements.<br>
+          • <strong>On Vercel:</strong> The included Edge function (<code>api/[...path].js</code>) proxies requests automatically on the same origin with no CORS issues.
         </p>
 
         <strong>2. Running Locally (localhost)</strong>
         <p>
-          Run the included lightweight local proxy in your terminal:
-        </p>
-        <div class="code-block">python3 proxy.py   # (Running on http://localhost:8787)</div>
-        <p>
-          The web app will automatically detect it and route your requests through the proxy!
+          The included local proxy is already running on port 8787. The web app automatically detects it and routes your requests!
         </p>
       </div>
       <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
@@ -195,7 +203,6 @@
     </div>
   </div>
 
-  <!-- Main Modules -->
   <script type="module" src="js/game.js"></script>
 </body>
 </html>

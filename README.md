@@ -2,35 +2,36 @@
 
 *An observational quantum piece on distance and correlation*
 
-**Entangled Love** is a static web experience. Two long-distance partners each have a window looking into their room at night. Under the hood, both windows are halves of one computational-basis measurement of a 4-qubit graph state prepared by the **Moth Atlas graph-v1** engine.
+**Entangled Love** is a static web experience portraying two long-distance lovers separated by 9,560 km between London and Tokyo. Each partner has a window looking into their room at night. Under the hood, both windows are halves of one computational-basis measurement of a 4-qubit graph state prepared by the **Moth Atlas graph-v1** engine.
 
-The player peeks through closed velvet curtains, refreshes the evening to observe subsequent shots from the batch, notices who does what when the other is doing something, and submits field observation notes (True/False statements) scored directly against the empirical quantum histogram.
+The player switches on the lights in each window, observes the lovers' nightly activities across a 16-day journey, and submits a 5-item qualitative checklist of correlation statements (scored automatically upon reaching Day 16).
+
+---
+
+## Controls & Keybindings
+
+- **`Z`** (or Click Window A): Toggle light in **Window A (London Flat)**
+- **`X`** (or Click Window B): Toggle light in **Window B (Tokyo Apartment)**
+- **`C`**: Toggle **both lights** simultaneously
+- **`N`**: Advance to the **Next Day** (triggers celestial time-lapse sky sweep)
 
 ---
 
 ## The Measurement Rule
 
 > **Both windows represent halves of one computational-basis measurement of a 4-qubit graph state.**
-> **Opening either window reveals that evening's state, and refreshing advances to the next measured shot from the batch without querying the API.**
+> **Turning on either light reveals that evening's state, and advancing the day takes the next measured shot from the batch without querying the API.**
 
 Opening order does not matter: looking at Window A then Window B is the exact same evening as looking at both at once.
 
 ---
 
-## The Quantum Model
+## Visuals & Dual-City Atmosphere
 
-- **Qubits 0 & 1**: Person A (Left Window)
-- **Qubits 2 & 3**: Person B (Right Window)
-- **Activity Mapping**:
-  - `00`: Resting in bed (bedside lamp, duvet)
-  - `01`: Thinking of the other (window sill, chin on hand)
-  - `10`: Playing a game (glowing handheld screen, focused silhouette)
-  - `11`: Cooking (stove burner, rising steam curls)
-- **Coupling in Chapter 1**: Qubits $(0, 2)$ are strongly coupled with target correlation $\sim 0.85$, while qubits $(1, 3)$ remain uncoupled:
-  - If Person A is in bed or thinking (bit 0 = 0), Person B is usually in bed or thinking (bit 2 = 0) $\sim 85\%$ of the time.
-  - If Person A is playing or cooking (bit 0 = 1), Person B is usually playing or cooking (bit 2 = 1) $\sim 85\%$ of the time.
-  - "Both thinking" occurs commonly ($\sim 43\%$ of the time), but is not certain because qubit 1 and 3 are independent coin flips.
-  - Ground truth is computed empirically from the batch of 1024 shots.
+- **City A (London)**: Weathered Victorian brickwork, gentle rain streaks, dark chimneys, and faint clock tower.
+- **City B (Tokyo)**: Modern architectural concrete, vertical glowing neon sign (`愛 / 夜`), high-rises, and animated flying birds.
+- **Light Switch Mechanic**: Windows start unlit with moody nocturnal reflections and faint silhouettes. Turning on the light reveals warm practical lighting and the character's activity.
+- **16-Day Playthrough & 5-Item Checklist**: Instead of overwhelming decimals or scrolling down, the game presents 5 intuitive qualitative statements ("never happens", "always happens", "either A or B"). At Day 16, observations auto-evaluate and reveal your score out of 5!
 
 ---
 
