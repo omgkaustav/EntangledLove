@@ -3,206 +3,295 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Entangled Love - Observational Quantum Piece</title>
+  <title>Entangled Love - Observational Quantum Game</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Patrick+Hand&family=Special+Elite&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="app-layout">
+  <div class="game-container">
 
-    <!-- Top Navigation Header -->
-    <header class="app-header">
-      <div class="brand-section">
-        <h1 class="app-title">Entangled Love</h1>
-        <p class="app-subtitle">Observational quantum piece across distance</p>
+    <!-- Top Game HUD (Minimalist Indie Game Header) -->
+    <header class="game-hud">
+      <div class="hud-left">
+        <div class="hud-title-group">
+          <h1 class="hud-title">ENTANGLED LOVE</h1>
+          <span class="hud-subtitle">London (Leo) ⟷ Tokyo (Mia) • 9,560 km</span>
+        </div>
       </div>
-      <div class="header-status">
-        <span id="journey-indicator" class="indicator-badge">Journey 1</span>
-        <span id="day-indicator" class="indicator-badge highlight">Day 1 of 16</span>
+
+      <!-- Center Diegetic Calendar / Day Plate -->
+      <div class="hud-center">
+        <div class="diegetic-calendar" id="calendar-plate">
+          <span class="cal-icon">🌙</span>
+          <span class="cal-label" id="day-indicator">EVENING 01</span>
+        </div>
+        <span class="hud-rule-hint">Both windows are one quantum measurement. Press <kbd>N</kbd> for next evening.</span>
+      </div>
+
+      <!-- Right System Controls -->
+      <div class="hud-right">
         <span id="mode-badge" class="mode-badge simulator">Local Simulator</span>
-        <button id="btn-mute" class="btn-icon" title="Toggle Audio">Audio: On</button>
+        <button id="btn-audio-toggle" class="hud-btn" title="Toggle Sound">🔊 Audio</button>
+        <button id="btn-settings" class="hud-btn" title="Game Settings & Atlas API">⚙️ Settings</button>
+        <button id="btn-guide" class="hud-btn" title="Field Guide & Rules">❓ Guide</button>
       </div>
     </header>
 
-    <!-- Main Single-Screen Workspace (Side-by-Side: No Scrolling) -->
-    <div class="main-workspace">
+    <!-- Main Game Viewport (Side-by-Side: Viewport Left, Journal Right) -->
+    <main class="game-stage-wrapper">
 
-      <!-- Left Column: Canvas Stage & Hotkeys -->
-      <section class="stage-column">
-        <div class="canvas-wrapper">
+      <!-- Left Column: The Dual-City Viewport -->
+      <section class="viewport-column">
+        <div class="canvas-bezel">
           <canvas id="scene-canvas" width="960" height="540"></canvas>
-        </div>
 
-        <!-- Hotkey Action Bar -->
-        <div class="stage-toolbar">
-          <div class="toolbar-buttons">
-            <button id="btn-light-a" class="btn btn-tool" title="Hotkey: Z">
-              <kbd>Z</kbd> Light A (OFF)
+          <!-- Floating Keybind Action Pills (In-Canvas HUD) -->
+          <div class="floating-controls">
+            <button id="btn-light-a" class="keybind-pill" title="Shortcut: Z">
+              <kbd>Z</kbd> Leo's Room (Off)
             </button>
-            <button id="btn-light-b" class="btn btn-tool" title="Hotkey: X">
-              <kbd>X</kbd> Light B (OFF)
+            <button id="btn-light-b" class="keybind-pill" title="Shortcut: X">
+              <kbd>X</kbd> Mia's Room (Off)
             </button>
-            <button id="btn-light-both" class="btn btn-tool" title="Hotkey: C">
+            <button id="btn-light-both" class="keybind-pill" title="Shortcut: C">
               <kbd>C</kbd> Turn Both On
             </button>
-            <button id="btn-next-day" class="btn btn-primary" title="Hotkey: N">
-              <kbd>N</kbd> Next Day &rarr;
+            <button id="btn-next-day" class="keybind-pill keybind-primary" title="Shortcut: N">
+              <kbd>N</kbd> Next Evening ➔
             </button>
           </div>
+        </div>
+      </section>
 
-          <!-- 16-Day Progress Bar -->
-          <div class="day-tracker">
-            <span class="day-tracker-label">Journey Progress</span>
-            <div class="progress-track">
-              <div id="day-progress-bar" class="progress-fill" style="width: 6.25%;"></div>
+      <!-- Right Column: Diegetic Field Notebook -->
+      <aside class="notebook-column">
+        <div class="notebook-exterior">
+          <!-- Spiral / Binder Spine -->
+          <div class="notebook-spine">
+            <div class="binder-ring"></div>
+            <div class="binder-ring"></div>
+            <div class="binder-ring"></div>
+            <div class="binder-ring"></div>
+            <div class="binder-ring"></div>
+            <div class="binder-ring"></div>
+            <div class="binder-ring"></div>
+            <div class="binder-ring"></div>
+            <div class="binder-ring"></div>
+            <div class="binder-ring"></div>
+          </div>
+
+          <!-- Parchment Paper Page -->
+          <div class="notebook-page">
+            <div class="notebook-tape-strip"></div>
+            
+            <!-- Journal Header -->
+            <div class="journal-header">
+              <div class="journal-meta">
+                <span class="journal-tag">FIELD INVESTIGATION</span>
+                <span id="journal-day-tally" class="journal-date">Day 1 • In Progress</span>
+              </div>
+              <h2 class="journal-heading">Observer's Logbook</h2>
+              <p class="journal-prompt">Mark deductions with pencil. Seal when confident.</p>
+            </div>
+
+            <!-- Score Banner / Ink Seal (Revealed after submission) -->
+            <div id="score-banner" class="stamp-verdict-box hidden">
+              <div class="stamp-seal-badge" id="stamp-seal-badge">CONFIRMED</div>
+              <div class="stamp-verdict-content">
+                <div class="verdict-score" id="score-number">5 / 5 Correct (100%)</div>
+                <div class="verdict-meta" id="score-days-label">Deductions recorded on Day 8</div>
+                <p class="verdict-narrative" id="score-insight"></p>
+              </div>
+            </div>
+
+            <!-- 5 Diegetic Checklist Statements -->
+            <div id="checklist-cards" class="journal-entries-container">
+              <!-- Rendered dynamically by game.js -->
+            </div>
+
+            <!-- Diegetic Journal Footer: Wax Seal Submit & Reset -->
+            <div class="journal-footer">
+              <button id="btn-submit-checklist" class="wax-seal-btn" title="Seal and submit your deductions">
+                <span class="wax-seal-icon">✦</span>
+                <span class="wax-seal-text">SEAL OBSERVATIONS</span>
+              </button>
+              <button id="btn-new-journey" class="btn-subtle-turn">
+                <span>↻ New Investigation</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+    </main>
+
+  </div>
+
+  <!-- Settings & API Key Modal -->
+  <div id="settings-modal" class="modal-backdrop hidden">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 class="modal-title">Quantum Engine Settings</h2>
+        <button id="btn-close-settings" class="modal-close" title="Close Settings">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-intro">
+          Choose whether to simulate the 4-qubit graph state locally (zero credits, instant) or execute jobs on the 
+          <strong>Moth Atlas graph-v1</strong> cloud quantum engine.
+        </p>
+
+        <!-- API Key Input -->
+        <div class="form-group">
+          <label class="form-label" for="input-api-key">Moth Atlas API Bearer Token</label>
+          <div class="input-row">
+            <input 
+              type="password" 
+              id="input-api-key" 
+              class="form-input" 
+              placeholder="Paste Moth Atlas API Bearer Key..."
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <button type="button" id="btn-toggle-key-visibility" class="btn-input-accessory">Show</button>
+          </div>
+          <span class="form-note">
+            Saved exclusively in your browser's <code>sessionStorage</code>. Never sent to third parties or committed to git.
+          </span>
+        </div>
+
+        <!-- Advanced Endpoint & Proxy -->
+        <div class="form-group">
+          <a href="#" id="advanced-toggle" class="form-link">Advanced: Endpoint & CORS Proxy Settings ▾</a>
+          <div id="advanced-fields" class="advanced-box hidden">
+            <label class="form-label" for="input-endpoint">Engine Base URL</label>
+            <input 
+              type="text" 
+              id="input-endpoint" 
+              class="form-input" 
+              value="https://api.mothquantum.com/api/v1"
+            >
+            <div class="proxy-preset-row">
+              <button type="button" id="btn-set-proxy" class="btn-tiny">Use Local Proxy (localhost:8787)</button>
+              <button type="button" id="btn-set-direct" class="btn-tiny">Use Direct API URL</button>
             </div>
           </div>
         </div>
 
-        <p class="stage-caption">
-          <strong>Observation Rule:</strong> Both windows are halves of one quantum state. Turn lights on to peek, press <strong>N</strong> for next day.
-        </p>
-      </section>
-
-      <!-- Right Column: Simplified 5-Item Checklist Panel -->
-      <aside class="checklist-column">
-        <div class="checklist-header">
-          <div>
-            <h2 class="checklist-title">Field Observations</h2>
-            <p class="checklist-desc">Test your intuition across 16 days. Auto-evaluates at Day 16.</p>
-          </div>
-        </div>
-
-        <!-- Score Banner (Revealed at Day 16 or upon Submit) -->
-        <div id="score-banner" class="score-banner hidden">
-          <div class="score-header">
-            <span class="score-tag">Journey Results</span>
-            <span id="score-number" class="score-val">5 / 5 Correct (100%)</span>
-          </div>
-          <p id="score-insight" class="score-insight-text"></p>
-        </div>
-
-        <!-- 5 Simplified Statement Cards -->
-        <div id="checklist-cards" class="checklist-cards">
-          <!-- Rendered dynamically by stats.js -->
-        </div>
-
-        <!-- Checklist Footer Actions -->
-        <div class="checklist-footer">
-          <button id="btn-submit-checklist" class="btn btn-gold">Submit Observations</button>
-          <button id="btn-new-journey" class="btn btn-secondary">Next 16 Days</button>
-        </div>
-      </aside>
-
-    </div>
-
-  </div>
-
-  <!-- Title Screen & API Key Modal -->
-  <div id="title-modal" class="modal-overlay">
-    <div class="modal-card">
-      <h2 class="modal-title">Entangled Love</h2>
-      <p class="modal-desc">
-        Two lovers separated by 9,560 km in London and Tokyo. Under the hood, both rooms are measured
-        from a 4-qubit graph state prepared by the <strong>Moth Atlas graph-v1</strong> quantum engine.
-      </p>
-
-      <!-- Secure API Key Input -->
-      <div class="input-group">
-        <label class="input-label" for="input-api-key">Moth Atlas API Key (Optional)</label>
-        <div class="input-field-wrapper">
-          <input 
-            type="password" 
-            id="input-api-key" 
-            class="input-text" 
-            placeholder="Paste your Atlas Bearer Token..."
-            autocomplete="off"
-            spellcheck="false"
-          >
-          <button type="button" id="btn-toggle-key-visibility" class="btn-inline-toggle">Show</button>
-        </div>
-        <span class="input-help">
-          Stored strictly in your browser's <code>sessionStorage</code>. Never saved to repository or server.
-        </span>
-      </div>
-
-      <!-- Advanced Base URL -->
-      <div>
-        <a href="#" id="advanced-toggle" class="link-subtle">Advanced: Custom Base URL / Proxy</a>
-        <div id="advanced-fields" class="input-group hidden" style="margin-top: 8px;">
-          <label class="input-label" for="input-endpoint">Engine Base URL</label>
-          <input 
-            type="text" 
-            id="input-endpoint" 
-            class="input-text" 
-            value="https://api.mothquantum.com/api/v1"
-            placeholder="https://api.mothquantum.com/api/v1"
-          >
-          <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
-            <button type="button" id="btn-set-proxy" class="btn btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">
-              Use Local Proxy (localhost:8787)
-            </button>
-            <button type="button" id="btn-set-direct" class="btn btn-secondary" style="font-size: 0.76rem; padding: 4px 10px;">
-              Use Direct API
-            </button>
-          </div>
+        <!-- Engine Status Log -->
+        <div id="status-log" class="status-console">
+          Ready. Select Simulator mode or connect with your Moth Atlas key.
         </div>
       </div>
 
-      <!-- Live Status Feedback -->
-      <div id="status-log" class="status-log">
-        Ready. Connect with Moth Atlas (5 credits per batch) or explore with the zero-credit Local Simulator.
-      </div>
-
-      <!-- Modal Action Buttons -->
-      <div class="modal-actions">
-        <button id="btn-connect-atlas" class="btn btn-primary">
+      <div class="modal-footer">
+        <button id="btn-connect-atlas" class="btn btn-atlas">
           Connect to Moth Atlas (Costs 5 Credits)
         </button>
-
-        <button id="btn-play-simulator" class="btn btn-gold">
-          Play in Local Simulator Mode (No Key Needed)
+        <button id="btn-play-simulator" class="btn btn-simulator">
+          Use Local Quantum Simulator (Recommended)
         </button>
-
-        <button id="btn-resume-cache" class="btn btn-secondary hidden">
+        <button id="btn-resume-cache" class="btn btn-neutral hidden">
           Resume Cached Batch
         </button>
       </div>
 
-      <div style="text-align: center; margin-top: 4px;">
-        <a href="#" id="btn-cors-help" class="link-subtle">Browser CORS or Proxy Help</a>
+      <div class="modal-sub-link">
+        <a href="#" id="btn-cors-help" class="form-link">CORS / Proxy Setup Guide</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Field Guide Modal -->
+  <div id="guide-modal" class="modal-backdrop hidden">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 class="modal-title">Field Investigator's Guide</h2>
+        <button id="btn-close-guide" class="modal-close" title="Close Guide">✕</button>
+      </div>
+      <div class="modal-body modal-guide-text">
+        <h3>The Quantum Bond</h3>
+        <p>
+          Leo (in London) and Mia (in Tokyo) are separated by 9,560 km. Every evening, their routines are governed by
+          a 4-qubit entangled graph state.
+        </p>
+        <div class="guide-grid">
+          <div class="guide-col">
+            <strong>Leo's Room (London): Qubits 0 & 1</strong>
+            <ul>
+              <li><code>00</code>: Resting in bed</li>
+              <li><code>01</code>: Thinking of Mia</li>
+              <li><code>10</code>: Playing a game</li>
+              <li><code>11</code>: Cooking in kitchen</li>
+            </ul>
+          </div>
+          <div class="guide-col">
+            <strong>Mia's Room (Tokyo): Qubits 2 & 3</strong>
+            <ul>
+              <li><code>00</code>: Resting in bed</li>
+              <li><code>01</code>: Thinking of Leo</li>
+              <li><code>10</code>: Playing a game</li>
+              <li><code>11</code>: Cooking in kitchen</li>
+            </ul>
+          </div>
+        </div>
+        <h3>The Physics</h3>
+        <p>
+          Qubits <strong>0 and 2</strong> are coupled strongly with a quantum relationship operation (target 0.85). 
+          This means their high bits tend to agree: when one rests (bed/thinking), the other usually rests; 
+          when one is active (gaming/cooking), the other is usually active.
+        </p>
+        <h3>How to Play</h3>
+        <ul>
+          <li>Press <kbd>Z</kbd> or click left window to turn on Leo's light.</li>
+          <li>Press <kbd>X</kbd> or click right window to turn on Mia's light.</li>
+          <li>Press <kbd>C</kbd> to turn both lights on at once.</li>
+          <li>Press <kbd>N</kbd> to advance to the next evening.</li>
+          <li>Mark your deductions as <strong>✓ True</strong> or <strong>✗ False</strong> in the Field Notebook.</li>
+          <li>Observe as many evenings as you want! When you are confident, click <strong>SEAL OBSERVATIONS</strong> to score your accuracy.</li>
+        </ul>
+      </div>
+      <div class="modal-footer" style="justify-content: flex-end;">
+        <button id="btn-guide-gotit" class="btn btn-neutral">Got it, back to observations</button>
       </div>
     </div>
   </div>
 
   <!-- CORS / Proxy Help Modal -->
-  <div id="cors-modal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <h2 class="modal-title" style="font-size: 1.4rem;">Browser CORS & Local Proxy</h2>
-      <div class="modal-help-content">
+  <div id="cors-modal" class="modal-backdrop hidden">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 class="modal-title">Browser CORS & Proxy Guide</h2>
+        <button id="btn-close-cors" class="modal-close" title="Close">✕</button>
+      </div>
+      <div class="modal-body modal-guide-text">
         <p>
-          Browsers enforce security rules (CORS) that block direct client-side requests from web pages to external APIs that don't send permissive CORS headers.
+          Browsers enforce Cross-Origin Resource Sharing (CORS). External APIs like Moth Atlas require 
+          a proxy when accessed directly from client-side browser JavaScript.
         </p>
-
-        <strong>1. Hosting on GitHub Pages & Vercel</strong>
+        <strong>1. Zero Setup Option (Recommended)</strong>
         <p>
-          • <strong>Recommended:</strong> Click <strong>"Play in Local Simulator Mode"</strong>. It runs 100% inside your browser with zero setup, zero credit cost, and produces the exact same 4-qubit entangled graph state measurements.<br>
-          • <strong>On Vercel:</strong> The included Edge function (<code>api/[...path].js</code>) proxies requests automatically on the same origin with no CORS issues.
+          Use <strong>Local Simulator Mode</strong>. It runs purely client-side, reproduces the exact 4-qubit 
+          entanglement statistics, costs 0 credits, and works anywhere (including GitHub Pages).
         </p>
-
-        <strong>2. Running Locally (localhost)</strong>
+        <strong>2. Local Proxy (Already Running!)</strong>
         <p>
-          The included local proxy is already running on port 8787. The web app automatically detects it and routes your requests!
+          A Python proxy is included in this repository. Simply click <em>"Use Local Proxy (localhost:8787)"</em> in Settings.
+        </p>
+        <strong>3. Vercel Edge Proxy</strong>
+        <p>
+          If deployed to Vercel, the included <code>api/[...path].js</code> route proxies API calls seamlessly with zero CORS issues.
         </p>
       </div>
-      <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-        <button id="btn-close-cors" class="btn btn-secondary">Close</button>
+      <div class="modal-footer" style="justify-content: flex-end;">
+        <button id="btn-close-cors-footer" class="btn btn-neutral">Close</button>
       </div>
     </div>
   </div>
 
+  <!-- Core Game Script -->
   <script type="module" src="js/game.js"></script>
 </body>
 </html>

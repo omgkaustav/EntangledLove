@@ -1,37 +1,69 @@
 # Entangled Love
 
-*An observational quantum piece on distance and correlation*
+*An observational quantum indie game across distance and correlation*
 
-**Entangled Love** is a static web experience portraying two long-distance lovers separated by 9,560 km between London and Tokyo. Each partner has a window looking into their room at night. Under the hood, both windows are halves of one computational-basis measurement of a 4-qubit graph state prepared by the **Moth Atlas graph-v1** engine.
+**Entangled Love** is a static indie web game portraying two long-distance lovers separated by 9,560 km: **Leo** in London and **Mia** in Tokyo. Each partner has a window looking into their flat at night. Under the hood, both windows are halves of one computational-basis measurement of a 4-qubit graph state prepared by the **Moth Atlas graph-v1** quantum engine (or local quantum simulation mode).
 
-The player switches on the lights in each window, observes the lovers' nightly activities across a 16-day journey, and submits a 5-item qualitative checklist of correlation statements (scored automatically upon reaching Day 16).
+The player peeks into either room by toggling light switches, tracks the lovers' nocturnal habits as evenings pass, marks deductions with tactile pencil ticks and crosses in an investigator's field logbook, and seals their observations when confident to reveal their quantum deduction score and how many days it took.
+
+---
+
+## Game Features & Art Direction
+
+- **Two Distant Realities Separated by a Quantum Rift**:
+  - **Left (London, UK)**: Weathered Victorian brickwork, vintage English street sign (`FLEET ST • EC4`), drifting London rain streaks, dark chimneys, glowing cast-iron streetlamp, and **Leo's flat** (knitted jumper, vintage books, tea mug, CRT console gaming, cast iron stew).
+  - **Right (Tokyo, Japan)**: Sleek modern architecture, Japanese street sign (`桜通り 2-4`), drifting cherry blossom petals, glowing izakaya lantern, skyline towers, and **Mia's flat** (pastel pink bedding, fairy lights, pet cat, smartphone chat, handheld console, ramen with chopsticks).
+  - **Center**: A vibrant quantum dimensional tear with procedural lightning sparks and distance emblem (`⟵ 9,560 KM APART ⟶`).
+- **Tactile Light Switch Mechanic**: Rooms start dark with nocturnal streetlamp/lantern reflections and faint window silhouettes. Turning on a light switch illuminates the interior and triggers that room's ambient audio loop.
+- **Diegetic Field Notebook**:
+  - Styled as an authentic investigator's journal with lined parchment paper, spiral binder rings, and red margin rule.
+  - Generates 5 intuitive qualitative statements ("never happens with", "always", "either/or").
+  - Tactile pencil checkboxes: mark observations with **`[✓]` True** and **`[✗]` False** (with authentic pencil scratch audio).
+  - Seal button stamps deductions with green/red rubber seals (`[VERIFIED]` / `[REFUTED]`) and ink margin annotations.
+- **No Day Limit (Player-Paced Deduction)**:
+  - Advance evenings at your own pace (`Day 1, 2, 3...`).
+  - Submit whenever you feel confident in your observations.
+  - Final results celebrate your score and display the exact number of days you took to decode the quantum state!
+- **Smooth Day Transitions**: Advancing an evening triggers a time-lapse celestial transit with shifting sky gradients and a chime.
 
 ---
 
 ## Controls & Keybindings
 
-- **`Z`** (or Click Window A): Toggle light in **Window A (London Flat)**
-- **`X`** (or Click Window B): Toggle light in **Window B (Tokyo Apartment)**
+- **`Z`** (or Click Left Window): Toggle light in **Leo's Flat (London)**
+- **`X`** (or Click Right Window): Toggle light in **Mia's Flat (Tokyo)**
 - **`C`**: Toggle **both lights** simultaneously
-- **`N`**: Advance to the **Next Day** (triggers celestial time-lapse sky sweep)
+- **`N`**: Advance to the **Next Evening** (triggers time-lapse celestial transition)
+- **`⚙️ Settings`**: Open Quantum Engine configuration modal (Atlas API token, base URL, simulator toggle)
+- **`🔊 Audio`**: Toggle sound effects and ambient room loops
+- **`❓ Guide`**: Open the Field Investigator's Guide with complete quantum rules and story
 
 ---
 
 ## The Measurement Rule
 
-> **Both windows represent halves of one computational-basis measurement of a 4-qubit graph state.**
+> **Both windows are halves of one computational-basis measurement of a 4-qubit graph state.**
 > **Turning on either light reveals that evening's state, and advancing the day takes the next measured shot from the batch without querying the API.**
 
-Opening order does not matter: looking at Window A then Window B is the exact same evening as looking at both at once.
+Opening order does not matter: looking at Leo's window then Mia's window is the exact same evening as peeking at both simultaneously.
 
 ---
 
-## Visuals & Dual-City Atmosphere
+## The Quantum Model
 
-- **City A (London)**: Weathered Victorian brickwork, gentle rain streaks, dark chimneys, and faint clock tower.
-- **City B (Tokyo)**: Modern architectural concrete, vertical glowing neon sign (`愛 / 夜`), high-rises, and animated flying birds.
-- **Light Switch Mechanic**: Windows start unlit with moody nocturnal reflections and faint silhouettes. Turning on the light reveals warm practical lighting and the character's activity.
-- **16-Day Playthrough & 5-Item Checklist**: Instead of overwhelming decimals or scrolling down, the game presents 5 intuitive qualitative statements ("never happens", "always happens", "either A or B"). At Day 16, observations auto-evaluate and reveal your score out of 5!
+4 qubits:
+- **Leo (London)**: Qubits `0` and `1`
+- **Mia (Tokyo)**: Qubits `2` and `3`
+
+Activity bit encoding:
+- `00`: Resting in bed
+- `01`: Thinking of the other
+- `10`: Playing a game
+- `11`: Cooking in the kitchen
+
+Qubits **0 and 2** are coupled with a quantum relationship operation (`target: 0.85`, Pauli `ZZ`), while qubits `(1, 3)` are uncoupled. Bit 0 and bit 2 tend to agree, meaning:
+- When Leo is resting (bed or thinking), Mia is usually resting (bed or thinking).
+- When Leo is active (gaming or cooking), Mia is usually active (gaming or cooking).
 
 ---
 
@@ -43,157 +75,84 @@ Because this is a pure static web app without complex build tooling or bundlers,
 ```bash
 python3 -m http.server 8000
 ```
-Then open [http://localhost:8000](http://localhost:8000) in your browser.
+Open [http://localhost:8000](http://localhost:8000) in your browser.
 
 ### Option 2: Node / npx
 ```bash
 npx serve .
 ```
-Then open the local URL provided by `serve` (e.g. `http://localhost:3000`).
 
 ---
 
 ## Playing Modes & Atlas API Key Setup
 
-On the title screen, you can choose between two modes:
-
-### 1. Offline / Local Quantum Simulator Mode (No API Key or Credits Needed)
-- Click **"Play in Local Simulator Mode"**.
-- Runs an exact offline model of the 4-qubit graph state with seed 7 and target correlation 0.85.
-- Zero API credits consumed; works 100% offline without any network access or proxy setup.
+### 1. Offline / Local Quantum Simulator Mode (Recommended: Zero Setup, Zero Cost)
+- Runs an exact client-side model of the 4-qubit graph state with seed 7 and target correlation 0.85.
+- Generates 1,024 shots with the identical probability distribution.
+- Consumes 0 API credits and works 100% offline without CORS or proxies.
 
 ### 2. Live Moth Atlas graph-v1 Engine Mode
-- Paste your Moth Atlas API Key into the password field on the title screen.
-- **Security & Privacy**: The key is stored **strictly in your browser's `sessionStorage`**. It is never committed to Git, written to disk, sent to any third-party server, or stored in query strings.
-- **Credit Cost**: Exactly **5 credits** per chapter (1 job with 1024 shots). The app **never** calls the API when opening windows, closing curtains, or refreshing evenings.
-- Cached shots are kept in `sessionStorage` so refreshing the browser tab does not spend another 5 credits.
+- Click the **⚙️ Settings** icon in the top HUD and paste your Moth Atlas API token.
+- **Security & Privacy**: The key is stored **strictly in your browser's `sessionStorage`**. It is never committed to Git, written to disk, sent to any third-party server, or saved in cookies.
+- **Credit Cost**: Exactly **5 credits** per batch (1 job with 1,024 shots). The app **never** calls the API on window switch or evening advance.
+- Cached shots are stored in `sessionStorage` so refreshing the tab does not spend more credits.
 
 ---
 
-## Browser CORS & Optional Proxy Setup
+## Browser CORS & Local Proxy
 
-When querying `https://api.mothquantum.com` directly from a client-side browser script, some browsers enforce Cross-Origin Resource Sharing (CORS) restrictions.
+When querying `https://api.mothquantum.com` directly from browser JavaScript, browsers enforce Cross-Origin Resource Sharing (CORS) rules.
 
-If you encounter a CORS error when connecting to Moth Atlas from `localhost`, use one of the two minimal, zero-dependency proxies included in this repository:
+If connecting to Moth Atlas from `localhost`:
 
 ### A. Python Proxy (Included: `proxy.py`)
 ```bash
 python3 proxy.py
 ```
-This runs a 40-line proxy at `http://localhost:8787`. On the Entangled Love title screen, click **Advanced: Custom Base URL / Proxy** and enter:
-```
-http://localhost:8787/api/v1
-```
+Runs at `http://localhost:8787`. In Settings, click **"Use Local Proxy (localhost:8787)"**.
 
 ### B. Node Proxy (Included: `proxy.js`)
 ```bash
 node proxy.js
 ```
-Runs at `http://localhost:8787`. Enter `http://localhost:8787/api/v1` in the Advanced endpoint field.
 
-### C. Cloudflare Worker (Optional Cloud Deployment)
-If hosting your own reverse proxy on Cloudflare Workers:
-```javascript
-export default {
-  async fetch(request) {
-    if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization"
-        }
-      });
-    }
-    const url = new URL(request.url);
-    url.hostname = "api.mothquantum.com";
-    const newReq = new Request(url, request);
-    const resp = await fetch(newReq);
-    const newHeaders = new Headers(resp.headers);
-    newHeaders.set("Access-Control-Allow-Origin", "*");
-    return new Response(resp.body, { status: resp.status, headers: newHeaders });
-  }
-};
-```
+### C. Vercel Deployment
+A zero-config Edge Proxy is included at [`api/[...path].js`](file:///Users/kaustav/Documents/Projects/Hackathons/MothHack/api/[...path].js) and [`vercel.json`](file:///Users/kaustav/Documents/Projects/Hackathons/MothHack/vercel.json). When deployed to Vercel, requests to `/api/v1/*` are automatically proxied on the same origin with zero CORS friction.
 
 ---
 
-## Deployment Options
+## Publishing to GitHub Pages
 
-### Option A: Deploy to Vercel (Recommended for Live Moth Atlas API)
-
-Vercel is the fastest and easiest way to deploy this project with live Moth Atlas API support because this repository includes a built-in Vercel Edge proxy (`api/[...path].js`):
-
-1. Push your repository to GitHub.
-2. Go to [vercel.com](https://vercel.com) and click **Add New Project** &rarr; Import your GitHub repo.
-3. Leave all default settings (no build command or framework preset needed) and click **Deploy**.
-4. **Why this works seamlessly**:
-   - The web app automatically detects the `.vercel.app` domain and routes API calls to `/api/v1` on the **same origin**.
-   - **Zero CORS issues**: Browser requests stay on the same domain, and the Vercel Edge proxy forwards them to Moth Atlas with your Bearer token.
-   - No external proxies or Cloudflare Workers needed!
-
-### Option B: Deploy to GitHub Pages (Static Hosting)
-
-1. **Initialize Git repository**:
+1. Commit and push your code to your GitHub repository:
    ```bash
-   git init
-   git checkout -b main
    git add .
-   git commit -m "Initial commit of Entangled Love"
+   git commit -m "Launch Entangled Love indie game"
+   git push origin main
    ```
-
-2. **Push to your GitHub repository**:
-   ```bash
-   git remote add origin https://github.com/<your-username>/entangled-love.git
-   git push -u origin main
-   ```
-
-3. **Enable GitHub Pages**:
-   - Go to your repository on GitHub.
-   - Click **Settings** &rarr; **Pages**.
-   - Under **Build and deployment** &rarr; **Source**, select **Deploy from a branch**.
-   - Select branch `main` and folder `/ (root)`, then click **Save**.
-   - The `.nojekyll` file included in this repository ensures that assets and folders are served cleanly without Jekyll processing.
-   - Within 1–2 minutes, your site will be live at `https://<your-username>.github.io/entangled-love/`.
-   - Visitors can play in **Local Simulator Mode** with zero setup, or use a Cloudflare Worker for live Atlas calls.
+2. In your repository on GitHub, navigate to **Settings** > **Pages**.
+3. Under **Build and deployment**:
+   - Source: **Deploy from a branch**
+   - Branch: `main` / folder: `/ (root)`
+4. Click **Save**. Your site will be live at `https://<username>.github.io/<repo-name>/`.
+5. On GitHub Pages, players can immediately play in **Local Quantum Simulator Mode** with zero setup, or input their own Moth Atlas key via the Settings modal.
 
 ---
 
-## Sound Credits & Audio Licensing
+## Sound Credits
 
-All sound effects vendor in `assets/audio/` are dedicated to the **Creative Commons CC0 1.0 Universal (Public Domain)**:
-- `curtain_swipe.wav`: Soft fabric slide / whoosh (CC0)
-- `bed_tone.wav`: Warm 55Hz/110Hz nocturnal room tone (CC0)
-- `thinking_loop.wav`: Contemplative harmonic chime & page rustle (CC0)
-- `game_clicks.wav`: Quiet 8-bit game blips & microswitch clicks (CC0)
-- `simmer_loop.wav`: Kitchen stove pot simmer & bubbling loop (CC0)
+All audio assets are documented in [`CREDITS.md`](file:///Users/kaustav/Documents/Projects/Hackathons/MothHack/CREDITS.md) and licensed under the **Creative Commons CC0 1.0 Universal Public Domain Dedication**:
+- `assets/audio/switch_click.wav`: Tactile light switch toggle
+- `assets/audio/pencil_check.wav`: Pencil graphite checkmark scribble on paper
+- `assets/audio/curtain_swipe.wav`: Fabric/curtain movement
+- `assets/audio/bed_tone.wav`: Ambient nocturnal drone (rest)
+- `assets/audio/thinking_loop.wav`: Gentle harmonic shimmer (thinking)
+- `assets/audio/game_clicks.wav`: Controller clicks & retro sound effects (gaming)
+- `assets/audio/simmer_loop.wav`: Soft kitchen stove sizzle (cooking)
 
-A procedural WebAudio synthesizer is also embedded in `js/game.js` as an instant fallback. Full details and sound descriptions are documented in [`CREDITS.md`](CREDITS.md).
+Full WebAudio synthesizer fallbacks are included so sound functions seamlessly even if audio files are blocked.
 
 ---
 
-## Repository Structure
+## License
 
-```
-├── index.html          # Main HTML structure and UI
-├── css/
-│   └── style.css       # Atmospheric nocturnal stylesheet
-├── js/
-│   ├── atlas.js        # Moth Atlas API client, 422 schema retry, local simulator
-│   ├── stats.js        # Joint/conditional probabilities, dynamic statement builder
-│   ├── game.js         # Evening state controller, audio manager, notebook
-│   └── draw.js         # Canvas 2D scene renderer (commented for sprite replacement)
-├── assets/
-│   └── audio/          # CC0 vendored sound assets
-│       ├── curtain_swipe.wav
-│       ├── bed_tone.wav
-│       ├── thinking_loop.wav
-│       ├── game_clicks.wav
-│       └── simmer_loop.wav
-├── generate_sounds.py  # Procedural audio generator script
-├── proxy.py            # Local Python CORS proxy
-├── proxy.js            # Local Node CORS proxy
-├── .nojekyll           # GitHub Pages asset routing bypass
-├── CREDITS.md          # Full sound, engine, and code attributions
-└── README.md           # Project documentation and guide
-```
+MIT License. Crafted for the Moth Quantum Hackathon.

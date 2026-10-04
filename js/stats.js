@@ -77,45 +77,45 @@ export function generateStatementList(stats, seed = 7) {
   const poolTrue = [
     {
       id: 't1',
-      text: 'When Person A is cooking, Person B is never in bed.',
+      text: 'When Leo is cooking, Mia is never in bed.',
       isTrue: true,
       ruleType: 'never',
-      explanation: 'Accurate! Cooking means Person A is active (bit 0 = 1). Because qubits 0 and 2 are entangled, Person B is also active (playing or cooking) and is never in bed.'
+      explanation: 'Accurate! Cooking means Leo is in the active phase (bit 0 = 1). Entanglement on qubits (0, 2) ensures Mia is also active (gaming or cooking) and is never asleep.'
     },
     {
       id: 't2',
-      text: 'When Person A is in bed or thinking, Person B is always in bed or thinking.',
+      text: 'When Leo is in bed or thinking, Mia is always in bed or thinking.',
       isTrue: true,
       ruleType: 'always_group',
-      explanation: 'Accurate! Resting activities share bit 0 = 0. The quantum graph state keeps resting and active modes synchronized between the two lovers.'
+      explanation: 'Accurate! Resting modes share bit 0 = 0. The quantum graph state keeps both lovers synchronized in resting activities.'
     },
     {
       id: 't3',
-      text: 'When Person B is playing a game, Person A is always playing or cooking.',
+      text: 'When Mia is playing a game, Leo is always playing or cooking.',
       isTrue: true,
       ruleType: 'always_group',
-      explanation: 'Accurate! When B is playing (bit 2 = 1), quantum correlation ensures A is also in an active state (playing or cooking, bit 0 = 1).'
+      explanation: 'Accurate! When Mia is gaming (bit 2 = 1), quantum correlation ensures Leo is also active in his flat (playing or cooking, bit 0 = 1).'
     },
     {
       id: 't4',
-      text: 'When Person A is thinking of B, Person B is either in bed or thinking.',
+      text: 'When Leo is thinking of Mia, Mia is either in bed or thinking.',
       isTrue: true,
       ruleType: 'either_or',
-      explanation: 'Accurate! Thinking sets bit 0 = 0. Therefore Person B is always in the resting group: either asleep in bed or also thinking.'
+      explanation: 'Accurate! Thinking sets bit 0 = 0. Therefore Mia is always in her resting mode: either asleep in bed or also thinking of Leo.'
     },
     {
       id: 't5',
-      text: 'When Person A is in bed, Person B is never cooking.',
+      text: 'When Leo is in bed, Mia is never cooking.',
       isTrue: true,
       ruleType: 'never',
-      explanation: 'Accurate! When A is in bed (bit 0 = 0), B is coupled to resting states and never cooks in the kitchen.'
+      explanation: 'Accurate! When Leo is resting in bed (bit 0 = 0), Mia is coupled to resting states and never stirs the pot in her kitchen.'
     },
     {
       id: 't6',
-      text: 'When Person B is cooking, Person A is either playing a game or cooking.',
+      text: 'When Mia is cooking, Leo is either playing a game or cooking.',
       isTrue: true,
       ruleType: 'either_or',
-      explanation: 'Accurate! When B cooks (bit 2 = 1), A is in the coupled active phase: either gaming or cooking.'
+      explanation: 'Accurate! When Mia cooks (bit 2 = 1), Leo is in the coupled active phase: either gaming or cooking.'
     }
   ];
 
@@ -123,38 +123,38 @@ export function generateStatementList(stats, seed = 7) {
   const poolFalse = [
     {
       id: 'f1',
-      text: 'When Person A is cooking, Person B is always in bed.',
+      text: 'When Leo is cooking, Mia is always in bed.',
       isTrue: false,
       ruleType: 'false_always',
-      explanation: 'False! In reality, when A is cooking, B is never in bed. They are correlated in the active phase (cooking or playing).'
+      explanation: 'False! In reality, when Leo is cooking, Mia is never in bed. They are correlated in the active phase (cooking or gaming).'
     },
     {
       id: 'f2',
-      text: 'When Person A is in bed or thinking, Person B is always playing a game or cooking.',
+      text: 'When Leo is in bed or thinking, Mia is always playing a game or cooking.',
       isTrue: false,
       ruleType: 'false_opposite',
-      explanation: 'False! The lovers are positively correlated, not anti-correlated. When A is resting, B is also resting in bed or thinking.'
+      explanation: 'False! The lovers are positively correlated, not opposite. When Leo is resting, Mia is also resting in bed or thinking.'
     },
     {
       id: 'f3',
-      text: 'When Person B is playing a game, Person A is always in bed.',
+      text: 'When Mia is playing a game, Leo is always in bed.',
       isTrue: false,
       ruleType: 'false_opposite',
-      explanation: 'False! When B is playing a game, A is in the active phase (playing or cooking), never in bed.'
+      explanation: 'False! When Mia is gaming, Leo is active (playing or cooking), never asleep in bed.'
     },
     {
       id: 'f4',
-      text: 'When Person A is in bed, Person B is always cooking.',
+      text: 'When Leo is in bed, Mia is always cooking.',
       isTrue: false,
       ruleType: 'false_opposite',
-      explanation: 'False! When A is in bed, B is never cooking. B is always resting in bed or thinking.'
+      explanation: 'False! When Leo is in bed, Mia is never cooking. Mia is always resting in bed or thinking.'
     },
     {
       id: 'f5',
-      text: 'When Person B is in bed, Person A is always playing a game.',
+      text: 'When Mia is in bed, Leo is always playing a game.',
       isTrue: false,
       ruleType: 'false_opposite',
-      explanation: 'False! When B is in bed, A is never playing games. A is resting in bed or thinking.'
+      explanation: 'False! When Mia is in bed, Leo is never playing games. Leo is resting in bed or thinking.'
     }
   ];
 
@@ -185,8 +185,8 @@ export function generateStatementList(stats, seed = 7) {
 
   // Assign clean sequential IDs
   return selected.map((st, index) => ({
-    id: index,
-    ...st
+    ...st,
+    id: index
   }));
 }
 
