@@ -278,6 +278,8 @@ export class EntangledLoveApp {
       statusLog: document.getElementById('status-log'),
       advancedToggle: document.getElementById('advanced-toggle'),
       advancedFields: document.getElementById('advanced-fields'),
+      btnSetProxy: document.getElementById('btn-set-proxy'),
+      btnSetDirect: document.getElementById('btn-set-direct'),
       
       // Top bar & Evening Controls
       topChapter: document.getElementById('chapter-indicator'),
@@ -426,6 +428,23 @@ export class EntangledLoveApp {
     this.dom.btnCloseCors.addEventListener('click', () => {
       this.dom.corsModal.classList.add('hidden');
     });
+
+    // Preset Base URL buttons (Proxy vs Direct)
+    if (this.dom.btnSetProxy) {
+      this.dom.btnSetProxy.addEventListener('click', () => {
+        this.dom.inputEndpoint.value = 'http://localhost:8787/api/v1';
+        try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, 'http://localhost:8787/api/v1'); } catch (_) {}
+        this.logStatus('Base URL switched to local proxy: http://localhost:8787/api/v1');
+      });
+    }
+
+    if (this.dom.btnSetDirect) {
+      this.dom.btnSetDirect.addEventListener('click', () => {
+        this.dom.inputEndpoint.value = ATLAS_DEFAULT_BASE_URL;
+        try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, ATLAS_DEFAULT_BASE_URL); } catch (_) {}
+        this.logStatus('Base URL switched to direct: ' + ATLAS_DEFAULT_BASE_URL);
+      });
+    }
   }
 
   updateCurtainsButtonLabel() {
@@ -485,9 +504,37 @@ export class EntangledLoveApp {
     } catch (err) {
       console.error('Atlas API Error:', err);
       let errMsg = err.message || 'Unknown API error';
+
       if (errMsg.includes('CORS') || errMsg.includes('Network')) {
-        errMsg += ' (Click "CORS / Proxy Help" below for instructions or local proxy)';
+        // Direct browser call was blocked by CORS.
+        // Check if local proxy is active on http://localhost:8787/api/v1
+        this.logStatus('Browser CORS policy blocked direct connection. Checking local proxy on http://localhost:8787...');
+        try {
+          const testProxy = await fetch('http://localhost:8787/api/v1/engines', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${apiKey}` }
+          });
+          if (testProxy.ok) {
+            this.logStatus('Local CORS Proxy detected! Automatically switching to http://localhost:8787/api/v1 and retrying...');
+            this.dom.inputEndpoint.value = 'http://localhost:8787/api/v1';
+            try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, 'http://localhost:8787/api/v1'); } catch (_) {}
+            
+            const proxyClient = new AtlasClient(apiKey, 'http://localhost:8787/api/v1');
+            const batchData = await proxyClient.fetchBatch(this.seed, (statusText) => {
+              this.logStatus(statusText);
+            });
+            this.mode = 'atlas';
+            this.loadBatch(batchData);
+            this.dom.titleModal.classList.add('hidden');
+            return;
+          }
+        } catch (_) {
+          // Proxy not running
+        }
+
+        errMsg = 'Browser CORS blocked direct API access. Run "python3 proxy.py" in terminal or click "Use Local Proxy" above, or switch to Simulator Mode.';
       }
+
       this.logStatus(errMsg, true);
       this.dom.btnConnectAtlas.disabled = false;
       this.dom.btnPlaySimulator.disabled = false;
