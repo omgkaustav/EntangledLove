@@ -1,15 +1,18 @@
 /**
  * stats.js - Quantum Correlation Statement Builder & Evaluator
  * 
- * Defines the fixed, unambiguous 5-item Field Notebook deductions.
- * Leo and Mia are entangled in an exact Bell state on qubits (0, 2):
- * - Qubit 0 & Qubit 2 are 100% correlated: their overall moods (resting vs active) ALWAYS match.
+ * Defines legitimate, sensible Field Notebook deduction questions about Leo and Mia.
+ * Leo and Mia are entangled in an exact quantum Bell state on qubits (0, 2):
+ * - Qubits 0 & 2 are 100% correlated: their overall moods (Resting vs Active) ALWAYS match.
  * - Qubits 1 & 3 are 50/50 uncoupled: their specific activity within that mood is an independent coin flip.
  * 
- * Ground truth rules are 100% absolute (True or False, no fuzzy 85% decimals):
- * - 3 True statements, 2 False statements.
- * - Questions are permanently fixed for this level/chapter.
+ * Ground truth rules are 100% absolute (True or False, no fuzzy probabilities):
+ * - All pool questions are sensible, legitimate statements about Leo and Mia.
+ * - Each playthrough selects 5 questions (balanced 3 True, 2 False).
+ * - Restarting with a new investigation provides a fresh legitimate logbook page!
  */
+
+import { mulberry32 } from './atlas.js';
 
 export const ACTIVITIES = [
   { code: 0, bits: '00', name: 'in bed', label: 'resting in bed' },
@@ -66,52 +69,130 @@ export function computeStatistics(shots) {
 }
 
 /**
- * Fixed 5 deduction items for the Field Notebook.
- * Completely deterministic and stable (no random reshuffling).
+ * Sensible, legitimate pool of absolute Bell-state statements about Leo and Mia
  */
-export const FIXED_STATEMENTS = [
+export const POOL_TRUE = [
   {
-    id: 0,
     text: 'When Leo is cooking, Mia is never in bed.',
     isTrue: true,
     ruleType: 'never',
     explanation: 'True! Cooking is Leo’s active mood. Because their moods are 100% entangled in a Bell state, Mia is also active (gaming or cooking) and is never asleep in bed.'
   },
   {
-    id: 1,
     text: 'When Leo is in bed or thinking, Mia is always in bed or thinking.',
     isTrue: true,
     ruleType: 'always_group',
     explanation: 'True! Resting in bed and thinking share the quiet mood. Whenever Leo rests, Mia is always resting too across the 9,560 km.'
   },
   {
-    id: 2,
-    text: 'When Mia is playing a game, Leo is always in bed.',
-    isTrue: false,
-    ruleType: 'false_opposite',
-    explanation: 'False! Gaming is Mia’s active mood. Quantum correlation guarantees Leo is also active (gaming or cooking), never asleep in bed.'
+    text: 'When Mia is playing a game, Leo is always playing a game or cooking.',
+    isTrue: true,
+    ruleType: 'always_group',
+    explanation: 'True! Mia’s gaming means she is in the active mood. Bell-state correlation guarantees Leo is also active in London (gaming or cooking).'
   },
   {
-    id: 3,
     text: 'When Leo is thinking of Mia, Mia is always either in bed or thinking.',
     isTrue: true,
     ruleType: 'either_or',
-    explanation: 'True! Thinking is part of the resting mood. Mia is strictly bound to resting activities: either also thinking of Leo, or resting in bed.'
+    explanation: 'True! Thinking is part of Leo’s resting mood. Mia is strictly bound to resting activities: either also thinking of Leo, or resting in bed.'
   },
   {
-    id: 4,
+    text: 'When Mia is cooking, Leo is never resting in bed.',
+    isTrue: true,
+    ruleType: 'never',
+    explanation: 'True! When Mia cooks dinner, she is in her active mood. Leo is also active and is never asleep in bed.'
+  },
+  {
+    text: 'Whenever Leo is in his quiet resting mood, Mia is also resting.',
+    isTrue: true,
+    ruleType: 'always_group',
+    explanation: 'True! Their quiet hours are locked together by an exact Bell pair. One never sleeps while the other is active.'
+  },
+  {
+    text: 'When Leo is playing a game, Mia is never thinking of Leo.',
+    isTrue: true,
+    ruleType: 'never',
+    explanation: 'True! When Leo is gaming, he is active. Mia is bound to active activities (gaming or cooking), never daydreaming in the quiet mood.'
+  }
+];
+
+export const POOL_FALSE = [
+  {
+    text: 'When Leo is cooking, Mia is always in bed.',
+    isTrue: false,
+    ruleType: 'false_opposite',
+    explanation: 'False! When Leo cooks, Mia is never in bed. They share active hours together (cooking or gaming).'
+  },
+  {
+    text: 'When Mia is playing a game, Leo is always in bed.',
+    isTrue: false,
+    ruleType: 'false_opposite',
+    explanation: 'False! When Mia is gaming, she is active. Quantum correlation guarantees Leo is also active (gaming or cooking), never in bed.'
+  },
+  {
     text: 'When Leo is in bed, Mia is always cooking.',
     isTrue: false,
     ruleType: 'false_opposite',
-    explanation: 'False! When Leo is in bed, Mia is never in her kitchen cooking. She is always in bed or thinking.'
+    explanation: 'False! When Leo is resting in bed, Mia is never cooking. She is always in bed or thinking.'
+  },
+  {
+    text: 'When Mia is thinking of Leo, Leo is always cooking.',
+    isTrue: false,
+    ruleType: 'false_opposite',
+    explanation: 'False! Thinking of Leo is part of Mia’s quiet mood. Leo is never in the kitchen cooking when Mia is in her quiet mood.'
+  },
+  {
+    text: 'When Leo is playing a game, Mia is always resting in bed.',
+    isTrue: false,
+    ruleType: 'false_opposite',
+    explanation: 'False! Leo’s gaming means he is active. Mia is always active too (gaming or cooking), never resting in bed.'
+  },
+  {
+    text: 'Whenever Leo is active, Mia is always resting.',
+    isTrue: false,
+    ruleType: 'false_opposite',
+    explanation: 'False! Their moods are positively correlated, not opposite. When Leo is active, Mia is always active too.'
   }
 ];
 
 /**
- * Returns the fixed 5-item statement list
+ * Generates a fresh, legitimate 5-item Field Notebook page from the question pool.
+ * Seeded so each investigation level has a coherent, reproducible set.
  */
-export function generateStatementList() {
-  return FIXED_STATEMENTS.map(st => ({ ...st }));
+export function generateStatementList(seed = 7) {
+  const rng = mulberry32(seed);
+
+  // Fisher-Yates shuffle helper
+  function shuffle(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      const temp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = temp;
+    }
+    return copy;
+  }
+
+  const shuffledTrue = shuffle(POOL_TRUE);
+  const shuffledFalse = shuffle(POOL_FALSE);
+
+  // Pick 3 True and 2 False statements
+  const selected = [
+    shuffledTrue[0],
+    shuffledTrue[1],
+    shuffledTrue[2],
+    shuffledFalse[0],
+    shuffledFalse[1]
+  ];
+
+  // Shuffle order of the 5 statements
+  const ordered = shuffle(selected);
+
+  return ordered.map((st, index) => ({
+    ...st,
+    id: index
+  }));
 }
 
 /**

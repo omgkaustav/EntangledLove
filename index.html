@@ -12,30 +12,18 @@
 <body>
   <div class="game-container">
 
-    <!-- Top Game HUD (Minimalist Indie Game Header) -->
+    <!-- Top Game HUD (Minimalist Icon Controls Only) -->
     <header class="game-hud">
-      <div class="hud-left">
-        <div class="hud-title-group">
-          <h1 class="hud-title">ENTANGLED LOVE</h1>
-          <span class="hud-subtitle">London (Leo) ⟷ Tokyo (Mia) • 9,560 km</span>
-        </div>
+      <div class="diegetic-calendar" id="calendar-plate">
+        <span class="cal-icon">🌙</span>
+        <span class="cal-label" id="day-indicator">EVENING 01</span>
       </div>
 
-      <!-- Center Diegetic Calendar / Day Plate -->
-      <div class="hud-center">
-        <div class="diegetic-calendar" id="calendar-plate">
-          <span class="cal-icon">🌙</span>
-          <span class="cal-label" id="day-indicator">EVENING 01</span>
-        </div>
-        <span class="hud-rule-hint">Both windows are one quantum measurement. Press <kbd>N</kbd> for next evening.</span>
-      </div>
-
-      <!-- Right System Controls -->
-      <div class="hud-right">
-        <span id="mode-badge" class="mode-badge simulator">Local Simulator</span>
-        <button id="btn-audio-toggle" class="hud-btn" title="Toggle Sound">🔊 Audio</button>
-        <button id="btn-settings" class="hud-btn" title="Game Settings & Atlas API">⚙️ Settings</button>
-        <button id="btn-guide" class="hud-btn" title="Field Guide & Rules">❓ Guide</button>
+      <div class="hud-icons-group">
+        <span id="mode-badge" class="mode-badge simulator">Simulator</span>
+        <button id="btn-audio-toggle" class="hud-icon-btn" title="Toggle Sound">🔊</button>
+        <button id="btn-settings" class="hud-icon-btn" title="Launch Menu & Quantum Engine Settings">⚙️</button>
+        <button id="btn-guide" class="hud-icon-btn" title="Field Investigator's Guide">❓</button>
       </div>
     </header>
 
@@ -90,7 +78,7 @@
             <div class="journal-header">
               <div class="journal-meta">
                 <span class="journal-tag">FIELD INVESTIGATION</span>
-                <span id="journal-day-tally" class="journal-date">Day 1 • In Progress</span>
+                <span id="journal-day-tally" class="journal-date">Investigation #1 • Day 1</span>
               </div>
               <h2 class="journal-heading">Observer's Logbook</h2>
               <p class="journal-prompt">Mark deductions with pencil. Seal when confident.</p>
@@ -111,14 +99,14 @@
               <!-- Rendered dynamically by game.js -->
             </div>
 
-            <!-- Diegetic Journal Footer: Wax Seal Submit & Reset -->
+            <!-- Diegetic Journal Footer: Wax Seal Submit & New Investigation -->
             <div class="journal-footer">
               <button id="btn-submit-checklist" class="wax-seal-btn" title="Seal and submit your deductions">
                 <span class="wax-seal-icon">✦</span>
                 <span class="wax-seal-text">SEAL OBSERVATIONS</span>
               </button>
-              <button id="btn-new-journey" class="btn-subtle-turn" title="Clear all pencil marks and start over from Day 1">
-                <span>↻ Clear Logbook & Restart</span>
+              <button id="btn-new-journey" class="btn-subtle-turn" title="Start a new investigation with a fresh logbook">
+                <span>↻ New Investigation</span>
               </button>
             </div>
           </div>
@@ -129,77 +117,88 @@
 
   </div>
 
-  <!-- Settings & API Key Modal -->
-  <div id="settings-modal" class="modal-backdrop hidden">
+  <!-- Launch Menu & Settings Modal (Visible on initial startup) -->
+  <div id="settings-modal" class="modal-backdrop">
     <div class="modal-window">
       <div class="modal-header">
-        <h2 class="modal-title">Quantum Engine Settings</h2>
-        <button id="btn-close-settings" class="modal-close" title="Close Settings">✕</button>
+        <h2 class="modal-title">ENTANGLED LOVE</h2>
+        <button id="btn-close-settings" class="modal-close" title="Close / Resume">✕</button>
       </div>
 
       <div class="modal-body">
         <p class="modal-intro">
-          Choose whether to simulate the 4-qubit graph state locally (zero credits, instant) or execute jobs on the 
-          <strong>Moth Atlas graph-v1</strong> cloud quantum engine.
+          Two lovers separated by 9,560 km in London and Tokyo. Every evening, their nocturnal routines
+          are governed by a 4-qubit quantum graph state with 100% Bell-correlated moods.
+          Choose your quantum engine below to begin:
         </p>
 
-        <!-- API Key Input -->
-        <div class="form-group">
-          <label class="form-label" for="input-api-key">Moth Atlas API Bearer Token</label>
-          <div class="input-row">
-            <input 
-              type="password" 
-              id="input-api-key" 
-              class="form-input" 
-              placeholder="Paste Moth Atlas API Bearer Key..."
-              autocomplete="off"
-              spellcheck="false"
-            >
-            <button type="button" id="btn-toggle-key-visibility" class="btn-input-accessory">Show</button>
-          </div>
-          <span class="form-note">
-            Saved exclusively in your browser's <code>sessionStorage</code>. Never sent to third parties or committed to git.
+        <!-- Fast Play Option: Local Simulator -->
+        <div class="menu-action-card">
+          <button id="btn-play-simulator" class="btn btn-simulator-primary">
+            ▶ START GAME (Local Simulator)
+          </button>
+          <span class="menu-action-desc">
+            Recommended: 0 credits, zero setup. Generates an exact 1,024-shot Bell state locally in your browser.
           </span>
         </div>
 
-        <!-- Advanced Endpoint & Proxy -->
-        <div class="form-group">
-          <a href="#" id="advanced-toggle" class="form-link">Advanced: Endpoint & CORS Proxy Settings ▾</a>
-          <div id="advanced-fields" class="advanced-box hidden">
-            <label class="form-label" for="input-endpoint">Engine Base URL</label>
-            <input 
-              type="text" 
-              id="input-endpoint" 
-              class="form-input" 
-              value="https://api.mothquantum.com/api/v1"
-            >
-            <div class="proxy-preset-row">
-              <button type="button" id="btn-set-proxy" class="btn-tiny">Use Local Proxy (localhost:8787)</button>
-              <button type="button" id="btn-set-direct" class="btn-tiny">Use Direct API URL</button>
+        <!-- Cloud Option: Moth Atlas API -->
+        <div class="menu-atlas-section">
+          <div class="form-group">
+            <label class="form-label" for="input-api-key">Or Connect to Moth Atlas Quantum Engine (Optional)</label>
+            <div class="input-row">
+              <input 
+                type="password" 
+                id="input-api-key" 
+                class="form-input" 
+                placeholder="Paste Moth Atlas API Bearer Token..."
+                autocomplete="off"
+                spellcheck="false"
+              >
+              <button type="button" id="btn-toggle-key-visibility" class="btn-input-accessory">Show</button>
+            </div>
+            <span class="form-note">
+              Stored strictly in your browser's <code>sessionStorage</code>. Costs 5 credits per 1,024-shot batch.
+            </span>
+          </div>
+
+          <!-- Advanced Endpoint & Proxy -->
+          <div class="form-group">
+            <a href="#" id="advanced-toggle" class="form-link">Advanced: Endpoint & CORS Proxy Settings ▾</a>
+            <div id="advanced-fields" class="advanced-box hidden">
+              <label class="form-label" for="input-endpoint">Engine Base URL</label>
+              <input 
+                type="text" 
+                id="input-endpoint" 
+                class="form-input" 
+                value="https://api.mothquantum.com/api/v1"
+              >
+              <div class="proxy-preset-row">
+                <button type="button" id="btn-set-proxy" class="btn-tiny">Use Local Proxy (localhost:8787)</button>
+                <button type="button" id="btn-set-direct" class="btn-tiny">Use Direct API URL</button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Engine Status Log -->
-        <div id="status-log" class="status-console">
-          Ready. Select Simulator mode or connect with your Moth Atlas key.
+          <!-- Engine Status Log -->
+          <div id="status-log" class="status-console">
+            Ready to observe. Click "Start Game" or connect your Moth Atlas token.
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <button id="btn-connect-atlas" class="btn btn-atlas" style="flex: 1;">
+              ✦ Launch with Moth Atlas (5 Credits)
+            </button>
+            <button id="btn-resume-cache" class="btn btn-neutral hidden">
+              Resume Cached Batch
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button id="btn-connect-atlas" class="btn btn-atlas">
-          Connect to Moth Atlas (Costs 5 Credits)
-        </button>
-        <button id="btn-play-simulator" class="btn btn-simulator">
-          Use Local Quantum Simulator (Recommended)
-        </button>
-        <button id="btn-resume-cache" class="btn btn-neutral hidden">
-          Resume Cached Batch
-        </button>
-      </div>
-
-      <div class="modal-sub-link">
-        <a href="#" id="btn-cors-help" class="form-link">CORS / Proxy Setup Guide</a>
+      <div class="modal-footer" style="flex-direction: row; justify-content: space-between; align-items: center;">
+        <a href="#" id="btn-menu-guide" class="form-link">📖 How to Play / Guide</a>
+        <a href="#" id="btn-cors-help" class="form-link">CORS / Proxy Setup</a>
       </div>
     </div>
   </div>

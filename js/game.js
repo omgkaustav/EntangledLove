@@ -318,10 +318,11 @@ export class EntangledLoveApp {
 
     // Game state
     this.seed = 7;
+    this.investigationCount = 1;
     this.shots = [];
     this.dayIndex = 0; // 0 to 1023 (player-paced)
     this.stats = null;
-    this.statements = generateStatementList(); // Fixed, permanent 5 questions
+    this.statements = generateStatementList(this.seed); // Sensible, legitimate questions
     this.userAnswers = {};
     this.isSubmitted = false;
     this.mode = 'simulator';
@@ -466,6 +467,14 @@ export class EntangledLoveApp {
     this.dom.btnGuideGotit.addEventListener('click', () => {
       this.dom.guideModal.classList.add('hidden');
     });
+
+    const btnMenuGuide = document.getElementById('btn-menu-guide');
+    if (btnMenuGuide) {
+      btnMenuGuide.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.dom.guideModal.classList.remove('hidden');
+      });
+    }
 
     // CORS Modal Open/Close
     this.dom.btnCorsHelp.addEventListener('click', (e) => {
@@ -897,13 +906,25 @@ export class EntangledLoveApp {
   }
 
   /**
-   * Resets field observations back to Day 1 and clears pencil marks
-   * without changing or refreshing the 5 fixed deduction questions.
+   * Starts a fresh investigation with a new legitimate set of 5 questions
+   * from the question pool, resetting the logbook and evening counter.
    */
   resetLogbook() {
+    this.investigationCount++;
+    this.seed = (this.seed * 31 + 17) % 9999 + 1;
     this.dayIndex = 0;
     this.userAnswers = {};
     this.isSubmitted = false;
+
+    // Pick a fresh legitimate set of 5 questions for the new investigation
+    this.statements = generateStatementList(this.seed);
+
+    // If using simulator, generate fresh batch for the new investigation
+    if (this.mode === 'simulator') {
+      const batchData = simulateLocalGraphBatch(this.seed, 1024, 1.0);
+      this.shots = batchData.shots;
+      this.stats = computeStatistics(this.shots);
+    }
 
     // Reset UI
     this.dom.scoreBanner.classList.add('hidden');
@@ -913,21 +934,9 @@ export class EntangledLoveApp {
       <span class="wax-seal-text">SEAL OBSERVATIONS</span>
     `;
 
-    // Clear all checkmarks and result annotations from entries
-    this.statements.forEach((st) => {
-      const entry = document.getElementById(`journal-entry-${st.id}`);
-      if (!entry) return;
-      const btnTrue = entry.querySelector('.true-btn');
-      const btnFalse = entry.querySelector('.false-btn');
-      if (btnTrue) btnTrue.classList.remove('selected');
-      if (btnFalse) btnFalse.classList.remove('selected');
-
-      const resultEl = document.getElementById(`entry-result-${st.id}`);
-      if (resultEl) {
-        resultEl.classList.add('hidden');
-        resultEl.innerHTML = '';
-      }
-    });
+    // Render fresh logbook
+    this.renderChecklist();
+    this.dom.journalDayTally.textContent = `Investigation #${this.investigationCount} • Day 1`;
 
     // Reset day and lights
     this.renderer.setLights(false, false);
@@ -949,6 +958,8 @@ export class EntangledLoveApp {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  window.app = new EntangledLoveApp();
-});
+if (typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    window.app = new EntangledLoveApp();
+  });
+}

@@ -655,24 +655,6 @@ export class SceneRenderer {
       ctx.fill();
     }
 
-    // 4. Distance Emblem Plaque (Top Center)
-    ctx.shadowBlur = 0;
-    const plaqueY = 24;
-    ctx.fillStyle = 'rgba(12, 14, 24, 0.92)';
-    ctx.beginPath();
-    ctx.roundRect(centerX - 95, plaqueY - 14, 190, 28, 14);
-    ctx.fill();
-
-    ctx.strokeStyle = 'rgba(214, 175, 88, 0.7)';
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-
-    ctx.font = 'bold 11px "Cinzel", Georgia, serif';
-    ctx.fillStyle = '#fce79a';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('⟵ 9,560 KM APART ⟶', centerX, plaqueY);
-
     ctx.restore();
   }
 
@@ -687,10 +669,11 @@ export class SceneRenderer {
 
     ctx.save();
 
-    // Draw Window Architectural Surround & Header
-    this.drawWindowSurround(ctx, win, lightVal, isMia);
+    // 1. Draw Architectural Header ABOVE window (Large bold character name & city)
+    this.drawWindowHeader(ctx, win, lightVal, isMia);
 
-    // Clip rendering strictly to window interior
+    // 2. Interior Room Rendering (clipped strictly to window interior)
+    ctx.save();
     ctx.beginPath();
     ctx.rect(rx, ry, rw, rh);
     ctx.clip();
@@ -744,54 +727,106 @@ export class SceneRenderer {
       this.drawUnlitSilhouette(ctx, rx, ry, rw, rh, isMia);
     }
 
-    // Glass sheen & reflections
+    ctx.restore(); // ends room clip
+
+    // 3. PHYSICAL WINDOW CASING & CROSS MULLIONS (DRAWN ON TOP OF ROOM)
+    this.drawWindowPanesAndFrame(ctx, win, lightVal, isMia);
+
+    // 4. Glass sheen & reflections across the 4 panes
     this.drawGlassReflections(ctx, rx, ry, rw, rh, lightVal, isMia);
 
-    ctx.restore();
-
-    // Light spill onto building when light is ON
+    // 5. Light spill onto outside walls when light is ON
     if (lightVal > 0.05) {
       this.drawLightSpill(ctx, win, lightVal, isMia);
     }
 
-    // Interactive Window Footer & Hotkey Pill
+    // 6. Interactive Window Footer & Hotkey Pill
     this.drawWindowFooter(ctx, win, lightVal, isMia);
+
+    ctx.restore();
   }
 
-  drawWindowSurround(ctx, win, lightVal, isMia) {
+  drawWindowHeader(ctx, win, lightVal, isMia) {
     ctx.save();
-    const frameCol = isMia ? '#222838' : '#302636';
+    const charName = isMia ? 'MIA' : 'LEO';
+    const cityTitle = isMia ? 'TOKYO • 桜通り' : 'LONDON • FLEET ST';
+    const accentCol = isMia ? '#f472b6' : '#60a5fa';
+    const glowCol = isMia ? 'rgba(244, 114, 182, 0.4)' : 'rgba(96, 165, 250, 0.4)';
 
-    // Window frame
+    // Large bold character name (very prominent & clear)
+    ctx.font = 'bold 22px "Cinzel", Georgia, serif';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = accentCol;
+    ctx.shadowColor = glowCol;
+    ctx.shadowBlur = 10;
+    ctx.fillText(charName, win.x + 4, win.y - 18);
+
+    // City & Street subtitle
+    ctx.font = 'bold 12px "Cinzel", Georgia, serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.shadowBlur = 0;
+    const nameWidth = ctx.measureText(charName).width;
+    ctx.fillText(`— ${cityTitle}`, win.x + nameWidth + 18, win.y - 19);
+
+    ctx.restore();
+  }
+
+  drawWindowPanesAndFrame(ctx, win, lightVal, isMia) {
+    ctx.save();
+    const frameCol = isMia ? '#1a2030' : '#271d22';
+    const frameHighlight = isMia ? '#2e3a54' : '#45333c';
+    const frameShadow = isMia ? '#0f131d' : '#140e11';
+
+    // 1. Thick Outer Window Casing Border
     ctx.strokeStyle = frameCol;
     ctx.lineWidth = 14;
     ctx.strokeRect(win.x, win.y, win.width, win.height);
 
-    // Stone / metal sill
-    ctx.fillStyle = isMia ? '#2c354a' : '#45384c';
-    ctx.fillRect(win.x - 14, win.y + win.height, win.width + 28, 18);
+    // Inner bevel rim
+    ctx.strokeStyle = frameHighlight;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(win.x + 7, win.y + 7, win.width - 14, win.height - 14);
 
-    // Cross mullions
-    ctx.strokeStyle = frameCol;
-    ctx.lineWidth = 7;
+    // 2. Window Sill at bottom with 3D bevels
+    ctx.fillStyle = isMia ? '#2b364e' : '#42313b';
+    ctx.fillRect(win.x - 14, win.y + win.height, win.width + 28, 20);
+    // Sill top highlight
+    ctx.fillStyle = isMia ? '#46567a' : '#5e4854';
+    ctx.fillRect(win.x - 14, win.y + win.height, win.width + 28, 3);
+    // Sill bottom shadow
+    ctx.fillStyle = '#06080e';
+    ctx.fillRect(win.x - 14, win.y + win.height + 17, win.width + 28, 3);
+
+    // 3. Central Vertical Mullion (divides left & right glass panes)
+    const midX = win.x + win.width / 2;
+    ctx.fillStyle = frameCol;
+    ctx.fillRect(midX - 5, win.y, 10, win.height);
+    // 3D vertical highlights
+    ctx.fillStyle = frameHighlight;
+    ctx.fillRect(midX - 5, win.y, 2, win.height);
+    ctx.fillStyle = frameShadow;
+    ctx.fillRect(midX + 3, win.y, 2, win.height);
+
+    // 4. Horizontal Transom Crossbar (divides upper & lower glass panes)
+    const midY = win.y + win.height * 0.44;
+    ctx.fillStyle = frameCol;
+    ctx.fillRect(win.x, midY - 5, win.width, 10);
+    // 3D horizontal highlights
+    ctx.fillStyle = frameHighlight;
+    ctx.fillRect(win.x, midY - 5, win.width, 2);
+    ctx.fillStyle = frameShadow;
+    ctx.fillRect(win.x, midY + 3, win.width, 2);
+
+    // 5. Central Brass Sash Latch/Lock in the intersection of the cross
+    ctx.fillStyle = '#c5a044';
+    ctx.fillRect(midX - 7, midY - 7, 14, 14);
+    ctx.strokeStyle = '#ffe89e';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(midX - 7, midY - 7, 14, 14);
+    ctx.fillStyle = '#42320b';
     ctx.beginPath();
-    ctx.moveTo(win.x + win.width / 2, win.y);
-    ctx.lineTo(win.x + win.width / 2, win.y + win.height);
-    ctx.moveTo(win.x, win.y + win.height * 0.44);
-    ctx.lineTo(win.x + win.width, win.y + win.height * 0.44);
-    ctx.stroke();
-
-    // City & Character Header
-    ctx.font = 'bold 12px "Cinzel", Georgia, serif';
-    ctx.fillStyle = isMia ? '#f472b6' : '#60a5fa';
-    const titleX = isMia ? win.x + win.width : win.x;
-    ctx.textAlign = isMia ? 'right' : 'left';
-    ctx.fillText(`${win.character} • ${win.city}`, titleX, win.y - 14);
-
-    ctx.font = 'italic 10px system-ui, sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    const subX = isMia ? win.x + win.width - 130 : win.x + 130;
-    ctx.fillText(win.street, subX, win.y - 14);
+    ctx.arc(midX, midY, 3, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore();
   }
@@ -946,6 +981,194 @@ export class SceneRenderer {
     ctx.restore();
   }
 
+  drawThoughtBubble(ctx, bubbleX, bubbleY, width, height, targetIsMia) {
+    ctx.save();
+    const floatY = Math.sin(this.animTime * 2.2) * 3;
+    const cx = bubbleX + width / 2;
+    const cy = bubbleY + height / 2 + floatY;
+
+    // Thought trail puffs rising to the cloud
+    const puffs = targetIsMia
+      ? [
+          { x: bubbleX - 16, y: bubbleY + height + 18, r: 4 },
+          { x: bubbleX - 9, y: bubbleY + height + 7, r: 7 },
+          { x: bubbleX - 2, y: bubbleY + height - 4, r: 10 }
+        ]
+      : [
+          { x: bubbleX + width + 16, y: bubbleY + height + 18, r: 4 },
+          { x: bubbleX + width + 9, y: bubbleY + height + 7, r: 7 },
+          { x: bubbleX + width + 2, y: bubbleY + height - 4, r: 10 }
+        ];
+
+    // Soft puff shadows and fills
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.shadowColor = targetIsMia ? 'rgba(244, 114, 182, 0.5)' : 'rgba(212, 175, 55, 0.5)';
+    ctx.shadowBlur = 10;
+
+    for (const p of puffs) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y + floatY * 0.5, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Fluffy cloud body
+    ctx.beginPath();
+    ctx.roundRect(bubbleX, bubbleY + floatY, width, height, height * 0.45);
+    ctx.fill();
+
+    // Cloud puffs around perimeter
+    const cloudLumps = [
+      { x: bubbleX + width * 0.22, y: bubbleY + floatY - 6, r: height * 0.35 },
+      { x: bubbleX + width * 0.5, y: bubbleY + floatY - 9, r: height * 0.42 },
+      { x: bubbleX + width * 0.78, y: bubbleY + floatY - 6, r: height * 0.35 },
+      { x: bubbleX + width * 0.2, y: bubbleY + floatY + height + 3, r: height * 0.3 },
+      { x: bubbleX + width * 0.5, y: bubbleY + floatY + height + 5, r: height * 0.35 },
+      { x: bubbleX + width * 0.8, y: bubbleY + floatY + height + 3, r: height * 0.3 }
+    ];
+    for (const cl of cloudLumps) {
+      ctx.beginPath();
+      ctx.arc(cl.x, cl.y, cl.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.shadowBlur = 0;
+
+    // Inside the thought bubble: cute portrait of the other lover!
+    if (targetIsMia) {
+      // Leo thinking of Mia!
+      const px = cx - 18;
+      const py = cy;
+
+      // Mia cute face
+      ctx.fillStyle = '#fce7dc';
+      ctx.beginPath();
+      ctx.arc(px, py, 18, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Blushing cheeks
+      ctx.fillStyle = 'rgba(251, 113, 133, 0.55)';
+      ctx.beginPath();
+      ctx.arc(px - 9, py + 4, 4.5, 0, Math.PI * 2);
+      ctx.arc(px + 9, py + 4, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Mia dark hair with cute top bun
+      ctx.fillStyle = '#1e1c24';
+      ctx.beginPath();
+      ctx.arc(px, py - 4, 19, Math.PI * 0.8, Math.PI * 2.2);
+      ctx.fill();
+      // Bun
+      ctx.beginPath();
+      ctx.arc(px + 2, py - 20, 9, 0, Math.PI * 2);
+      ctx.fill();
+      // Red hairpin chopstick
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(px - 10, py - 24);
+      ctx.lineTo(px + 14, py - 16);
+      ctx.stroke();
+
+      // Happy curved closed eyes ^ _ ^
+      ctx.strokeStyle = '#1e1c24';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(px - 6, py - 1, 3.5, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(px + 6, py - 1, 3.5, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+
+      // Cute smile
+      ctx.beginPath();
+      ctx.arc(px, py + 4, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.stroke();
+
+      // Floating pink hearts next to Mia
+      const h1Y = cy - 14 + Math.sin(this.animTime * 3) * 3;
+      const h2Y = cy + 10 + Math.cos(this.animTime * 2.5) * 3;
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillStyle = '#f43f5e';
+      ctx.fillText('♥', cx + 18, h1Y);
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillStyle = '#fb7185';
+      ctx.fillText('♥', cx + 32, h2Y);
+    } else {
+      // Mia thinking of Leo!
+      const px = cx + 18;
+      const py = cy;
+
+      // Leo cute face
+      ctx.fillStyle = '#ecd0b8';
+      ctx.beginPath();
+      ctx.arc(px, py, 18, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Blushing cheeks
+      ctx.fillStyle = 'rgba(251, 146, 60, 0.45)';
+      ctx.beginPath();
+      ctx.arc(px - 9, py + 4, 4.5, 0, Math.PI * 2);
+      ctx.arc(px + 9, py + 4, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Leo messy dark curls
+      ctx.fillStyle = '#3d271d';
+      ctx.beginPath();
+      ctx.arc(px, py - 5, 20, Math.PI * 0.8, Math.PI * 2.2);
+      ctx.fill();
+      const curls = [
+        [px - 14, py - 12, 6],
+        [px - 4, py - 20, 7],
+        [px + 8, py - 18, 6.5],
+        [px + 15, py - 10, 6]
+      ];
+      for (const [cuX, cuY, cuR] of curls) {
+        ctx.beginPath();
+        ctx.arc(cuX, cuY, cuR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Round wire glasses
+      ctx.strokeStyle = '#27272a';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(px - 6, py - 1, 5, 0, Math.PI * 2);
+      ctx.arc(px + 6, py - 1, 5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(px - 1, py - 1);
+      ctx.lineTo(px + 1, py - 1);
+      ctx.stroke();
+
+      // Happy curved closed eyes ^ _ ^ behind glasses
+      ctx.strokeStyle = '#3d271d';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(px - 6, py - 1, 2.5, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(px + 6, py - 1, 2.5, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+
+      // Cute smile
+      ctx.beginPath();
+      ctx.arc(px, py + 5, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.stroke();
+
+      // Floating golden/warm hearts next to Leo
+      const h1Y = cy - 14 + Math.sin(this.animTime * 3) * 3;
+      const h2Y = cy + 10 + Math.cos(this.animTime * 2.5) * 3;
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillStyle = '#eab308';
+      ctx.fillText('♥', cx - 28, h1Y);
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillText('♥', cx - 38, h2Y);
+    }
+
+    ctx.restore();
+  }
+
   drawLeoThinking(ctx, x, y, w, h) {
     ctx.save();
     const lampX = x + w - 90;
@@ -985,7 +1208,7 @@ export class SceneRenderer {
     ctx.quadraticCurveTo(deskX + 132, deskY - 26, deskX + 138, deskY - 34);
     ctx.stroke();
 
-    // Leo leaning on hand, looking out window towards Tokyo
+    // Leo leaning on hand, looking daydreamy
     const charX = deskX + 50;
     const charY = deskY - 30;
 
@@ -1015,6 +1238,9 @@ export class SceneRenderer {
     ctx.arc(charX + 2, charY - 12, 15, Math.PI * 0.8, Math.PI * 2.2);
     ctx.fill();
 
+    // Floating Thought Bubble: Leo thinking of Mia!
+    this.drawThoughtBubble(ctx, deskX - 70, deskY - 145, 140, 90, true);
+
     ctx.restore();
   }
 
@@ -1023,54 +1249,125 @@ export class SceneRenderer {
     const deskX = x + w - 230;
     const deskY = y + h - 165;
     const screenX = deskX + 105;
-    const screenY = deskY - 35;
+    const screenY = deskY - 45;
 
-    // Glowing CRT/Monitor Screen
-    const pulse = 0.85 + 0.15 * Math.sin(this.animTime * 6);
-    const screenGrad = ctx.createRadialGradient(screenX, screenY, 10, screenX, screenY, 145);
-    screenGrad.addColorStop(0, '#bae6fd');
-    screenGrad.addColorStop(0.35, `rgba(56, 189, 248, ${0.45 * pulse})`);
+    // Glowing arcade screen flare radiating onto the room
+    const pulse = 0.85 + 0.15 * Math.sin(this.animTime * 8);
+    const screenGrad = ctx.createRadialGradient(screenX, screenY, 15, screenX, screenY, 160);
+    screenGrad.addColorStop(0, `rgba(56, 189, 248, ${0.7 * pulse})`);
+    screenGrad.addColorStop(0.4, `rgba(168, 85, 247, ${0.4 * pulse})`);
     screenGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
     ctx.fillStyle = screenGrad;
     ctx.beginPath();
-    ctx.arc(screenX, screenY, 145, 0, Math.PI * 2);
+    ctx.arc(screenX, screenY, 160, 0, Math.PI * 2);
     ctx.fill();
 
-    // Retro wooden chassis monitor
-    ctx.fillStyle = '#2b231d';
-    ctx.fillRect(screenX - 26, screenY - 26, 52, 34);
-    ctx.fillStyle = '#0284c7';
-    ctx.fillRect(screenX - 22, screenY - 22, 44, 26);
+    // Wooden desk
+    ctx.fillStyle = '#3a2d24';
+    ctx.fillRect(deskX - 10, deskY, 195, 14);
 
-    // Leo sitting focused with wired controller
-    const charX = deskX + 45;
-    const charY = deskY - 35;
+    // Gaming PC Monitor with stand
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(screenX - 35, screenY - 28, 70, 48); // Bezel
+    ctx.fillRect(screenX - 6, screenY + 20, 12, 10);  // Stand
+    ctx.fillRect(screenX - 16, screenY + 28, 32, 4);  // Base
 
-    ctx.fillStyle = '#475569';
+    // Pixel retro arcade game inside monitor screen!
+    ctx.fillStyle = '#090d16';
+    ctx.fillRect(screenX - 31, screenY - 24, 62, 40); // Screen glass
+
+    // 1. Arcade score & health hearts
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 7px sans-serif';
+    ctx.fillText('♥♥♥', screenX - 28, screenY - 16);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 6px monospace';
+    ctx.fillText('4200', screenX + 8, screenY - 16);
+
+    // 2. Pixel starfield / platforms
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fillRect(screenX - 10, screenY - 8, 2, 2);
+    ctx.fillRect(screenX + 15, screenY - 4, 2, 2);
+    ctx.fillRect(screenX - 20, screenY + 5, 2, 2);
+
+    // 3. Pixel Spaceship / Hero
+    const shipAnimX = Math.sin(this.animTime * 4) * 8;
+    ctx.fillStyle = '#22c55e'; // Green hero ship
+    ctx.fillRect(screenX - 4 + shipAnimX, screenY + 6, 8, 5);
+    ctx.fillStyle = '#a855f7'; // Alien target
+    ctx.fillRect(screenX - 6 - shipAnimX, screenY - 6, 12, 6);
+
+    // 4. Laser beam firing!
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.ellipse(charX + 5, charY + 18, 18, 22, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Arms holding controller
-    ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 8;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(charX, charY + 15);
-    ctx.lineTo(charX + 25, charY + 20);
+    ctx.moveTo(screenX + shipAnimX, screenY + 5);
+    ctx.lineTo(screenX + shipAnimX, screenY - 2);
     ctx.stroke();
 
+    // Leo sitting in gaming chair focused
+    const charX = deskX + 35;
+    const charY = deskY - 35;
+
+    // Gaming chair back
+    ctx.fillStyle = '#1e1b4b';
+    ctx.beginPath();
+    ctx.roundRect(charX - 18, charY - 30, 26, 68, 6);
+    ctx.fill();
+
+    // Hoodie / jumper body
+    ctx.fillStyle = '#475569';
+    ctx.beginPath();
+    ctx.ellipse(charX, charY + 18, 18, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Leo's head & messy curls
     ctx.fillStyle = '#ecd0b8';
     ctx.beginPath();
-    ctx.arc(charX + 4, charY - 10, 13, 0, Math.PI * 2);
+    ctx.arc(charX + 2, charY - 10, 13, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#3d271d';
     ctx.beginPath();
-    ctx.arc(charX + 4, charY - 13, 14, Math.PI * 0.9, Math.PI * 2.1);
+    ctx.arc(charX + 2, charY - 13, 14, Math.PI * 0.9, Math.PI * 2.1);
     ctx.fill();
 
-    ctx.fillStyle = '#3a2d24';
-    ctx.fillRect(deskX, deskY, 180, 14);
+    // Over-ear Gaming Headphones!
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(charX + 2, charY - 12, 14, Math.PI * 0.8, Math.PI * 2.2);
+    ctx.stroke();
+    // Blue headphone earcup
+    ctx.fillStyle = '#0284c7';
+    ctx.beginPath();
+    ctx.arc(charX + 11, charY - 10, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Handheld Gamepad / Controller in Leo's hands!
+    const padX = charX + 22;
+    const padY = charY + 16;
+    // Controller body (ergonomic black gamepad)
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.roundRect(padX - 8, padY - 6, 18, 12, 4);
+    ctx.fill();
+    // Glowing colorful buttons on controller!
+    ctx.fillStyle = '#ef4444'; // Red button
+    ctx.fillRect(padX + 4, padY - 3, 2, 2);
+    ctx.fillStyle = '#38bdf8'; // Blue button
+    ctx.fillRect(padX + 1, padY, 2, 2);
+    ctx.fillStyle = '#22c55e'; // Green button
+    ctx.fillRect(padX - 4, padY - 3, 2, 2);
+
+    // Arms reaching to controller
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(charX - 4, charY + 14);
+    ctx.lineTo(padX - 4, padY);
+    ctx.stroke();
+
     ctx.restore();
   }
 
@@ -1310,6 +1607,9 @@ export class SceneRenderer {
     ctx.beginPath();
     ctx.arc(charX - 4, charY - 22, 7, 0, Math.PI * 2);
     ctx.fill();
+
+    // Floating Thought Bubble: Mia thinking of Leo!
+    this.drawThoughtBubble(ctx, deskX + 130, deskY - 145, 140, 90, false);
 
     ctx.restore();
   }
