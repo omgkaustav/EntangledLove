@@ -171,23 +171,22 @@
       <h2 class="modal-title" style="font-size: 1.4rem;">Browser CORS & Local Proxy</h2>
       <div class="modal-help-content">
         <p>
-          Direct browser calls to external APIs without CORS headers may be blocked by your browser.
-          To use your Moth Atlas API key seamlessly from localhost, you can run the tiny local proxy included in this repo:
+          Browsers enforce security rules (CORS) that block direct client-side requests from web pages to external APIs that don't send permissive CORS headers.
         </p>
 
-        <strong>Option A: Run Python Proxy (No installs needed)</strong>
-        <div class="code-block">python3 proxy.py</div>
-
-        <strong>Option B: Run Node Proxy</strong>
-        <div class="code-block">node proxy.js</div>
-
+        <strong>1. Hosting on GitHub Pages (Public Web)</strong>
         <p>
-          Then in the Title Screen, expand <em>Advanced</em> and set the Base URL to:
-          <code>http://localhost:8787/api/v1</code>
+          • <strong>Recommended for most players & judges:</strong> Click <strong>"Play in Local Simulator Mode"</strong>. It runs 100% inside the browser with zero setup, zero credit cost, and produces the exact same 4-qubit entangled graph state measurements.<br>
+          • <strong>Using live Moth Atlas on GitHub Pages:</strong> Deploy a free 15-line Cloudflare Worker proxy (instructions in README.md) and paste your Worker URL (e.g. <code>https://my-moth-proxy.workers.dev/api/v1</code>) into the Advanced Base URL field.
         </p>
 
+        <strong>2. Running Locally (localhost)</strong>
         <p>
-          Or, simply click <strong>Play in Local Simulator Mode</strong> to experience the exact same 4-qubit entangled graph state model without spending credits or configuring proxies!
+          Run the included lightweight local proxy in your terminal:
+        </p>
+        <div class="code-block">python3 proxy.py   # (Running on http://localhost:8787)</div>
+        <p>
+          The web app will automatically detect it and route your requests through the proxy!
         </p>
       </div>
       <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
