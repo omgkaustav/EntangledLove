@@ -1277,7 +1277,28 @@ export class SceneRenderer {
       const eX1 = hx - r * 0.35;
       const eX2 = hx + r * 0.35;
 
-      if (options.expression === 'gaming') {
+      if (options.readingGlasses || options.expression === 'reading') {
+        // Delicate round rose-gold reading glasses
+        ctx.strokeStyle = '#e11d48';
+        ctx.lineWidth = 1.3;
+        const gR = r * 0.25;
+        ctx.beginPath();
+        ctx.arc(eX1, eyeCenterY, gR, 0, Math.PI * 2);
+        ctx.arc(eX2, eyeCenterY, gR, 0, Math.PI * 2);
+        ctx.stroke();
+        // Nose bridge
+        ctx.beginPath();
+        ctx.moveTo(eX1 + gR, eyeCenterY);
+        ctx.lineTo(eX2 - gR, eyeCenterY);
+        ctx.stroke();
+
+        // Eyes looking downward intently at the book
+        ctx.fillStyle = '#1e1c24';
+        ctx.beginPath();
+        ctx.arc(eX1, eyeCenterY + 1.2, 1.7, 0, Math.PI * 2);
+        ctx.arc(eX2, eyeCenterY + 1.2, 1.7, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (options.expression === 'gaming') {
         // Focused cute anime eyes looking down-left at the Switch
         ctx.fillStyle = '#1e1b4b';
         ctx.beginPath();
@@ -2530,32 +2551,138 @@ export class SceneRenderer {
 
   drawMiaReading(ctx, x, y, w, h) {
     ctx.save();
-    const lampX = x + w - 75;
+
+    // 1. Ambient Warm Reading Lamp & Light Cone
+    const lampX = x + w - 60;
     const lampY = y + 75;
 
-    // Glowing string fairy lights & warm pastel lavender-pink ambiance
-    const glow = ctx.createRadialGradient(lampX, lampY + 30, 10, lampX, lampY + 100, 200);
-    glow.addColorStop(0, 'rgba(255, 215, 240, 0.85)');
-    glow.addColorStop(0.35, 'rgba(232, 121, 249, 0.25)');
-    glow.addColorStop(1, 'rgba(232, 121, 249, 0)');
+    // Warm golden-amber reading spotlight on Mia and her book
+    const glow = ctx.createRadialGradient(lampX - 45, lampY + 50, 15, lampX - 80, lampY + 115, 230);
+    glow.addColorStop(0, 'rgba(255, 245, 215, 0.90)');
+    glow.addColorStop(0.35, 'rgba(254, 215, 170, 0.32)');
+    glow.addColorStop(1, 'rgba(254, 215, 170, 0)');
     ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(lampX, lampY + 90, 200, 0, Math.PI * 2);
+    ctx.arc(lampX - 60, lampY + 105, 220, 0, Math.PI * 2);
     ctx.fill();
 
-    // String fairy lights along wall
+    // Floor Arc Reading Lamp (Scandinavian curved metal frame)
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(lampX + 15, y + h - 110);
+    ctx.quadraticCurveTo(lampX + 15, lampY - 10, lampX - 35, lampY);
+    ctx.stroke();
+    // Lamp heavy base
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(lampX + 3, y + h - 112, 24, 6);
+    // Modern dome shade angled down-left
+    ctx.fillStyle = '#fb7185'; // Coral dome shade
+    ctx.beginPath();
+    ctx.arc(lampX - 35, lampY + 4, 13, Math.PI * 0.9, Math.PI * 1.9);
+    ctx.fill();
+    // Glowing warm bulb
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.arc(lampX - 35, lampY + 9, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Fairy lights softly glowing along the top wall
     const bulbCols = ['#fbcfe8', '#fef08a', '#c7d2fe', '#fed7aa'];
-    for (let i = 0; i < 6; i++) {
-      const bx = x + 60 + i * 45;
-      const by = y + 42 + Math.sin(i * 0.8) * 6;
+    for (let i = 0; i < 5; i++) {
+      const bx = x + 45 + i * 40;
+      const by = y + 36 + Math.sin(i * 0.8) * 5;
       ctx.fillStyle = bulbCols[i % bulbCols.length];
       ctx.beginPath();
-      ctx.arc(bx, by, 3.5, 0, Math.PI * 2);
+      ctx.arc(bx, by, 3, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // Comfy oversized lavender beanbag / floor cushion
-    const cushionX = x + 125;
+    // 2. Japanese Floating Wall Bookshelves with Colorful Manga & Book Volumes!
+    const shelfX = x + 35;
+    const shelfY = y + 70;
+    // Lower main floating shelf
+    ctx.fillStyle = '#785d4d';
+    ctx.fillRect(shelfX, shelfY, 125, 7);
+    ctx.fillStyle = '#a27b5c';
+    ctx.fillRect(shelfX, shelfY - 2, 125, 2);
+
+    // Row of 7 standing books / manga volumes on shelf with vibrant spines
+    const bookSpines = [
+      { col: '#ef4444', w: 14, h: 32 },
+      { col: '#3b82f6', w: 15, h: 30 },
+      { col: '#10b981', w: 13, h: 34 },
+      { col: '#f59e0b', w: 16, h: 28 },
+      { col: '#8b5cf6', w: 14, h: 31 },
+      { col: '#ec4899', w: 15, h: 29 },
+      { col: '#06b6d4', w: 13, h: 33 }
+    ];
+    let bxCursor = shelfX + 6;
+    for (let b = 0; b < bookSpines.length; b++) {
+      const sp = bookSpines[b];
+      ctx.fillStyle = sp.col;
+      ctx.fillRect(bxCursor, shelfY - sp.h, sp.w, sp.h);
+      // Gold/white foil spine title accent
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.fillRect(bxCursor + 3, shelfY - sp.h + 5, sp.w - 6, 2);
+      ctx.fillRect(bxCursor + 4, shelfY - sp.h + 10, sp.w - 8, sp.h - 16);
+      bxCursor += sp.w + 2;
+    }
+    // White ceramic cat bookend holding up the right end
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.roundRect(bxCursor + 1, shelfY - 16, 12, 16, 3);
+    ctx.fill();
+    // Cat ears on bookend
+    ctx.beginPath();
+    ctx.moveTo(bxCursor + 2, shelfY - 16);
+    ctx.lineTo(bxCursor + 5, shelfY - 21);
+    ctx.lineTo(bxCursor + 8, shelfY - 16);
+    ctx.fill();
+
+    // 3. Stack of Hardcover Books on the Floor next to Mia's cushion!
+    const stackX = x + 40;
+    const stackY = y + h - 132;
+    const floorStack = [
+      { col: '#1e3a8a', w: 42, h: 8 },  // Navy bottom book
+      { col: '#be123c', w: 38, h: 8 },  // Ruby second book
+      { col: '#047857', w: 35, h: 7 },  // Forest green third book
+      { col: '#d97706', w: 32, h: 7 }   // Amber top book
+    ];
+    let curStackY = stackY;
+    floorStack.forEach(bk => {
+      // Book cover
+      ctx.fillStyle = bk.col;
+      ctx.fillRect(stackX, curStackY, bk.w, bk.h);
+      // Visible white/cream page edges on the right side of the book
+      ctx.fillStyle = '#fefce8';
+      ctx.fillRect(stackX + bk.w - 8, curStackY + 1.5, 7, bk.h - 3);
+      curStackY -= (bk.h + 1);
+    });
+    // Dangling silk bookmark ribbon trailing from the second book
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(stackX + 22, stackY - 6);
+    ctx.quadraticCurveTo(stackX + 16, stackY + 4, stackX + 12, stackY + 14);
+    ctx.stroke();
+
+    // Small ceramic matcha tea mug beside the book stack
+    ctx.fillStyle = '#10b981'; // Green glazed ceramic cup
+    ctx.beginPath();
+    ctx.arc(stackX + 48, stackY + 5, 6, 0, Math.PI);
+    ctx.fill();
+    // Gentle hot steam curling up from tea
+    const steamAlpha = 0.3 + 0.25 * Math.sin(this.animTime * 3);
+    ctx.strokeStyle = `rgba(255, 255, 255, ${steamAlpha})`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(stackX + 48, stackY);
+    ctx.quadraticCurveTo(stackX + 44, stackY - 8, stackX + 49, stackY - 16);
+    ctx.stroke();
+
+    // 4. Comfy oversized lavender beanbag / floor cushion
+    const cushionX = x + 145;
     const cushionY = y + h - 140;
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
@@ -2566,7 +2693,7 @@ export class SceneRenderer {
     ctx.ellipse(cushionX - 4, cushionY + 8, 44, 22, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Mia seated comfortably with knees curled
+    // 5. Mia seated comfortably with knees curled
     const charX = cushionX;
     const charY = cushionY - 20;
 
@@ -2576,40 +2703,101 @@ export class SceneRenderer {
     ctx.ellipse(charX, charY + 22, 20, 25, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Arms holding open manga volume
+    // 6. Large, Prominent Open Hardcover Book in Mia's Hands!
+    const bookX = charX - 25;
+    const bookY = charY + 14;
+    const bookW = 50;
+    const bookH = 26;
+
+    // Dark navy hardcover backing (creates high contrast with pink sweater!)
+    ctx.fillStyle = '#1e1b4b';
+    ctx.beginPath();
+    ctx.roundRect(bookX - 3, bookY - 2, bookW + 6, bookH + 4, 3);
+    ctx.fill();
+
+    // Left open page (curved cream paper)
+    ctx.fillStyle = '#fefce8';
+    ctx.beginPath();
+    ctx.moveTo(bookX, bookY);
+    ctx.quadraticCurveTo(bookX + 12, bookY - 3, bookX + 24, bookY);
+    ctx.lineTo(bookX + 24, bookY + bookH);
+    ctx.quadraticCurveTo(bookX + 12, bookY + bookH - 3, bookX, bookY + bookH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Right open page (curved cream paper)
+    ctx.beginPath();
+    ctx.moveTo(bookX + 26, bookY);
+    ctx.quadraticCurveTo(bookX + 38, bookY - 3, bookX + bookW, bookY);
+    ctx.lineTo(bookX + bookW, bookY + bookH);
+    ctx.quadraticCurveTo(bookX + 38, bookY + bookH - 3, bookX + 26, bookY + bookH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Book spine center crease
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(bookX + 25, bookY - 1);
+    ctx.lineTo(bookX + 25, bookY + bookH + 1);
+    ctx.stroke();
+
+    // Hanging crimson silk bookmark ribbon
+    ctx.strokeStyle = '#e11d48';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(bookX + 25, bookY + bookH);
+    ctx.lineTo(bookX + 28, bookY + bookH + 10);
+    ctx.stroke();
+
+    // Neat lines of text printed across left and right pages!
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1;
+    // Left page text lines
+    for (let l = 0; l < 4; l++) {
+      const ly = bookY + 5 + l * 5;
+      ctx.beginPath();
+      ctx.moveTo(bookX + 4, ly);
+      ctx.lineTo(bookX + 20, ly);
+      ctx.stroke();
+    }
+    // Right page text lines
+    for (let l = 0; l < 4; l++) {
+      const ly = bookY + 5 + l * 5;
+      ctx.beginPath();
+      ctx.moveTo(bookX + 29, ly);
+      ctx.lineTo(bookX + 45, ly);
+      ctx.stroke();
+    }
+
+    // Curled page corner on right (page turn in progress!)
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.moveTo(bookX + bookW - 5, bookY);
+    ctx.lineTo(bookX + bookW, bookY + 5);
+    ctx.lineTo(bookX + bookW - 5, bookY + 5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Mia's arms and hands holding open book & turning page
     ctx.strokeStyle = '#f472b6';
-    ctx.lineWidth = 8;
+    ctx.lineWidth = 7;
     ctx.lineCap = 'round';
+    // Left arm holding left edge
     ctx.beginPath();
     ctx.moveTo(charX - 14, charY + 14);
-    ctx.lineTo(charX - 5, charY + 30);
-    ctx.lineTo(charX + 4, charY + 28);
+    ctx.lineTo(bookX + 3, bookY + 18);
     ctx.stroke();
+    // Right arm holding right page corner
     ctx.beginPath();
     ctx.moveTo(charX + 14, charY + 14);
-    ctx.lineTo(charX + 8, charY + 30);
-    ctx.lineTo(charX - 2, charY + 28);
+    ctx.lineTo(bookX + bookW - 2, bookY + 16);
     ctx.stroke();
 
-    // Open manga booklet
-    const bookX = charX - 14;
-    const bookY = charY + 20;
-    ctx.fillStyle = '#fb7185'; // Coral pink cover
-    ctx.fillRect(bookX - 2, bookY + 6, 32, 15);
-    ctx.fillStyle = '#ffffff'; // Manga pages
-    ctx.fillRect(bookX, bookY + 6, 14, 13);
-    ctx.fillRect(bookX + 15, bookY + 6, 14, 13);
-    // Manga panel lines
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(bookX + 2, bookY + 8, 10, 4);
-    ctx.strokeRect(bookX + 2, bookY + 13, 10, 4);
-    ctx.strokeRect(bookX + 17, bookY + 8, 10, 9);
+    // 7. Mia's Head with Round Reading Glasses & Downward Focused Gaze
+    this.drawMiaHead(ctx, charX, charY - 8, 14, { expression: 'reading', readingGlasses: true });
 
-    // Mia's head with sleek top bun, red hairpin, and reading smile
-    this.drawMiaHead(ctx, charX, charY - 8, 13, { expression: 'reading' });
-
-    // Sleepy calico cat sleeping next to cushion
+    // 8. Sleepy calico cat sleeping next to cushion
     const catX = cushionX + 58;
     const catY = cushionY + 22;
     const catBreath = Math.sin(this.animTime * 2) * 1.5;
@@ -2627,14 +2815,6 @@ export class SceneRenderer {
     ctx.moveTo(catX - 10, catY - 6);
     ctx.lineTo(catX - 6, catY - 14);
     ctx.lineTo(catX - 2, catY - 6);
-    ctx.fill();
-
-    // Small wooden tray with matcha tea
-    ctx.fillStyle = '#78350f';
-    ctx.fillRect(cushionX - 70, cushionY + 20, 26, 6);
-    ctx.fillStyle = '#10b981'; // Green matcha bowl
-    ctx.beginPath();
-    ctx.arc(cushionX - 57, cushionY + 16, 7, 0, Math.PI);
     ctx.fill();
 
     ctx.restore();
