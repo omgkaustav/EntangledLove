@@ -335,6 +335,7 @@ export class EntangledLoveApp {
       btnAudioToggle: document.getElementById('btn-audio-toggle'),
       btnSettings: document.getElementById('btn-settings'),
       btnGuide: document.getElementById('btn-guide'),
+      btnReturnMenu: document.getElementById('btn-return-menu'),
 
       // Canvas Floating Controls
       btnLightA: document.getElementById('btn-light-a'),
@@ -352,6 +353,7 @@ export class EntangledLoveApp {
       checklistCards: document.getElementById('checklist-cards'),
       btnSubmitChecklist: document.getElementById('btn-submit-checklist'),
       btnResetChecklist: document.getElementById('btn-new-journey'),
+      btnNotebookMenu: document.getElementById('btn-notebook-menu'),
 
       // Main Menu Screen
       mainMenu: document.getElementById('main-menu'),
@@ -517,6 +519,12 @@ export class EntangledLoveApp {
         }
       });
     }
+    if (this.dom.btnReturnMenu) {
+      this.dom.btnReturnMenu.addEventListener('click', () => this.returnToMenu());
+    }
+    if (this.dom.btnNotebookMenu) {
+      this.dom.btnNotebookMenu.addEventListener('click', () => this.returnToMenu());
+    }
 
     // Settings actions
     this.dom.btnConnectAtlas.addEventListener('click', () => this.startWithAtlas());
@@ -648,6 +656,16 @@ export class EntangledLoveApp {
     }
     this.syncAudioState();
     this.updateControlsUI();
+  }
+
+  returnToMenu() {
+    this.dom.guideModal.classList.add('hidden');
+    this.dom.settingsModal.classList.add('hidden');
+    this.dom.corsModal.classList.add('hidden');
+    if (this.dom.mainMenu) {
+      this.dom.mainMenu.classList.remove('hidden');
+    }
+    this.audio.stopAllLoops();
   }
 
   async startWithAtlas() {

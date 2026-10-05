@@ -139,6 +139,32 @@ html, body {
   color: #ffe89e;
 }
 
+.hud-text-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  color: #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: var(--font-cinzel);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  height: 28px;
+}
+
+.hud-text-btn:hover {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: var(--accent-gold);
+  color: #ffe89e;
+  transform: translateY(-1px);
+}
+
 /* Menu Action Card */
 .menu-action-card {
   background: rgba(2, 132, 199, 0.08);
@@ -783,7 +809,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100;
+  z-index: 300;
   padding: 16px;
   animation: modalFade 0.2s ease-out;
 }
@@ -1034,7 +1060,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 250;
+  z-index: 200;
   padding: 20px;
   backdrop-filter: blur(10px);
   animation: modalFade 0.3s ease-out;
