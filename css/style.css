@@ -1026,13 +1026,221 @@ html, body {
   margin-top: 4px;
 }
 
-/* Guide Modal Specifics */
-.modal-guide-text h3 {
+/* Main Menu Screen */
+.main-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(17, 24, 44, 0.96) 0%, rgba(6, 8, 16, 0.98) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 250;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  animation: modalFade 0.3s ease-out;
+}
+
+.main-menu-card {
+  background: #0f1424;
+  border: 1px solid #2a3754;
+  border-radius: 16px;
+  max-width: 440px;
+  width: 100%;
+  padding: 42px 36px 28px 36px;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(96, 165, 250, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.menu-kicker {
   font-family: var(--font-cinzel);
-  font-size: 0.95rem;
+  font-size: 0.76rem;
+  letter-spacing: 3px;
   color: var(--accent-gold);
-  margin-top: 6px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  opacity: 0.9;
+}
+
+.main-menu-title {
+  font-family: var(--font-cinzel);
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #fff;
+  text-shadow: 0 0 24px rgba(244, 114, 182, 0.45);
+  margin: 0 0 6px 0;
+}
+
+.main-menu-subtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0 0 32px 0;
   letter-spacing: 0.5px;
+}
+
+.main-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 260px;
+}
+
+.btn-menu-play {
+  font-family: var(--font-cinzel);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #0b0f19;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(245, 158, 11, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-menu-play:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(245, 158, 11, 0.5);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+.btn-menu-about {
+  font-family: var(--font-cinzel);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  padding: 12px 28px;
+  background: #172036;
+  color: #e2e8f0;
+  border: 1px solid #33446b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-menu-about:hover {
+  background: #233050;
+  border-color: #4f689e;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.main-menu-footer {
+  margin-top: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 14px;
+  width: 100%;
+}
+
+.btn-text-subtle {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.btn-text-subtle:hover {
+  color: #cbd5e1;
+  text-decoration: underline;
+}
+
+/* Guide & About Modal Specifics */
+.modal-wide {
+  max-width: 640px;
+}
+
+.guide-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.guide-title {
+  font-family: var(--font-cinzel);
+  font-size: 1.05rem;
+  color: var(--accent-gold);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+  padding-bottom: 4px;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+.activity-pill-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 2px 0 6px 0;
+}
+
+.activity-pill {
+  background: #192238;
+  border: 1px solid #2e3e66;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #93c5fd;
+  letter-spacing: 0.5px;
+}
+
+.guide-box {
+  background: #090c14;
+  border: 1px solid #1e263d;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.guide-box ul {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.guide-box li {
+  margin-bottom: 6px;
+  line-height: 1.45;
+}
+
+.quantum-box {
+  background: #090c14;
+  border: 1px solid #1e263d;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.quantum-subtitle {
+  font-family: var(--font-cinzel);
+  font-size: 0.88rem;
+  color: #f472b6;
+  margin: 0 0 6px 0;
+  letter-spacing: 0.5px;
+}
+
+.math-banner {
+  background: #131726;
+  border: 1px solid #2d3b59;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 8px 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fde047;
+  letter-spacing: 1px;
 }
 
 .modal-guide-text p {
@@ -1060,29 +1268,6 @@ html, body {
   border-radius: 3px;
   font-family: var(--font-mono);
   font-size: 0.72rem;
-}
-
-.guide-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  background: #090c14;
-  border: 1px solid #1e263d;
-  border-radius: 6px;
-  padding: 8px 10px;
-  font-size: 0.76rem;
-}
-
-.guide-col strong {
-  color: #e2e8f0;
-  display: block;
-  margin-bottom: 4px;
-  font-size: 0.76rem;
-}
-
-.guide-col ul {
-  padding-left: 14px;
-  list-style-type: square;
 }
 
 .hidden {

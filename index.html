@@ -117,11 +117,33 @@
 
   </div>
 
-  <!-- Launch Menu & Settings Modal (Visible on initial startup) -->
-  <div id="settings-modal" class="modal-backdrop">
+  <!-- Title / Main Menu Screen (Visible on initial startup) -->
+  <div id="main-menu" class="main-menu-backdrop">
+    <div class="main-menu-card">
+      <div class="menu-kicker">✦ &nbsp; 9,560 KM APART &nbsp; ✦</div>
+      <h1 class="main-menu-title">ENTANGLED LOVE</h1>
+      <p class="main-menu-subtitle">An observational quantum indie game</p>
+
+      <div class="main-menu-actions">
+        <button id="btn-menu-play" class="btn btn-menu-play">
+          ▶ PLAY
+        </button>
+        <button id="btn-menu-about" class="btn btn-menu-about">
+          📖 ABOUT
+        </button>
+      </div>
+
+      <div class="main-menu-footer">
+        <button id="btn-menu-settings" class="btn-text-subtle" title="Configure Moth Atlas API key or local proxy">⚙️ Quantum Engine Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Launch Menu & Settings Modal (Hidden by default, opened via settings icon or link) -->
+  <div id="settings-modal" class="modal-backdrop hidden">
     <div class="modal-window">
       <div class="modal-header">
-        <h2 class="modal-title">ENTANGLED LOVE</h2>
+        <h2 class="modal-title">QUANTUM ENGINE SETTINGS</h2>
         <button id="btn-close-settings" class="modal-close" title="Close / Resume">✕</button>
       </div>
 
@@ -129,13 +151,13 @@
         <p class="modal-intro">
           Two lovers separated by 9,560 km in London and Tokyo. Every evening, their nocturnal routines
           are governed by a 4-qubit quantum graph state, entangled across this vast distance.
-          Choose your quantum engine below to begin:
+          Choose your quantum engine below:
         </p>
 
         <!-- Fast Play Option: Local Simulator -->
         <div class="menu-action-card">
           <button id="btn-play-simulator" class="btn btn-simulator-primary">
-            ▶ START GAME (Local Simulator)
+            ▶ RUN WITH LOCAL SIMULATOR
           </button>
           <span class="menu-action-desc">
             Recommended: 0 credits, zero setup. Simulates the 4-qubit quantum graph state locally in your browser.
@@ -182,7 +204,7 @@
 
           <!-- Engine Status Log -->
           <div id="status-log" class="status-console">
-            Ready to observe. Click "Start Game" or connect your Moth Atlas token.
+            Ready to observe. Click "Run with Local Simulator" or connect your Moth Atlas token.
           </div>
 
           <div style="display: flex; gap: 8px; margin-top: 6px;">
@@ -197,58 +219,94 @@
       </div>
 
       <div class="modal-footer" style="flex-direction: row; justify-content: space-between; align-items: center;">
-        <a href="#" id="btn-menu-guide" class="form-link">📖 How to Play / Guide</a>
+        <button id="btn-back-to-menu" class="btn-text-subtle" style="font-size: 0.8rem; color: #94a3b8;">← Return to Main Menu</button>
         <a href="#" id="btn-cors-help" class="form-link">CORS / Proxy Setup</a>
       </div>
     </div>
   </div>
 
-  <!-- Field Guide Modal -->
+  <!-- About & Field Guide Modal -->
   <div id="guide-modal" class="modal-backdrop hidden">
-    <div class="modal-window">
+    <div class="modal-window modal-wide">
       <div class="modal-header">
-        <h2 class="modal-title">Field Investigator's Guide</h2>
+        <h2 class="modal-title">ABOUT & RULES</h2>
         <button id="btn-close-guide" class="modal-close" title="Close Guide">✕</button>
       </div>
       <div class="modal-body modal-guide-text">
-        <p style="font-size: 0.95rem; color: #f1f5f9; line-height: 1.45;">
-          Leo lives in London. Mia lives in Tokyo. Across 9,560 km of oceans and continents, their hearts share a quiet, unspoken rhythm under the night sky.
-        </p>
-
-        <h3>Two Night-time Moods</h3>
-        <p>
-          Each evening, both Leo and Mia fall into one of two moods:
-        </p>
-        <div class="guide-grid">
-          <div class="guide-col">
-            <strong>🌙 Quiet Mood (50% of nights)</strong>
-            <span>Either <em>in bed</em> or <em>thinking</em>.</span>
+        <!-- Section 1: Rules of the Game -->
+        <div class="guide-card">
+          <h3 class="guide-title">Rules of the Game</h3>
+          <p>
+            You are an observer watching two people: <strong>Leo</strong> in London and <strong>Mia</strong> in Tokyo.
+            Every day, each of them goes about their routine and does one of various activities:
+          </p>
+          <div class="activity-pill-row">
+            <span class="activity-pill">in bed</span>
+            <span class="activity-pill">thinking</span>
+            <span class="activity-pill">playing a game</span>
+            <span class="activity-pill">cooking</span>
           </div>
-          <div class="guide-col">
-            <strong>✨ Active Mood (50% of nights)</strong>
-            <span>Either <em>playing a game</em> or <em>cooking</em>.</span>
+          <p>
+            However, because they are entangled, they do not act completely independently of each other. Some of their activities correlate across the distance.
+          </p>
+          
+          <div class="guide-box">
+            <strong style="color: #f1f5f9; display: block; margin-bottom: 6px;">Your Role as the Observer:</strong>
+            <ul>
+              <li><strong>Peek into their rooms:</strong> Turn on their window lights to observe what each person is doing tonight. Press <kbd>Z</kbd> for Leo (London), <kbd>X</kbd> for Mia (Tokyo), <kbd>C</kbd> for both, or click directly on their windows.</li>
+              <li><strong>Advance through evenings:</strong> Press <kbd>N</kbd> (or click <em>Next Evening</em>) to move to the next day. Both rooms will plunge into darkness as a new night begins.</li>
+              <li><strong>Look at the Field Logbook:</strong> On the right side, inspect the 5 qualitative statements about their nocturnal habits. Form hypotheses over multiple evenings and mark each statement with a pencil tick: <strong>✓ True</strong> or <strong>✗ False</strong>.</li>
+              <li><strong>Seal your observations:</strong> Take as many evenings as you need to be sure! When you are ready, click <strong>SEAL OBSERVATIONS</strong> to reveal your deduction score and see how many days it took you to uncover their hidden bond.</li>
+            </ul>
           </div>
         </div>
 
-        <h3>The Quantum Bond</h3>
-        <p>
-          Their evenings are bound together by a 4-qubit quantum graph state, entangled across this vast distance:
-        </p>
-        <ul>
-          <li><strong>Synchronized Moods:</strong> When Leo is in his quiet mood (in bed or thinking), Mia is <em>always</em> in her quiet mood (in bed or thinking). When Leo is active (playing a game or cooking), Mia is <em>always</em> active (playing a game or cooking).</li>
-          <li><strong>Never Mismatched:</strong> You will <em>never</em> see one in bed while the other is cooking or playing a game.</li>
-          <li><strong>Gentle Freedom:</strong> Within their shared mood, what they specifically do (in bed vs thinking, playing a game vs cooking) is a soft 50/50 coin flip.</li>
-        </ul>
+        <!-- Section 2: The Secret Bond & Quantum Entanglement -->
+        <div class="guide-card">
+          <h3 class="guide-title">The Secret Bond & Quantum Entanglement</h3>
+          <p>
+            Leo and Mia live <strong>9,560 kilometers apart</strong> across continents and oceans. However, they share a secret bond: they do not act fully independently of each other. They are <strong>entangled</strong>.
+          </p>
+          <p>
+            How it works under the hood:
+          </p>
+          <ul>
+            <li>We have <strong>four qubits in an entangled quantum state</strong>.</li>
+            <li>Two of the qubits represent Leo in London, taking one of 4 possibilities (<code>00</code> for <em>in bed</em>, <code>01</code> for <em>thinking</em>, <code>10</code> for <em>playing a game</em>, and <code>11</code> for <em>cooking</em>).</li>
+            <li>The other two qubits represent Mia in Tokyo, which can also take 4 possibilities.</li>
+            <li>However, because the qubits are in an entangled state, certain possibilities are entangled with each other rather than being independent coin flips.</li>
+          </ul>
 
-        <h3>How to Observe & Deduce</h3>
-        <ul>
-          <li>Press <kbd>Z</kbd> to toggle Leo's light in London.</li>
-          <li>Press <kbd>X</kbd> to toggle Mia's light in Tokyo.</li>
-          <li>Press <kbd>C</kbd> to toggle both lights together.</li>
-          <li>Press <kbd>N</kbd> to turn the page to the next evening.</li>
-          <li>Mark each deduction in your Field Notebook as <strong>✓ True</strong> or <strong>✗ False</strong>.</li>
-          <li>Take as many evenings as you need to be sure! When you are ready, click <strong>SEAL OBSERVATIONS</strong> to reveal your score.</li>
-        </ul>
+          <div class="quantum-box">
+            <h4 class="quantum-subtitle">An Example: The Bell State</h4>
+            <p>
+              To illustrate what we mean by entanglement, consider the classic two-qubit <strong>Bell state</strong>:
+            </p>
+            <div class="math-banner">
+              |Φ⁺⟩ = (|00⟩ + |11⟩) / √2
+            </div>
+            <p>
+              In this Bell state, measuring either qubit produces <code>0</code> or <code>1</code> with equal probability. But notice:
+            </p>
+            <ul>
+              <li>When <strong><code>0</code></strong> occurs on the first qubit, you are <strong>certain</strong> that the other will be <strong><code>0</code></strong>.</li>
+              <li>When <strong><code>1</code></strong> occurs on the first qubit, you are <strong>certain</strong> that the other will be <strong><code>1</code></strong>.</li>
+            </ul>
+            <p style="margin-top: 6px; font-size: 0.8rem; color: #94a3b8;">
+              Before measurement, neither qubit had a fixed value, yet measuring one instantly determines the other!
+            </p>
+          </div>
+
+          <div class="quantum-box" style="margin-top: 10px;">
+            <h4 class="quantum-subtitle">Other Quantum States & Probabilities</h4>
+            <p>
+              For other quantum states, the correlation can be different. For example, in a three-qubit system, if we see <code>01</code> on the first two qubits, that might mean there is a <strong>75% chance</strong> the third qubit will be <code>1</code> and a <strong>25% chance</strong> that it will be <code>0</code>.
+            </p>
+            <p style="margin-top: 6px;">
+              In <em>Entangled Love</em>, their 4-qubit quantum graph state entangles their macro moods (their quiet and active nights always synchronize), while their specific activity within that mood is an independent 50/50 choice.
+            </p>
+          </div>
+        </div>
       </div>
       <div class="modal-footer" style="justify-content: flex-end;">
         <button id="btn-guide-gotit" class="btn btn-neutral">Got it, back to observations</button>

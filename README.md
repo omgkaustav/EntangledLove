@@ -36,7 +36,7 @@ The player peeks into either room by toggling light switches, tracks the lovers'
 - **`N`**: Advance to the **Next Evening** (triggers time-lapse celestial transition)
 - **`⚙️ Settings`**: Open Quantum Engine configuration modal (Atlas API token, base URL, simulator toggle)
 - **`🔊 Audio`**: Toggle sound effects and ambient room loops
-- **`❓ Guide`**: Open the Field Investigator's Guide with complete quantum rules and story
+- **`❓ About / Guide`**: Open the About & Rules modal with complete game rules and quantum entanglement explanation
 
 ---
 

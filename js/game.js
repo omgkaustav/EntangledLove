@@ -353,6 +353,13 @@ export class EntangledLoveApp {
       btnSubmitChecklist: document.getElementById('btn-submit-checklist'),
       btnResetChecklist: document.getElementById('btn-new-journey'),
 
+      // Main Menu Screen
+      mainMenu: document.getElementById('main-menu'),
+      btnMenuPlay: document.getElementById('btn-menu-play'),
+      btnMenuAbout: document.getElementById('btn-menu-about'),
+      btnMenuSettings: document.getElementById('btn-menu-settings'),
+      btnBackToMenu: document.getElementById('btn-back-to-menu'),
+
       // Settings Modal
       settingsModal: document.getElementById('settings-modal'),
       btnCloseSettings: document.getElementById('btn-close-settings'),
@@ -488,11 +495,35 @@ export class EntangledLoveApp {
       this.dom.corsModal.classList.add('hidden');
     });
 
+    // Main Menu actions
+    if (this.dom.btnMenuPlay) {
+      this.dom.btnMenuPlay.addEventListener('click', () => this.onMenuPlay());
+    }
+    if (this.dom.btnMenuAbout) {
+      this.dom.btnMenuAbout.addEventListener('click', () => {
+        this.dom.guideModal.classList.remove('hidden');
+      });
+    }
+    if (this.dom.btnMenuSettings) {
+      this.dom.btnMenuSettings.addEventListener('click', () => {
+        this.dom.settingsModal.classList.remove('hidden');
+      });
+    }
+    if (this.dom.btnBackToMenu) {
+      this.dom.btnBackToMenu.addEventListener('click', () => {
+        this.dom.settingsModal.classList.add('hidden');
+        if (this.dom.mainMenu) {
+          this.dom.mainMenu.classList.remove('hidden');
+        }
+      });
+    }
+
     // Settings actions
     this.dom.btnConnectAtlas.addEventListener('click', () => this.startWithAtlas());
     this.dom.btnPlaySimulator.addEventListener('click', () => {
       this.startWithSimulator();
       this.dom.settingsModal.classList.add('hidden');
+      if (this.dom.mainMenu) this.dom.mainMenu.classList.add('hidden');
     });
     this.dom.btnResumeCache.addEventListener('click', () => this.resumeCachedBatch());
 
@@ -607,6 +638,18 @@ export class EntangledLoveApp {
     this.dom.statusLog.className = isError ? 'status-console error' : 'status-console active';
   }
 
+  onMenuPlay() {
+    this.audio.unlockAudioContext();
+    if (this.shots.length === 0) {
+      this.startWithSimulator();
+    }
+    if (this.dom.mainMenu) {
+      this.dom.mainMenu.classList.add('hidden');
+    }
+    this.syncAudioState();
+    this.updateControlsUI();
+  }
+
   async startWithAtlas() {
     const apiKey = this.dom.inputApiKey.value.trim();
     if (!apiKey) {
@@ -636,6 +679,7 @@ export class EntangledLoveApp {
       this.mode = 'atlas';
       this.loadBatch(batchData);
       this.dom.settingsModal.classList.add('hidden');
+      if (this.dom.mainMenu) this.dom.mainMenu.classList.add('hidden');
       this.dom.btnConnectAtlas.disabled = false;
       this.dom.btnPlaySimulator.disabled = false;
     } catch (err) {
@@ -661,6 +705,7 @@ export class EntangledLoveApp {
             this.mode = 'atlas';
             this.loadBatch(batchData);
             this.dom.settingsModal.classList.add('hidden');
+            if (this.dom.mainMenu) this.dom.mainMenu.classList.add('hidden');
             this.dom.btnConnectAtlas.disabled = false;
             this.dom.btnPlaySimulator.disabled = false;
             return;
@@ -696,6 +741,7 @@ export class EntangledLoveApp {
       this.mode = batchData.source === 'atlas' ? 'atlas' : 'simulator';
       this.loadBatch(batchData);
       this.dom.settingsModal.classList.add('hidden');
+      if (this.dom.mainMenu) this.dom.mainMenu.classList.add('hidden');
     } catch (err) {
       this.logStatus('Failed to restore cached batch: ' + err.message, true);
     }
