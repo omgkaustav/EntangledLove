@@ -1842,21 +1842,37 @@ export class SceneRenderer {
     ctx.arc(lampX, lampY + 100, 220, 0, Math.PI * 2);
     ctx.fill();
 
-    // Vintage wooden stereo console & turntable
-    const consoleX = x + w - 150;
+    // Vintage wooden stereo console & gramophone turntable
+    const consoleX = x + w - 145;
     const consoleY = y + h - 145;
+    // Wooden audio cabinet body
     ctx.fillStyle = '#3a2b22';
-    ctx.fillRect(consoleX, consoleY, 110, 65);
+    ctx.fillRect(consoleX, consoleY, 105, 65);
     ctx.fillStyle = '#4e3a2e';
-    ctx.fillRect(consoleX - 4, consoleY - 8, 118, 10);
+    ctx.fillRect(consoleX - 4, consoleY - 8, 113, 10);
 
-    // Spinning vinyl record
-    const turnX = consoleX + 35;
+    // Cabinet shelf with colorful vinyl album sleeves on lower shelf
+    ctx.fillStyle = '#221914';
+    ctx.fillRect(consoleX + 8, consoleY + 22, 89, 36);
+    const sleeveCols = ['#8f2d2d', '#0284c7', '#d97706', '#15803d', '#9333ea', '#e11d48', '#0891b2'];
+    for (let s = 0; s < sleeveCols.length; s++) {
+      ctx.fillStyle = sleeveCols[s];
+      ctx.fillRect(consoleX + 14 + s * 11, consoleY + 26, 8, 30);
+    }
+
+    // Spinning vinyl record on turntable platter
+    const turnX = consoleX + 32;
     const turnY = consoleY - 3;
     ctx.fillStyle = '#18181b';
     ctx.beginPath();
-    ctx.ellipse(turnX, turnY, 26, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(turnX, turnY, 25, 8, 0, 0, Math.PI * 2);
     ctx.fill();
+    // Vinyl groove sheen
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(turnX, turnY, 18, 5.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
     // Center label (crimson)
     ctx.fillStyle = '#b91c1c';
     ctx.beginPath();
@@ -1864,96 +1880,128 @@ export class SceneRenderer {
     ctx.fill();
     // Tonearm
     ctx.strokeStyle = '#d4af37';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.6;
     ctx.beginPath();
-    ctx.moveTo(consoleX + 70, consoleY - 2);
-    ctx.lineTo(turnX + 10, turnY + 2);
+    ctx.moveTo(consoleX + 60, consoleY - 1);
+    ctx.lineTo(turnX + 8, turnY + 2);
     ctx.stroke();
 
-    // Wooden stool Leo sits on
-    const charX = x + w - 210;
-    const charY = y + h - 155;
-    ctx.fillStyle = '#422818';
-    ctx.fillRect(charX - 18, charY + 50, 36, 10);
-    ctx.fillRect(charX - 14, charY + 60, 6, 30);
-    ctx.fillRect(charX + 8, charY + 60, 6, 30);
+    // Classic Brass Gramophone Horn flaring up from console
+    const hornBaseX = consoleX + 72;
+    const hornBaseY = consoleY - 2;
+    const hornBellX = consoleX + 88;
+    const hornBellY = consoleY - 42;
+    // Curved brass stem
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(hornBaseX, hornBaseY);
+    ctx.quadraticCurveTo(hornBaseX + 18, hornBaseY - 18, hornBellX - 6, hornBellY + 12);
+    ctx.stroke();
+    // Fluted golden brass bell / flare
+    const hornGrad = ctx.createLinearGradient(hornBellX - 18, hornBellY + 14, hornBellX + 12, hornBellY - 14);
+    hornGrad.addColorStop(0, '#78350f');
+    hornGrad.addColorStop(0.3, '#d4af37');
+    hornGrad.addColorStop(0.7, '#fef08a');
+    hornGrad.addColorStop(1, '#92400e');
+    ctx.fillStyle = hornGrad;
+    ctx.beginPath();
+    ctx.moveTo(hornBellX - 10, hornBellY + 10);
+    ctx.quadraticCurveTo(hornBellX - 18, hornBellY, hornBellX - 8, hornBellY - 12);
+    ctx.quadraticCurveTo(hornBellX + 10, hornBellY - 16, hornBellX + 16, hornBellY);
+    ctx.quadraticCurveTo(hornBellX + 8, hornBellY + 16, hornBellX - 10, hornBellY + 10);
+    ctx.fill();
+    // Dark hollow bell opening
+    ctx.fillStyle = '#451a03';
+    ctx.beginPath();
+    ctx.ellipse(hornBellX + 4, hornBellY - 1, 8, 13, 0.45, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Leo's body (sitting leaning gently into guitar, burgundy jumper)
+    // Cozy leather armchair Leo relaxes in
+    const chairX = x + w - 215;
+    const chairY = y + h - 165;
+    // Backrest
+    ctx.fillStyle = '#452618';
+    ctx.beginPath();
+    ctx.roundRect(chairX - 14, chairY - 15, 68, 85, 10);
+    ctx.fill();
+    // Armrest
+    ctx.fillStyle = '#593220';
+    ctx.beginPath();
+    ctx.roundRect(chairX - 18, chairY + 28, 16, 42, 6);
+    ctx.roundRect(chairX + 42, chairY + 28, 16, 42, 6);
+    ctx.fill();
+
+    // Leo seated comfortably, leaning back listening to music
+    const charX = chairX + 20;
+    const charY = chairY + 18;
+
+    // Burgundy knit jumper
     ctx.fillStyle = '#6b2d35';
     ctx.beginPath();
-    ctx.ellipse(charX, charY + 25, 20, 26, 0, 0, Math.PI * 2);
+    ctx.ellipse(charX, charY + 24, 20, 26, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Acoustic Guitar body & soundhole
-    const guitarX = charX + 12;
-    const guitarY = charY + 34;
-    // Lower bout
-    ctx.fillStyle = '#b45309';
-    ctx.beginPath();
-    ctx.arc(guitarX, guitarY, 19, 0, Math.PI * 2);
-    ctx.fill();
-    // Upper bout
-    ctx.beginPath();
-    ctx.arc(guitarX - 10, guitarY - 14, 13, 0, Math.PI * 2);
-    ctx.fill();
-    // Soundhole
-    ctx.fillStyle = '#1c1917';
-    ctx.beginPath();
-    ctx.arc(guitarX - 4, guitarY - 6, 6, 0, Math.PI * 2);
-    ctx.fill();
-    // Guitar neck & headstock
-    ctx.strokeStyle = '#78350f';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(guitarX - 16, guitarY - 22);
-    ctx.lineTo(guitarX - 38, guitarY - 44);
-    ctx.stroke();
-
-    // Leo's hands on fretboard and strumming
+    // Arms resting on lap holding square vinyl record album jacket
     ctx.strokeStyle = '#6b2d35';
-    ctx.lineWidth = 7;
+    ctx.lineWidth = 8;
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(charX - 14, charY + 16);
-    ctx.lineTo(guitarX - 30, guitarY - 36);
+    ctx.lineTo(charX - 6, charY + 34);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(charX + 16, charY + 16);
-    ctx.lineTo(guitarX + 2, guitarY - 6);
+    ctx.moveTo(charX + 14, charY + 16);
+    ctx.lineTo(charX + 6, charY + 34);
     ctx.stroke();
 
-    // Leo's head with studio over-ear headphones
-    this.drawLeoHead(ctx, charX, charY - 8, 14, { expression: 'singing' });
+    // Square vinyl record sleeve on his lap
+    const sleeveX = charX - 12;
+    const sleeveY = charY + 25;
+    ctx.fillStyle = '#0284c7'; // Blue note jazz jacket
+    ctx.fillRect(sleeveX, sleeveY, 24, 24);
+    // Album graphic on sleeve
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.arc(sleeveX + 12, sleeveY + 12, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(sleeveX + 4, sleeveY + 3, 16, 3);
 
-    // Studio headphones over hair
+    // Leo's head tilted gently in rhythm, with happy curved eyes
+    const nod = Math.sin(this.animTime * 3) * 1.5;
+    this.drawLeoHead(ctx, charX, charY - 8 + nod, 14, { expression: 'singing' });
+
+    // Studio over-ear headphones over Leo's curls
     ctx.strokeStyle = '#9ca3af';
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2.4;
     ctx.beginPath();
-    ctx.arc(charX, charY - 13, 16, Math.PI + 0.3, 2 * Math.PI - 0.3);
+    ctx.arc(charX, charY - 13 + nod, 16, Math.PI + 0.3, 2 * Math.PI - 0.3);
     ctx.stroke();
     // Leather earcups
-    ctx.fillStyle = '#3f3f46';
+    ctx.fillStyle = '#27272a';
     ctx.beginPath();
-    ctx.roundRect(charX - 17, charY - 12, 5, 12, 2);
-    ctx.roundRect(charX + 12, charY - 12, 5, 12, 2);
+    ctx.roundRect(charX - 17, charY - 12 + nod, 5, 12, 2);
+    ctx.roundRect(charX + 12, charY - 12 + nod, 5, 12, 2);
     ctx.fill();
 
-    // Drifting musical notes with golden glow
-    const noteTime = this.animTime * 1.5;
+    // Drifting golden musical notes rising from the gramophone horn!
+    const noteTime = this.animTime * 1.6;
     const notes = [
-      { char: '♪', ox: -15, oy: -35, speed: 20 },
-      { char: '♫', ox: 15, oy: -55, speed: 25 },
-      { char: '♪', ox: 35, oy: -40, speed: 18 }
+      { char: '♪', ox: 0, oy: -15, speed: 20 },
+      { char: '♫', ox: -14, oy: -35, speed: 24 },
+      { char: '♩', ox: 12, oy: -48, speed: 18 },
+      { char: '♪', ox: -6, oy: -60, speed: 22 }
     ];
-    ctx.font = 'bold 16px "Cinzel", Georgia, serif';
+    ctx.font = 'bold 15px "Cinzel", Georgia, serif';
     notes.forEach((n, idx) => {
-      const ny = (n.oy - noteTime * n.speed + idx * 40) % 90 - 30;
-      const nx = charX + n.ox + Math.sin(noteTime + idx) * 8;
-      const alpha = Math.max(0, 0.8 * (1 - Math.abs(ny + 30) / 70));
+      const ny = (n.oy - noteTime * n.speed + idx * 35) % 85 - 20;
+      const nx = hornBellX + n.ox + Math.sin(noteTime + idx) * 8;
+      const alpha = Math.max(0, 0.85 * (1 - Math.abs(ny + 20) / 65));
       ctx.fillStyle = `rgba(251, 191, 36, ${alpha})`;
       ctx.shadowColor = '#f59e0b';
       ctx.shadowBlur = 8;
-      ctx.fillText(n.char, nx, charY + ny);
+      ctx.fillText(n.char, nx, hornBellY + ny);
     });
     ctx.shadowBlur = 0;
 
@@ -2607,25 +2655,141 @@ export class SceneRenderer {
     ctx.arc(lampX, lampY + 100, 210, 0, Math.PI * 2);
     ctx.fill();
 
-    // Kawaii City-Pop Sound Console on desk
-    const deskX = x + 40;
-    const deskY = y + h - 150;
-    ctx.fillStyle = '#fce7f3';
-    ctx.fillRect(deskX, deskY, 80, 50);
-    ctx.fillStyle = '#f472b6';
-    ctx.fillRect(deskX - 4, deskY - 6, 88, 8);
+    // Table on the left supporting boombox
+    const deskX = x + 35;
+    const deskY = y + h - 135;
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(deskX, deskY, 95, 45);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(deskX - 3, deskY - 5, 101, 7);
 
-    // Glowing Neon Equalizer Bars on Console
-    const barHeights = [14, 22, 10, 26, 18, 12];
+    // Retro Boombox Stereo Body (Unmistakable dual-speaker cassette player!)
+    const boxX = deskX + 5;
+    const boxY = deskY - 48;
+    const boxW = 86;
+    const boxH = 44;
+
+    // Metallic carry handle on top
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(boxX + 22, boxY);
+    ctx.lineTo(boxX + 22, boxY - 9);
+    ctx.lineTo(boxX + boxW - 22, boxY - 9);
+    ctx.lineTo(boxX + boxW - 22, boxY);
+    ctx.stroke();
+
+    // Telescopic metal antenna angled up-right
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(boxX + boxW - 10, boxY);
+    ctx.lineTo(boxX + boxW + 8, boxY - 24);
+    ctx.stroke();
+
+    // Main boombox cabinet (dark synthwave casing with hot pink bevel)
+    ctx.fillStyle = '#181824';
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxW, boxH, 6);
+    ctx.fill();
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Top control strip: tape deck buttons & tuning knobs
+    ctx.fillStyle = '#272738';
+    ctx.fillRect(boxX + 4, boxY + 3, boxW - 8, 8);
+    // Buttons (Play, Rewind, Stop)
+    ['#38bdf8', '#ec4899', '#facc15', '#a855f7'].forEach((c, idx) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(boxX + 8 + idx * 8, boxY + 5, 5, 4);
+    });
+    // Volume knob
+    ctx.fillStyle = '#e2e8f0';
+    ctx.beginPath();
+    ctx.arc(boxX + boxW - 10, boxY + 7, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Left Circular Speaker Grille
+    const spkLeftX = boxX + 18;
+    const spkY = boxY + 26;
+    const spkR = 14;
+    // Outer metallic speaker ring
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.arc(spkLeftX, spkY, spkR, 0, Math.PI * 2);
+    ctx.fill();
+    // Inner dark speaker cone
+    ctx.fillStyle = '#090d16';
+    ctx.beginPath();
+    ctx.arc(spkLeftX, spkY, spkR - 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Center chrome dust cap
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.arc(spkLeftX, spkY, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Right Circular Speaker Grille
+    const spkRightX = boxX + boxW - 18;
+    // Outer metallic speaker ring
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.arc(spkRightX, spkY, spkR, 0, Math.PI * 2);
+    ctx.fill();
+    // Inner dark speaker cone
+    ctx.fillStyle = '#090d16';
+    ctx.beginPath();
+    ctx.arc(spkRightX, spkY, spkR - 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Center chrome dust cap
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.arc(spkRightX, spkY, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Animated soundwave ripple rings from speakers
+    const pulseRing = (this.animTime * 3) % 1;
+    ctx.strokeStyle = `rgba(56, 189, 248, ${0.5 * (1 - pulseRing)})`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(spkLeftX, spkY, spkR + pulseRing * 8, 0, Math.PI * 2);
+    ctx.arc(spkRightX, spkY, spkR + pulseRing * 8, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Center Section between the two speakers:
+    const centerMidX = boxX + boxW / 2;
+    // 1. Cassette tape window
+    ctx.fillStyle = '#05070e';
+    ctx.fillRect(centerMidX - 14, boxY + 14, 28, 12);
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(centerMidX - 14, boxY + 14, 28, 12);
+    // Tape spools spinning
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.arc(centerMidX - 6, boxY + 20, 2.5, 0, Math.PI * 2);
+    ctx.arc(centerMidX + 6, boxY + 20, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Animated LED Equalizer Bar Graph on the Boombox Front Panel!
+    const eqX = centerMidX - 13;
+    const eqY = boxY + 28;
+    const eqW = 26;
+    const eqH = 13;
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(eqX, eqY, eqW, eqH);
+
+    const barHeights = [10, 6, 12, 8, 11];
     for (let b = 0; b < barHeights.length; b++) {
-      const bh = (barHeights[b] + Math.sin(this.animTime * 6 + b) * 7);
+      const bh = Math.max(2, Math.min(eqH - 1, barHeights[b] + Math.sin(this.animTime * 7 + b * 1.5) * 4));
       ctx.fillStyle = b % 2 === 0 ? '#06b6d4' : '#ec4899';
-      ctx.fillRect(deskX + 12 + b * 10, deskY + 36 - bh, 6, bh);
+      ctx.fillRect(eqX + 2 + b * 5, eqY + eqH - bh, 3, bh);
     }
 
     // Stool & Mia sitting, gently bobbing to the music
     const bob = Math.sin(this.animTime * 4) * 2;
-    const charX = x + 155;
+    const charX = x + 160;
     const charY = y + h - 160 + bob;
 
     // Stool
@@ -2648,7 +2812,7 @@ export class SceneRenderer {
     ctx.ellipse(charX, charY + 24, 18, 26, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Holding pastel phone/player with glowing screen
+    // Holding pastel phone/player or hands swaying
     ctx.fillStyle = '#38bdf8';
     ctx.beginPath();
     ctx.roundRect(charX - 18, charY + 22, 12, 18, 2);
@@ -2665,7 +2829,6 @@ export class SceneRenderer {
     this.drawMiaHead(ctx, charX, charY - 8, 13, { expression: 'singing' });
 
     // Adorable Cat-Ear Headphones on Mia's head!
-    // Headband
     ctx.strokeStyle = '#ec4899';
     ctx.lineWidth = 2.4;
     ctx.beginPath();
@@ -2689,23 +2852,23 @@ export class SceneRenderer {
     ctx.closePath();
     ctx.fill();
 
-    // Glowing pastel musical notes and sparkles floating up
+    // Glowing pastel musical notes and sparkles floating up from boombox
     const noteTime = this.animTime * 2;
     const notes = [
-      { char: '♪', ox: -20, oy: -35, speed: 22, col: '#f472b6' },
-      { char: '✦', ox: 18, oy: -55, speed: 26, col: '#38bdf8' },
-      { char: '♫', ox: -5, oy: -45, speed: 20, col: '#fef08a' }
+      { char: '♪', ox: -12, oy: -35, speed: 22, col: '#f472b6' },
+      { char: '✦', ox: 14, oy: -50, speed: 26, col: '#38bdf8' },
+      { char: '♫', ox: 0, oy: -42, speed: 20, col: '#fef08a' }
     ];
-    ctx.font = 'bold 16px "Cinzel", Georgia, serif';
+    ctx.font = 'bold 15px "Cinzel", Georgia, serif';
     notes.forEach((n, idx) => {
-      const ny = (n.oy - noteTime * n.speed + idx * 40) % 90 - 30;
-      const nx = charX + n.ox + Math.sin(noteTime + idx) * 8;
-      const alpha = Math.max(0, 0.85 * (1 - Math.abs(ny + 30) / 70));
+      const ny = (n.oy - noteTime * n.speed + idx * 35) % 85 - 20;
+      const nx = boxX + boxW / 2 + n.ox + Math.sin(noteTime + idx) * 8;
+      const alpha = Math.max(0, 0.85 * (1 - Math.abs(ny + 20) / 65));
       ctx.fillStyle = n.col;
       ctx.globalAlpha = alpha;
       ctx.shadowColor = n.col;
       ctx.shadowBlur = 8;
-      ctx.fillText(n.char, nx, charY + ny);
+      ctx.fillText(n.char, nx, boxY + ny);
     });
     ctx.globalAlpha = 1.0;
     ctx.shadowBlur = 0;
@@ -2728,50 +2891,156 @@ export class SceneRenderer {
     ctx.arc(lampX, lampY + 95, 200, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tokyo Indoor Zen Botanical Stand on right
-    const standX = x + w - 165;
-    const standY = y + h - 155;
-    ctx.fillStyle = '#4a3b32';
-    ctx.fillRect(standX, standY, 95, 60);
-    ctx.fillStyle = '#785d4d';
-    ctx.fillRect(standX - 5, standY - 8, 105, 10);
-
-    // Miniature Cherry Blossom Bonsai in shallow ceramic pot
-    const potX = standX + 15;
-    const potY = standY - 14;
-    ctx.fillStyle = '#0284c7'; // Blue glazed ceramic pot
-    ctx.fillRect(potX, potY, 36, 12);
-    // Gnarled bonsai trunk
-    ctx.strokeStyle = '#573d2a';
-    ctx.lineWidth = 4;
+    // 1. Hanging Macrame Planter from ceiling on left
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(potX + 18, potY);
-    ctx.quadraticCurveTo(potX + 24, potY - 22, potX + 14, potY - 38);
+    ctx.moveTo(x + 55, y);
+    ctx.lineTo(x + 48, y + 55);
+    ctx.moveTo(x + 55, y);
+    ctx.lineTo(x + 62, y + 55);
     ctx.stroke();
-    // Delicate cherry blossom foliage clouds (pink)
+    // Hanging white ceramic bowl pot
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.arc(x + 55, y + 62, 12, 0, Math.PI);
+    ctx.fill();
+    // Cascading trailing ivy & string-of-pearls
+    ctx.fillStyle = '#10b981';
+    const trailingIvy = [[48, 68], [60, 72], [42, 82], [54, 88], [64, 84], [46, 102], [58, 108]];
+    trailingIvy.forEach(([ix, iy]) => {
+      ctx.beginPath();
+      ctx.ellipse(x + ix, y + iy, 5, 8, 0.25, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // 2. Tokyo Multi-Tier Zen Bamboo Plant Stand on right
+    const standX = x + w - 175;
+    const standY = y + h - 165;
+    // Wooden shelves structure
+    ctx.fillStyle = '#3a2b22';
+    ctx.fillRect(standX, standY, 105, 80);
+    // Shelf tiers (warm bamboo wood)
+    ctx.fillStyle = '#85593d';
+    ctx.fillRect(standX - 6, standY - 14, 117, 8); // Top shelf
+    ctx.fillRect(standX - 2, standY + 30, 110, 8); // Middle shelf
+
+    // --- Top Shelf Plants ---
+    // A. Miniature Cherry Blossom Bonsai in shallow glazed ceramic pot
+    const potX = standX + 10;
+    const potY = standY - 26;
+    ctx.fillStyle = '#0284c7'; // Glazed blue ceramic pot
+    ctx.fillRect(potX, potY, 34, 12);
+    // Bonsai gnarled trunk
+    ctx.strokeStyle = '#573d2a';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(potX + 17, potY);
+    ctx.quadraticCurveTo(potX + 24, potY - 20, potX + 14, potY - 34);
+    ctx.stroke();
+    // Cherry blossom floral clouds
     ctx.fillStyle = '#f472b6';
     ctx.beginPath();
-    ctx.arc(potX + 10, potY - 42, 12, 0, Math.PI * 2);
-    ctx.arc(potX + 22, potY - 44, 10, 0, Math.PI * 2);
-    ctx.arc(potX + 16, potY - 50, 11, 0, Math.PI * 2);
+    ctx.arc(potX + 10, potY - 38, 12, 0, Math.PI * 2);
+    ctx.arc(potX + 22, potY - 40, 10, 0, Math.PI * 2);
+    ctx.arc(potX + 16, potY - 46, 11, 0, Math.PI * 2);
     ctx.fill();
-    // Pale pink blossom highlights
+    // Sakura petal highlights
     ctx.fillStyle = '#fbcfe8';
     ctx.beginPath();
-    ctx.arc(potX + 8, potY - 40, 5, 0, Math.PI * 2);
-    ctx.arc(potX + 22, potY - 43, 4, 0, Math.PI * 2);
+    ctx.arc(potX + 8, potY - 36, 5, 0, Math.PI * 2);
+    ctx.arc(potX + 22, potY - 39, 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Cute animal succulent pots (cat pot with ears)
-    ctx.fillStyle = '#fde047'; // Yellow cute pot
-    ctx.fillRect(standX + 62, standY - 14, 20, 14);
-    ctx.fillStyle = '#10b981'; // Succulent rosette
+    // B. Striped Snake Plant (Sansevieria) in modern white ceramic pot
+    const snakeX = standX + 66;
+    const snakeY = standY - 26;
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(snakeX, snakeY, 22, 12);
+    // Upright green sword leaves with yellow margins
+    const snakeLeaves = [
+      { ox: 4, h: 28, tilt: -0.15 },
+      { ox: 11, h: 36, tilt: 0.05 },
+      { ox: 17, h: 26, tilt: 0.2 }
+    ];
+    snakeLeaves.forEach(leaf => {
+      ctx.fillStyle = '#047857';
+      ctx.beginPath();
+      ctx.ellipse(snakeX + leaf.ox, snakeY - leaf.h / 2, 3.5, leaf.h / 2, leaf.tilt, 0, Math.PI * 2);
+      ctx.fill();
+      // Yellow leaf border stripe
+      ctx.strokeStyle = '#facc15';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // --- Middle Shelf Plants ---
+    // C. Lush Arching Boston Fern in terracotta pot
+    const fernX = standX + 8;
+    const fernY = standY + 16;
+    ctx.fillStyle = '#c2410c'; // Terracotta
+    ctx.fillRect(fernX, fernY, 26, 14);
+    ctx.fillStyle = '#22c55e'; // Vibrant green fronds
+    for (let f = 0; f < 5; f++) {
+      ctx.beginPath();
+      ctx.ellipse(fernX + 4 + f * 4.5, fernY - 6 - (f % 2) * 5, 4, 12, (f - 2) * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // D. Cute Pastel Cat Succulent Pot
+    const catPotX = standX + 48;
+    const catPotY = standY + 18;
+    ctx.fillStyle = '#fef08a'; // Pastel yellow cat pot
     ctx.beginPath();
-    ctx.arc(standX + 72, standY - 17, 7, 0, Math.PI * 2);
+    ctx.roundRect(catPotX, catPotY, 18, 12, 3);
+    ctx.fill();
+    // Cat ears on pot
+    ctx.beginPath();
+    ctx.moveTo(catPotX + 2, catPotY);
+    ctx.lineTo(catPotX + 5, catPotY - 4);
+    ctx.lineTo(catPotX + 8, catPotY);
+    ctx.moveTo(catPotX + 10, catPotY);
+    ctx.lineTo(catPotX + 13, catPotY - 4);
+    ctx.lineTo(catPotX + 16, catPotY);
+    ctx.fill();
+    // Succulent rosette in cat pot
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath();
+    ctx.arc(catPotX + 9, catPotY - 3, 6, 0, Math.PI * 2);
     ctx.fill();
 
-    // Mia standing on the left holding cute pastel glass plant mister
-    const charX = x + 130;
+    // E. Blooming Orchid / Lavender Pot
+    const orchidX = standX + 76;
+    const orchidY = standY + 18;
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillRect(orchidX, orchidY, 16, 12);
+    // Purple orchid blossoms
+    ctx.strokeStyle = '#15803d';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(orchidX + 8, orchidY);
+    ctx.quadraticCurveTo(orchidX + 14, orchidY - 14, orchidX + 6, orchidY - 22);
+    ctx.stroke();
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.arc(orchidX + 12, orchidY - 12, 4, 0, Math.PI * 2);
+    ctx.arc(orchidX + 6, orchidY - 22, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- Floor Plant Beside Stand ---
+    // F. Large Floor Pot with Broad Split-Leaf Monstera
+    const monstX = standX - 22;
+    const monstY = y + h - 118;
+    ctx.fillStyle = '#9a3412';
+    ctx.fillRect(monstX, monstY, 24, 26);
+    ctx.fillStyle = '#065f46'; // Emerald Monstera leaves
+    ctx.beginPath();
+    ctx.ellipse(monstX - 4, monstY - 16, 14, 20, -0.4, 0, Math.PI * 2);
+    ctx.ellipse(monstX + 16, monstY - 22, 16, 22, 0.35, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 3. Mia standing on the left watering her rich indoor garden
+    const charX = x + 115;
     const charY = y + h - 150;
 
     // Pastel mint apron over pink knit sweater
@@ -2782,50 +3051,51 @@ export class SceneRenderer {
     ctx.fillStyle = '#a7f3d0'; // Mint apron
     ctx.fillRect(charX - 10, charY + 12, 20, 32);
 
-    // Chic vintage glass spray mister in hand
-    const misterX = charX + 26;
-    const misterY = charY + 22;
-    ctx.fillStyle = '#38bdf8'; // Blue glass bottle
+    // Chic vintage watering can in Mia's hands
+    const canX = charX + 18;
+    const canY = charY + 20;
+    // Watering can body (soft pastel turquoise)
+    ctx.fillStyle = '#38bdf8';
     ctx.beginPath();
-    ctx.arc(misterX, misterY + 10, 8, 0, Math.PI * 2);
+    ctx.roundRect(canX, canY, 20, 16, 3);
     ctx.fill();
-    // Brass pump
-    ctx.fillStyle = '#d4af37';
-    ctx.fillRect(misterX - 2, misterY - 2, 5, 6);
-    // Spout aimed right toward bonsai
-    ctx.strokeStyle = '#d4af37';
-    ctx.lineWidth = 2;
+    // Handle
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 2.2;
     ctx.beginPath();
-    ctx.moveTo(misterX + 2, misterY);
-    ctx.lineTo(misterX + 10, misterY - 2);
+    ctx.arc(canX - 2, canY + 7, 7, Math.PI / 2, 1.5 * Math.PI);
+    ctx.stroke();
+    // Slender spout angled up and right towards the plants
+    ctx.beginPath();
+    ctx.moveTo(canX + 20, canY + 12);
+    ctx.lineTo(canX + 34, canY - 2);
     ctx.stroke();
 
-    // Arm holding mister
+    // Arm holding watering can
     ctx.strokeStyle = '#f472b6';
     ctx.lineWidth = 7;
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(charX + 8, charY + 14);
-    ctx.lineTo(misterX - 2, misterY + 6);
+    ctx.lineTo(canX + 12, canY + 4);
     ctx.stroke();
 
-    // Shimmering fine mist spray particles towards bonsai
-    const mistTime = this.animTime * 4;
-    for (let m = 0; m < 6; m++) {
-      const mt = ((mistTime + m * 0.4) % 2.0) / 2.0;
-      const mx = (misterX + 10) + mt * 32;
-      const my = (misterY - 2) + Math.sin(m * 1.5) * 6 + mt * 4;
-      const alpha = Math.max(0, 0.7 * (1 - mt));
-      ctx.fillStyle = `rgba(186, 230, 253, ${alpha})`;
+    // Sparkling water droplets arching into the plants
+    const dropTime = this.animTime * 5;
+    for (let d = 0; d < 5; d++) {
+      const dt = ((dropTime + d * 0.6) % 2.5) / 2.5;
+      const dx = (canX + 34) + dt * 26;
+      const dy = (canY - 2) + dt * dt * 28;
+      ctx.fillStyle = 'rgba(147, 197, 253, 0.85)';
       ctx.beginPath();
-      ctx.arc(mx, my, 1.4, 0, Math.PI * 2);
+      ctx.arc(dx, dy, 1.7, 0, Math.PI * 2);
       ctx.fill();
     }
 
     // Mia's head with sleek bun and happy caring expression
     this.drawMiaHead(ctx, charX, charY - 8, 14, { expression: 'cooking' });
 
-    // Calico cat sitting next to Mia batting playfully
+    // Calico cat sitting next to Mia watching the droplets
     const catX = charX - 32;
     const catY = charY + 44;
     ctx.fillStyle = '#f59e0b';

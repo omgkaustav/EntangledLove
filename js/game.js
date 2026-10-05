@@ -50,11 +50,11 @@ class AudioManager {
       bed: 'assets/audio/bed_tone.wav',
       thinking: 'assets/audio/thinking_loop.wav',
       reading: 'assets/audio/thinking_loop.wav',
-      music: 'assets/audio/curtain_swipe.wav',
+      music: null,
       gaming: 'assets/audio/game_clicks.wav',
       cooking: 'assets/audio/simmer_loop.wav',
       plants: 'assets/audio/bed_tone.wav',
-      stargazing: 'assets/audio/curtain_swipe.wav'
+      stargazing: null
     };
 
     // Dedicated room sound slots for Leo (A) and Mia (B)
@@ -65,6 +65,12 @@ class AudioManager {
 
     // Active synth loops fallback
     this.activeSynthLoops = {
+      A: null,
+      B: null
+    };
+
+    // Active melodic music loops for Leo (A) and Mia (B)
+    this.activeMusicLoops = {
       A: null,
       B: null
     };
@@ -176,12 +182,19 @@ class AudioManager {
     const slot = this.roomAudio[roomKey];
 
     // If this room is already playing this exact sound loop, let it continue
-    if (slot.key === soundKey && slot.audio && !slot.audio.paused) {
+    if (slot.key === soundKey && (slot.audio && !slot.audio.paused || (soundKey === 'music' && this.activeMusicLoops[roomKey]))) {
       return;
     }
 
     // Stop whatever previous sound was playing in this room
     this.stopRoomSound(roomKey);
+
+    // Dedicated music melody synthesizer (smooth, lo-fi melodic chords)
+    if (soundKey === 'music' || actCode === 3) {
+      slot.key = 'music';
+      this.playMusicMelody(roomKey);
+      return;
+    }
 
     const path = this.soundPaths[soundKey];
     if (path) {
@@ -205,6 +218,64 @@ class AudioManager {
     }
   }
 
+  playMusicMelody(roomKey) {
+    if (!this.audioContext || this.isMuted) return;
+    this.stopMusicMelody(roomKey);
+
+    const isMia = (roomKey === 'B');
+    // Sweet harmonious pentatonic melodic sequences
+    // Mia: Japanese city-pop bell melody in upper register
+    // Leo: Warm vintage vinyl Rhodes counter-melody in middle register
+    const notes = isMia
+      ? [392.00, 523.25, 659.25, 587.33, 523.25, 493.88, 440.00, 523.25] // G4, C5, E5, D5, C5, B4, A4, C5
+      : [261.63, 329.63, 392.00, 493.88, 523.25, 493.88, 440.00, 392.00]; // C4, E4, G4, B4, C5, B4, A4, G4
+
+    let step = 0;
+    const playNote = () => {
+      if (!this.audioContext || this.isMuted) return;
+      try {
+        const ctx = this.audioContext;
+        const freq = notes[step % notes.length];
+        step++;
+
+        const osc = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
+
+        osc.type = isMia ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(isMia ? 1600 : 950, ctx.currentTime);
+
+        const now = ctx.currentTime;
+        const noteVol = isMia ? 0.038 : 0.045;
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(noteVol, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.40);
+      } catch (_) {}
+    };
+
+    // Play first note immediately and loop every 360ms
+    playNote();
+    const timerId = setInterval(playNote, 360);
+    this.activeMusicLoops[roomKey] = { timerId };
+  }
+
+  stopMusicMelody(roomKey) {
+    if (this.activeMusicLoops && this.activeMusicLoops[roomKey]) {
+      clearInterval(this.activeMusicLoops[roomKey].timerId);
+      this.activeMusicLoops[roomKey] = null;
+    }
+  }
+
   stopRoomSound(roomKey) {
     const slot = this.roomAudio[roomKey];
     if (slot.audio) {
@@ -216,6 +287,7 @@ class AudioManager {
     }
     slot.key = null;
     this.stopSynthLoop(roomKey);
+    this.stopMusicMelody(roomKey);
   }
 
   stopAllLoops() {
@@ -271,6 +343,11 @@ class AudioManager {
     if (!this.audioContext || this.isMuted) return;
     this.stopSynthLoop(roomKey);
 
+    if (actCode === 3) {
+      this.playMusicMelody(roomKey);
+      return;
+    }
+
     try {
       const ctx = this.audioContext;
       const osc = ctx.createOscillator();
@@ -291,11 +368,6 @@ class AudioManager {
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(330, ctx.currentTime);
         gain.gain.setValueAtTime(0.018, ctx.currentTime);
-      } else if (actCode === 3) {
-        // listening to music: gentle melodic resonance
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-        gain.gain.setValueAtTime(0.022, ctx.currentTime);
       } else if (actCode === 4) {
         // playing a game: retro chip synth
         osc.type = 'triangle';
@@ -310,12 +382,12 @@ class AudioManager {
         // watering plants: organic calm note
         osc.type = 'sine';
         osc.frequency.setValueAtTime(392, ctx.currentTime);
-        gain.gain.setValueAtTime(0.02, ctx.currentTime);
+        gain.gain.setValueAtTime(0.018, ctx.currentTime);
       } else {
-        // stargazing: celestial high shimmer
+        // stargazing: celestial ethereal nighttime shimmer
         osc.type = 'sine';
         osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-        gain.gain.setValueAtTime(0.02, ctx.currentTime);
+        gain.gain.setValueAtTime(0.015, ctx.currentTime);
       }
 
       osc.connect(gain);
