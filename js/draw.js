@@ -981,146 +981,187 @@ export class SceneRenderer {
     ctx.restore();
   }
 
+  /**
+   * Floating Thought Bubble with Portrait of Beloved
+   * Formatted as a clean, crisp, romantic dream card with non-overlapping connector dots.
+   * Completely separated from characters' faces and bodies.
+   */
   drawThoughtBubble(ctx, bubbleX, bubbleY, width, height, targetIsMia) {
     ctx.save();
     const floatY = Math.sin(this.animTime * 2.2) * 3;
     const cx = bubbleX + width / 2;
     const cy = bubbleY + height / 2 + floatY;
 
-    // Thought trail puffs rising to the cloud
-    const puffs = targetIsMia
+    // Trail dots (3 graduated circles ascending from lover's head towards the bubble)
+    // targetIsMia is true when Leo (in Window A, lower-right) is dreaming of Mia (bubble in upper-left).
+    // The dots trail down-right towards Leo's head.
+    // targetIsMia is false when Mia (in Window B, lower-left) is dreaming of Leo (bubble in upper-right).
+    // The dots trail down-left towards Mia's head.
+    const dots = targetIsMia
       ? [
-          { x: bubbleX - 16, y: bubbleY + height + 18, r: 4 },
-          { x: bubbleX - 9, y: bubbleY + height + 7, r: 7 },
-          { x: bubbleX - 2, y: bubbleY + height - 4, r: 10 }
+          { x: bubbleX + width - 12, y: bubbleY + height + 10 + floatY * 0.8, r: 8.5 },
+          { x: bubbleX + width + 6,  y: bubbleY + height + 25 + floatY * 0.5, r: 6.0 },
+          { x: bubbleX + width + 20, y: bubbleY + height + 39 + floatY * 0.2, r: 3.5 }
         ]
       : [
-          { x: bubbleX + width + 16, y: bubbleY + height + 18, r: 4 },
-          { x: bubbleX + width + 9, y: bubbleY + height + 7, r: 7 },
-          { x: bubbleX + width + 2, y: bubbleY + height - 4, r: 10 }
+          { x: bubbleX + 12,        y: bubbleY + height + 10 + floatY * 0.8, r: 8.5 },
+          { x: bubbleX - 6,         y: bubbleY + height + 25 + floatY * 0.5, r: 6.0 },
+          { x: bubbleX - 20,        y: bubbleY + height + 39 + floatY * 0.2, r: 3.5 }
         ];
 
-    // Soft puff shadows and fills
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.shadowColor = targetIsMia ? 'rgba(244, 114, 182, 0.5)' : 'rgba(212, 175, 55, 0.5)';
+    // 1. Soft atmospheric drop shadow (applied ONCE to the unified shapes, zero internal lines)
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
     ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
 
-    for (const p of puffs) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y + floatY * 0.5, p.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Fluffy cloud body
+    // Fill bubble body
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
     ctx.beginPath();
-    ctx.roundRect(bubbleX, bubbleY + floatY, width, height, height * 0.45);
+    ctx.roundRect(bubbleX, bubbleY + floatY, width, height, 18);
     ctx.fill();
 
-    // Cloud puffs around perimeter
-    const cloudLumps = [
-      { x: bubbleX + width * 0.22, y: bubbleY + floatY - 6, r: height * 0.35 },
-      { x: bubbleX + width * 0.5, y: bubbleY + floatY - 9, r: height * 0.42 },
-      { x: bubbleX + width * 0.78, y: bubbleY + floatY - 6, r: height * 0.35 },
-      { x: bubbleX + width * 0.2, y: bubbleY + floatY + height + 3, r: height * 0.3 },
-      { x: bubbleX + width * 0.5, y: bubbleY + floatY + height + 5, r: height * 0.35 },
-      { x: bubbleX + width * 0.8, y: bubbleY + floatY + height + 3, r: height * 0.3 }
-    ];
-    for (const cl of cloudLumps) {
+    // Fill trail dots
+    for (const d of dots) {
       ctx.beginPath();
-      ctx.arc(cl.x, cl.y, cl.r, 0, Math.PI * 2);
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore(); // Drop shadow turned off completely
 
-    ctx.shadowBlur = 0;
+    // 2. Crisp perimeter outline & inner romantic tint
+    const themeColor = targetIsMia ? '#f43f5e' : '#f59e0b'; // Rose pink for Mia, Amber gold for Leo
+    const themeWash = targetIsMia ? 'rgba(244, 63, 94, 0.06)' : 'rgba(245, 158, 11, 0.06)';
 
-    // Inside the thought bubble: cute portrait of the other lover!
+    // Subtle inner wash
+    ctx.fillStyle = themeWash;
+    ctx.beginPath();
+    ctx.roundRect(bubbleX + 2, bubbleY + floatY + 2, width - 4, height - 4, 16);
+    ctx.fill();
+
+    // Crisp outline stroke on the bubble
+    ctx.strokeStyle = themeColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(bubbleX, bubbleY + floatY, width, height, 18);
+    ctx.stroke();
+
+    // Crisp outline stroke on the trail dots
+    for (const d of dots) {
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
+      ctx.fill();
+      ctx.strokeStyle = themeColor;
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+    }
+
+    // 3. Beloved Cameo Portrait inside the bubble
+    // Left side: cameo medallion
+    const px = cx - 34;
+    const py = cy;
+
+    // Medallion halo
+    ctx.fillStyle = targetIsMia ? '#fff1f2' : '#fefce8';
+    ctx.beginPath();
+    ctx.arc(px, py, 24, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = targetIsMia ? '#fecdd3' : '#fde68a';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
     if (targetIsMia) {
       // Leo thinking of Mia!
-      const px = cx - 18;
-      const py = cy;
-
       // Mia cute face
       ctx.fillStyle = '#fce7dc';
       ctx.beginPath();
-      ctx.arc(px, py, 18, 0, Math.PI * 2);
+      ctx.arc(px, py + 1, 15, 0, Math.PI * 2);
       ctx.fill();
 
-      // Blushing cheeks
-      ctx.fillStyle = 'rgba(251, 113, 133, 0.55)';
+      // Blushing pink cheeks
+      ctx.fillStyle = 'rgba(251, 113, 133, 0.65)';
       ctx.beginPath();
-      ctx.arc(px - 9, py + 4, 4.5, 0, Math.PI * 2);
-      ctx.arc(px + 9, py + 4, 4.5, 0, Math.PI * 2);
+      ctx.arc(px - 8, py + 5, 4, 0, Math.PI * 2);
+      ctx.arc(px + 8, py + 5, 4, 0, Math.PI * 2);
       ctx.fill();
 
-      // Mia dark hair with cute top bun
+      // Sleek dark hair & top bun
       ctx.fillStyle = '#1e1c24';
       ctx.beginPath();
-      ctx.arc(px, py - 4, 19, Math.PI * 0.8, Math.PI * 2.2);
+      ctx.arc(px, py - 3, 16, Math.PI * 0.8, Math.PI * 2.2);
       ctx.fill();
-      // Bun
       ctx.beginPath();
-      ctx.arc(px + 2, py - 20, 9, 0, Math.PI * 2);
+      ctx.arc(px + 1, py - 17, 7.5, 0, Math.PI * 2);
       ctx.fill();
+
       // Red hairpin chopstick
       ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(px - 10, py - 24);
-      ctx.lineTo(px + 14, py - 16);
-      ctx.stroke();
-
-      // Happy curved closed eyes ^ _ ^
-      ctx.strokeStyle = '#1e1c24';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(px - 6, py - 1, 3.5, Math.PI * 1.1, Math.PI * 1.9);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(px + 6, py - 1, 3.5, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.moveTo(px - 9, py - 20);
+      ctx.lineTo(px + 11, py - 14);
       ctx.stroke();
 
-      // Cute smile
+      // Happy closed curved eyes ^ _ ^
+      ctx.strokeStyle = '#1e1c24';
+      ctx.lineWidth = 1.6;
       ctx.beginPath();
-      ctx.arc(px, py + 4, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.arc(px - 5, py, 2.8, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(px + 5, py, 2.8, Math.PI * 1.1, Math.PI * 1.9);
       ctx.stroke();
 
-      // Floating pink hearts next to Mia
+      // Sweet smile
+      ctx.beginPath();
+      ctx.arc(px, py + 4.5, 3.5, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.stroke();
+
+      // Floating animated pink hearts on the right
+      const hPulse = 0.9 + 0.1 * Math.sin(this.animTime * 3);
       const h1Y = cy - 14 + Math.sin(this.animTime * 3) * 3;
-      const h2Y = cy + 10 + Math.cos(this.animTime * 2.5) * 3;
-      ctx.font = 'bold 16px sans-serif';
+      const h2Y = cy + 5 + Math.cos(this.animTime * 2.5) * 3;
+
+      ctx.font = `bold ${Math.round(18 * hPulse)}px sans-serif`;
       ctx.fillStyle = '#f43f5e';
-      ctx.fillText('♥', cx + 18, h1Y);
+      ctx.textAlign = 'center';
+      ctx.fillText('♥', cx + 22, h1Y);
+
       ctx.font = 'bold 12px sans-serif';
       ctx.fillStyle = '#fb7185';
-      ctx.fillText('♥', cx + 32, h2Y);
+      ctx.fillText('♥', cx + 44, h2Y);
+
+      // Name tag: MIA ♡
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillStyle = '#e11d48';
+      ctx.textAlign = 'center';
+      ctx.fillText('MIA ♡', cx + 28, cy + 24);
     } else {
       // Mia thinking of Leo!
-      const px = cx + 18;
-      const py = cy;
-
       // Leo cute face
       ctx.fillStyle = '#ecd0b8';
       ctx.beginPath();
-      ctx.arc(px, py, 18, 0, Math.PI * 2);
+      ctx.arc(px, py + 1, 15, 0, Math.PI * 2);
       ctx.fill();
 
-      // Blushing cheeks
-      ctx.fillStyle = 'rgba(251, 146, 60, 0.45)';
+      // Blushing warm cheeks
+      ctx.fillStyle = 'rgba(251, 146, 60, 0.55)';
       ctx.beginPath();
-      ctx.arc(px - 9, py + 4, 4.5, 0, Math.PI * 2);
-      ctx.arc(px + 9, py + 4, 4.5, 0, Math.PI * 2);
+      ctx.arc(px - 8, py + 5, 4, 0, Math.PI * 2);
+      ctx.arc(px + 8, py + 5, 4, 0, Math.PI * 2);
       ctx.fill();
 
-      // Leo messy dark curls
+      // Leo dark messy curls
       ctx.fillStyle = '#3d271d';
       ctx.beginPath();
-      ctx.arc(px, py - 5, 20, Math.PI * 0.8, Math.PI * 2.2);
+      ctx.arc(px, py - 3, 16.5, Math.PI * 0.8, Math.PI * 2.2);
       ctx.fill();
       const curls = [
-        [px - 14, py - 12, 6],
-        [px - 4, py - 20, 7],
-        [px + 8, py - 18, 6.5],
-        [px + 15, py - 10, 6]
+        [px - 11, py - 10, 5],
+        [px - 3, py - 16, 5.5],
+        [px + 7, py - 15, 5],
+        [px + 12, py - 8, 4.5]
       ];
       for (const [cuX, cuY, cuR] of curls) {
         ctx.beginPath();
@@ -1128,42 +1169,52 @@ export class SceneRenderer {
         ctx.fill();
       }
 
-      // Round wire glasses
+      // Wire round glasses
       ctx.strokeStyle = '#27272a';
-      ctx.lineWidth = 1.8;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(px - 6, py - 1, 5, 0, Math.PI * 2);
-      ctx.arc(px + 6, py - 1, 5, 0, Math.PI * 2);
+      ctx.arc(px - 5, py, 4, 0, Math.PI * 2);
+      ctx.arc(px + 5, py, 4, 0, Math.PI * 2);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(px - 1, py - 1);
-      ctx.lineTo(px + 1, py - 1);
+      ctx.moveTo(px - 1, py);
+      ctx.lineTo(px + 1, py);
       ctx.stroke();
 
-      // Happy curved closed eyes ^ _ ^ behind glasses
+      // Happy smiling closed eyes behind glasses
       ctx.strokeStyle = '#3d271d';
-      ctx.lineWidth = 1.6;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(px - 6, py - 1, 2.5, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.arc(px - 5, py, 2, Math.PI * 1.1, Math.PI * 1.9);
       ctx.stroke();
       ctx.beginPath();
-      ctx.arc(px + 6, py - 1, 2.5, Math.PI * 1.1, Math.PI * 1.9);
-      ctx.stroke();
-
-      // Cute smile
-      ctx.beginPath();
-      ctx.arc(px, py + 5, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.arc(px + 5, py, 2, Math.PI * 1.1, Math.PI * 1.9);
       ctx.stroke();
 
-      // Floating golden/warm hearts next to Leo
+      // Sweet smile
+      ctx.beginPath();
+      ctx.arc(px, py + 4.5, 3.5, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.stroke();
+
+      // Floating animated golden hearts on the right
+      const hPulse = 0.9 + 0.1 * Math.sin(this.animTime * 3);
       const h1Y = cy - 14 + Math.sin(this.animTime * 3) * 3;
-      const h2Y = cy + 10 + Math.cos(this.animTime * 2.5) * 3;
-      ctx.font = 'bold 16px sans-serif';
+      const h2Y = cy + 5 + Math.cos(this.animTime * 2.5) * 3;
+
+      ctx.font = `bold ${Math.round(18 * hPulse)}px sans-serif`;
       ctx.fillStyle = '#eab308';
-      ctx.fillText('♥', cx - 28, h1Y);
+      ctx.textAlign = 'center';
+      ctx.fillText('♥', cx + 22, h1Y);
+
       ctx.font = 'bold 12px sans-serif';
       ctx.fillStyle = '#f59e0b';
-      ctx.fillText('♥', cx - 38, h2Y);
+      ctx.fillText('♥', cx + 44, h2Y);
+
+      // Name tag: LEO ♡
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillStyle = '#d97706';
+      ctx.textAlign = 'center';
+      ctx.fillText('LEO ♡', cx + 28, cy + 24);
     }
 
     ctx.restore();
@@ -1238,8 +1289,8 @@ export class SceneRenderer {
     ctx.arc(charX + 2, charY - 12, 15, Math.PI * 0.8, Math.PI * 2.2);
     ctx.fill();
 
-    // Floating Thought Bubble: Leo thinking of Mia!
-    this.drawThoughtBubble(ctx, deskX - 70, deskY - 145, 140, 90, true);
+    // Floating Thought Bubble: Leo thinking of Mia (in clear upper-left room space)
+    this.drawThoughtBubble(ctx, x + 26, y + 36, 150, 88, true);
 
     ctx.restore();
   }
@@ -1608,8 +1659,8 @@ export class SceneRenderer {
     ctx.arc(charX - 4, charY - 22, 7, 0, Math.PI * 2);
     ctx.fill();
 
-    // Floating Thought Bubble: Mia thinking of Leo!
-    this.drawThoughtBubble(ctx, deskX + 130, deskY - 145, 140, 90, false);
+    // Floating Thought Bubble: Mia thinking of Leo (in clear upper-right room space)
+    this.drawThoughtBubble(ctx, x + w - 176, y + 36, 150, 88, false);
 
     ctx.restore();
   }
