@@ -163,12 +163,17 @@ export class SceneRenderer {
     this.activityB = actB;
   }
 
-  setLights(onA, onB) {
+  setLights(onA, onB, immediate = false) {
     this.targetLightA = onA ? 1.0 : 0.0;
     this.targetLightB = onB ? 1.0 : 0.0;
+    if (immediate) {
+      this.lightA = this.targetLightA;
+      this.lightB = this.targetLightB;
+    }
   }
 
   toggleLight(windowKey) {
+    if (this.isTransitioningDay) return false;
     if (windowKey === 'A') {
       this.targetLightA = this.targetLightA > 0.5 ? 0.0 : 1.0;
       return this.targetLightA > 0.5;
@@ -180,6 +185,7 @@ export class SceneRenderer {
   }
 
   toggleBothLights() {
+    if (this.isTransitioningDay) return false;
     const bothOn = this.targetLightA > 0.5 && this.targetLightB > 0.5;
     const nextState = !bothOn;
     this.targetLightA = nextState ? 1.0 : 0.0;
@@ -193,6 +199,8 @@ export class SceneRenderer {
     this.isTransitioningDay = true;
     this.targetLightA = 0.0;
     this.targetLightB = 0.0;
+    this.lightA = 0.0;
+    this.lightB = 0.0;
   }
 
   update(dt = 0.016) {
@@ -701,7 +709,7 @@ export class SceneRenderer {
     ctx.fillRect(rx, ry + rh - 75, rw, 75);
 
     // Render Character Activity
-    if (lightVal > 0.02) {
+    if (lightVal > 0.02 && !this.isTransitioningDay) {
       ctx.save();
       ctx.globalAlpha = lightVal;
       if (!isMia) {
@@ -723,7 +731,7 @@ export class SceneRenderer {
       }
       ctx.restore();
     } else {
-      // Light is OFF: draw mysterious nocturnal silhouette
+      // Light is OFF (or advancing day): draw mysterious nocturnal silhouette
       this.drawUnlitSilhouette(ctx, rx, ry, rw, rh, isMia);
     }
 
@@ -732,11 +740,11 @@ export class SceneRenderer {
     // 3. PHYSICAL WINDOW CASING & CROSS MULLIONS (DRAWN ON TOP OF ROOM)
     this.drawWindowPanesAndFrame(ctx, win, lightVal, isMia);
 
-    // 4. Glass sheen & reflections across the 4 panes
+    // 4. Glass sheen & reflections across the panes
     this.drawGlassReflections(ctx, rx, ry, rw, rh, lightVal, isMia);
 
     // 5. Light spill onto outside walls when light is ON
-    if (lightVal > 0.05) {
+    if (lightVal > 0.05 && !this.isTransitioningDay) {
       this.drawLightSpill(ctx, win, lightVal, isMia);
     }
 
@@ -772,25 +780,54 @@ export class SceneRenderer {
   }
 
   /**
-   * Modern Architectural Glass Window Casing
-   * Replaced the heavy crossbars with a sleek modern unobstructed window.
+   * Modern Architectural Glass Window Casing with Vertical Divider
+   * Features a clean outer casing and a vertical center divider (mullion) that splits the window
+   * into two elegant vertical glass panes without cutting across the characters' faces.
    */
   drawWindowPanesAndFrame(ctx, win, lightVal, isMia) {
     ctx.save();
     const frameCol = isMia ? '#1a2030' : '#271d22';
     const frameHighlight = isMia ? '#2e3a54' : '#45333c';
 
-    // 1. Sleek Modern Window Casing (Clean 10px frame, leaving interior fully open)
+    // 1. Sleek Modern Window Casing (Clean 10px frame)
     ctx.strokeStyle = frameCol;
     ctx.lineWidth = 10;
     ctx.strokeRect(win.x, win.y, win.width, win.height);
 
-    // Inner bevel highlight
+    // Inner bevel highlight around perimeter
     ctx.strokeStyle = frameHighlight;
     ctx.lineWidth = 1.2;
     ctx.strokeRect(win.x + 5, win.y + 5, win.width - 10, win.height - 10);
 
-    // 2. Modern Window Sill at bottom with 3D bevels
+    // 2. Vertical Center Divider (Mullion / Window Sash)
+    // Splits the window into two elegant vertical panes (left and right)
+    // Positioned in center space so it never intersects Leo's or Mia's faces
+    const midX = win.x + win.width * 0.5;
+    const barWidth = 8;
+    const barX = midX - barWidth * 0.5;
+
+    // Soft drop shadow behind divider onto room interior
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.fillRect(barX - 2, win.y + 5, barWidth + 4, win.height - 10);
+
+    // Main vertical divider beam
+    ctx.fillStyle = frameCol;
+    ctx.fillRect(barX, win.y + 5, barWidth, win.height - 10);
+
+    // Left highlight bevel (subtle light catch)
+    ctx.fillStyle = frameHighlight;
+    ctx.fillRect(barX, win.y + 5, 1.5, win.height - 10);
+
+    // Right shadow groove (adds authentic 3D depth)
+    ctx.fillStyle = '#06080e';
+    ctx.fillRect(barX + barWidth - 1.5, win.y + 5, 1.5, win.height - 10);
+
+    // Top and bottom join brackets connecting divider to outer frame
+    ctx.fillStyle = frameHighlight;
+    ctx.fillRect(barX - 2, win.y + 3, barWidth + 4, 3);
+    ctx.fillRect(barX - 2, win.y + win.height - 6, barWidth + 4, 3);
+
+    // 3. Modern Window Sill at bottom with 3D bevels
     ctx.fillStyle = isMia ? '#2b364e' : '#42313b';
     ctx.fillRect(win.x - 10, win.y + win.height, win.width + 20, 16);
     // Sill top highlight
@@ -800,7 +837,7 @@ export class SceneRenderer {
     ctx.fillStyle = '#06080e';
     ctx.fillRect(win.x - 10, win.y + win.height + 13.5, win.width + 20, 2.5);
 
-    // 3. Modern Minimalist Glass Corner Brackets (Brushed metal clips in the 4 corners)
+    // 4. Modern Minimalist Glass Corner Brackets (Brushed metal clips in the 4 corners)
     ctx.fillStyle = isMia ? '#3b4866' : '#52404b';
     const clipSize = 6;
     ctx.fillRect(win.x + 5, win.y + 5, clipSize, clipSize);
@@ -904,7 +941,7 @@ export class SceneRenderer {
   drawWindowFooter(ctx, win, lightVal, isMia) {
     ctx.save();
     const isHovered = (this.hoverWindow === (isMia ? 'B' : 'A'));
-    const isLit = lightVal > 0.5;
+    const isLit = lightVal > 0.5 && !this.isTransitioningDay;
 
     if (isHovered) {
       ctx.strokeStyle = isMia ? '#f472b6' : '#60a5fa';

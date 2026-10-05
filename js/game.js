@@ -560,6 +560,7 @@ export class EntangledLoveApp {
   }
 
   toggleWindowLight(winKey) {
+    if (this.renderer.isTransitioningDay) return;
     this.audio.unlockAudioContext();
     this.renderer.toggleLight(winKey);
     this.audio.playLightSwitch();
@@ -568,6 +569,7 @@ export class EntangledLoveApp {
   }
 
   toggleBothLights() {
+    if (this.renderer.isTransitioningDay) return;
     this.audio.unlockAudioContext();
     this.renderer.toggleBothLights();
     this.audio.playLightSwitch();
@@ -733,10 +735,11 @@ export class EntangledLoveApp {
    */
   nextDay() {
     if (this.shots.length === 0) return;
+    if (this.renderer.isTransitioningDay) return;
 
     if (this.dayIndex + 1 < this.shots.length) {
       this.dayIndex++;
-      // Turning to next day automatically turns off both lights
+      // Turning to next day automatically turns off both lights instantly
       this.renderer.triggerDayTransition(this.dayIndex + 1);
       // Immediately stop any room sounds while the sky transitions
       this.audio.stopAllLoops();
