@@ -42,40 +42,31 @@ export function simulateLocalGraphBatch(stateSeed = 1, shotsCount = 1024, sample
   const shots = [];
   const counts = {};
 
-  const { moodCoupling, parityCoupling, focusCoupling, fidelity } = config;
+  const { mapping, fidelity } = config;
 
   for (let i = 0; i < shotsCount; i++) {
-    // Leo's 3 qubits (a0, a1, a2) - uniformly distributed across the 8 activities
-    const a0 = rng() < 0.5 ? 0 : 1;
-    const a1 = rng() < 0.5 ? 0 : 1;
-    const a2 = rng() < 0.5 ? 0 : 1;
+    // Leo's activity uniformly distributed across the 8 activities (1/8 each)
+    const actA = Math.floor(rng() * 8);
 
-    // Mia's 3 qubits (b0, b1, b2) entangled with Leo's
-    // b0 (Mood qubit: quiet vs active)
-    const targetB0 = moodCoupling === +1 ? a0 : (1 - a0);
-    const b0 = rng() < fidelity ? targetB0 : (1 - targetB0);
-
-    // b1 (Parity / activity style qubit)
-    let b1;
-    if (parityCoupling === +1) {
-      b1 = rng() < fidelity ? a1 : (1 - a1);
-    } else if (parityCoupling === -1) {
-      b1 = rng() < fidelity ? (1 - a1) : a1;
+    // Mia's activity is coupled via the quantum state mapping with fidelity 0.94
+    let actB;
+    if (rng() < fidelity) {
+      actB = mapping[actA];
     } else {
-      b1 = rng() < 0.5 ? 0 : 1;
+      // 6% realistic readout noise: picks another activity uniformly
+      const noiseOffset = Math.floor(rng() * 7) + 1;
+      actB = (mapping[actA] + noiseOffset) % 8;
     }
 
-    // b2 (Focus / social qubit)
-    let b2;
-    if (focusCoupling === +1) {
-      b2 = rng() < fidelity ? a2 : (1 - a2);
-    } else if (focusCoupling === -1) {
-      b2 = rng() < fidelity ? (1 - a2) : a2;
-    } else {
-      b2 = rng() < 0.5 ? 0 : 1;
-    }
+    // Convert to 3 bits each (6 bits total: a0 a1 a2 b0 b1 b2)
+    const a0 = (actA >> 2) & 1;
+    const a1 = (actA >> 1) & 1;
+    const a2 = actA & 1;
 
-    // 6-bit string: a0 a1 a2 b0 b1 b2
+    const b0 = (actB >> 2) & 1;
+    const b1 = (actB >> 1) & 1;
+    const b2 = actB & 1;
+
     const bitstring = `${a0}${a1}${a2}${b0}${b1}${b2}`;
     shots.push(bitstring);
     counts[bitstring] = (counts[bitstring] || 0) + 1;

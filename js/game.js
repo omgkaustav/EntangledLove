@@ -977,7 +977,7 @@ export class EntangledLoveApp {
     if (scoring.score === 5) {
       narrative = 'Flawless deduction! You decoded their 6-qubit quantum bond: Leo and Mia are entangled across this vast distance, their nocturnal activities mysteriously synchronized across continents.';
     } else if (scoring.score >= 3) {
-      narrative = 'Strong observational insight! You detected the quantum patterns and mood alignments connecting Leo in London and Mia in Tokyo across the rift.';
+      narrative = 'Strong observational insight! You detected the quantum patterns and activity correlations connecting Leo in London and Mia in Tokyo across the rift.';
     } else {
       narrative = 'Quantum superpositions can be tricky. Read the inked notes below to see how Leo and Mia are entangled across this vast distance.';
     }

@@ -65,12 +65,10 @@ Activity bit encoding:
 - `110` (6): `watering plants`
 - `111` (7): `stargazing`
 
-Activities `0..3` are **quiet moods**, while `4..7` are **active moods**.
-
 ### 24 Hidden Quantum State Archetypes & Dynamic Question Roster
-- The game includes a catalogue of 24 distinct quantum state archetypes with varying mood couplings, parity alignments, and focus symmetries.
+- The game includes a catalogue of 24 distinct bipartite quantum state archetypes with unique entanglement mappings between the 8 nocturnal activities.
 - Real quantum hardware fidelity (~94% correlation fidelity, 6% readout noise) is modeled directly into the shots.
-- Questions in the Field Notebook are formulated with realistic quantum terminology (*"almost always"*, *"almost never"*) and sampled dynamically for high replayability!
+- Questions in the Field Notebook are formulated directly between individual activities using realistic quantum terminology (*"almost always"*, *"almost never"*) and sampled dynamically for high replayability!
 
 ---
 
