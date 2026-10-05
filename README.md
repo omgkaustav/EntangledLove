@@ -17,7 +17,7 @@ The player peeks into either room by toggling light switches, tracks the lovers'
 - **Tactile Light Switch Mechanic**: Rooms start dark with nocturnal streetlamp/lantern reflections and faint window silhouettes. Turning on a light switch illuminates the interior and triggers that room's ambient audio loop.
 - **Diegetic Field Notebook**:
   - Styled as an authentic investigator's journal with lined parchment paper, spiral binder rings, and red margin rule.
-  - Dynamically draws 5 intuitive qualitative statements from a 10-statement roster based on the current quantum state, addressing realistic hardware fidelity with phrases like *"almost always"* and *"almost never"*.
+  - Dynamically draws 8 intuitive qualitative statements (4 True, 4 False) from a diverse 20-statement candidate roster based on the current quantum state, addressing realistic hardware fidelity with phrases like *"almost always"* and *"almost never"*.
   - Tactile pencil checkboxes: mark observations with **`[✓]` True** and **`[✗]` False** (with authentic pencil scratch audio).
   - Seal button stamps deductions with green/red rubber seals (`[VERIFIED]` / `[REFUTED]`) and ink margin annotations.
 - **No Day Limit (Player-Paced Deduction)**:

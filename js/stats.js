@@ -107,120 +107,250 @@ export function computeTheoreticalDistribution(config) {
 }
 
 /**
- * Build a roster of 10 candidate statements (5 True, 5 False) tailored to the quantum state,
- * comparing specific individual activities with realistic quantum uncertainty.
+ * Build a roster of 20 candidate statements (10 True, 10 False) tailored to the quantum state,
+ * with a healthy variety of correlation, exclusion, synchrony, pair, and disjunction patterns.
  */
 export function buildQuestionRoster(config) {
   const { id, mapping, inverseMapping } = config;
 
-  // Pick 5 distinct activities using the state id offset
-  const offset = (id - 1) % 8;
-  const a1 = (offset + 0) % 8;
-  const b1 = (offset + 1) % 8;
-  const a2 = (offset + 2) % 8;
-  const b2 = (offset + 3) % 8;
-  const a3 = (offset + 4) % 8;
+  // Derive distinct indices across all 8 activities
+  const offset = (id * 3) % 8;
+  const idx = (k) => (offset + k) % 8;
 
-  const actA1 = ACTIVITIES[a1];
-  const actB1_corr = ACTIVITIES[mapping[a1]];
-  const b1_wrong = (mapping[a1] + 4) % 8;
-  const actB1_wrong = ACTIVITIES[b1_wrong];
+  const a1 = idx(0);
+  const a2 = idx(1);
+  const a3 = idx(2);
+  const a4 = idx(3);
+  const a5 = idx(4);
+  const a6 = idx(5);
+  const a7 = idx(6);
+  const a8 = idx(7);
 
-  const actB1 = ACTIVITIES[b1];
-  const actA1_corr = ACTIVITIES[inverseMapping[b1]];
-  const a1_wrong = (inverseMapping[b1] + 3) % 8;
-  const actA1_wrong = ACTIVITIES[a1_wrong];
+  const b1 = idx(1);
+  const b2 = idx(3);
+  const b3 = idx(5);
 
-  const actA2 = ACTIVITIES[a2];
-  const actB2_corr = ACTIVITIES[mapping[a2]];
-  const b2_other = (mapping[a2] + 3) % 8;
-  const actB2_other = ACTIVITIES[b2_other];
+  const poolTrue = [];
+  const poolFalse = [];
 
-  const actB2 = ACTIVITIES[b2];
-  const actA2_corr = ACTIVITIES[inverseMapping[b2]];
-  const a2_other = (inverseMapping[b2] + 2) % 8;
-  const actA2_other = ACTIVITIES[a2_other];
+  // Helper for choosing a distinct wrong activity
+  const wrongFor = (corr, shift = 3) => {
+    let w = (corr + shift) % 8;
+    if (w === corr) w = (corr + 1) % 8;
+    return w;
+  };
 
-  const actA3 = ACTIVITIES[a3];
-  const actB3_corr = ACTIVITIES[mapping[a3]];
-  const b3_wrong = (mapping[a3] + 5) % 8;
-  const actB3_wrong = ACTIVITIES[b3_wrong];
-
-  const candidateTrue = [
-    {
-      text: `When Leo is ${actA1.name}, Mia is almost always ${actB1_corr.name}.`,
+  // --- TYPE 1: Forward Direct Correlation ---
+  {
+    const corr = mapping[a1];
+    const wrong = wrongFor(corr, 3);
+    poolTrue.push({
+      text: `When Leo is ${ACTIVITIES[a1].name}, Mia is almost always ${ACTIVITIES[corr].name}.`,
       isTrue: true,
-      ruleType: 'corr_forward',
-      explanation: `True! Under this quantum state, whenever Leo is ${actA1.name}, quantum entanglement strongly couples Mia to ${actB1_corr.name} in Tokyo (~94% of evenings).`
-    },
-    {
-      text: `When Mia is ${actB1.name}, Leo is almost always ${actA1_corr.name}.`,
-      isTrue: true,
-      ruleType: 'corr_reverse',
-      explanation: `True! Whenever Mia is ${actB1.name} in Tokyo, their quantum bond entangles Leo into ${actA1_corr.name} in London (~94% of evenings).`
-    },
-    {
-      text: `When Leo is ${actA2.name}, Mia is almost never ${actB2_other.name}.`,
-      isTrue: true,
-      ruleType: 'never_forward',
-      explanation: `True! When Leo is ${actA2.name}, Mia is almost always ${actB2_corr.name}—she is almost never ${actB2_other.name} (<1% of evenings).`
-    },
-    {
-      text: `When Mia is ${actB2.name}, Leo is almost never ${actA2_other.name}.`,
-      isTrue: true,
-      ruleType: 'never_reverse',
-      explanation: `True! When Mia is ${actB2.name}, Leo is almost always ${actA2_corr.name}—he is almost never ${actA2_other.name} (<1% of evenings).`
-    },
-    {
-      text: `When Leo is ${actA3.name}, Mia is almost always ${actB3_corr.name}.`,
-      isTrue: true,
-      ruleType: 'corr_forward_2',
-      explanation: `True! Whenever Leo is ${actA3.name}, Mia is almost always ${actB3_corr.name} across the 9,560 km.`
-    }
-  ];
-
-  const candidateFalse = [
-    {
-      text: `When Leo is ${actA1.name}, Mia is almost always ${actB1_wrong.name}.`,
+      ruleType: 'forward_corr',
+      explanation: `True! Under this quantum state, whenever Leo is ${ACTIVITIES[a1].name}, quantum entanglement strongly couples Mia to ${ACTIVITIES[corr].name} in Tokyo (~94% of evenings).`
+    });
+    poolFalse.push({
+      text: `When Leo is ${ACTIVITIES[a1].name}, Mia is almost always ${ACTIVITIES[wrong].name}.`,
       isTrue: false,
       ruleType: 'false_forward_target',
-      explanation: `False! When Leo is ${actA1.name}, Mia is actually almost always ${actB1_corr.name}, not ${actB1_wrong.name}.`
-    },
-    {
-      text: `When Mia is ${actB1.name}, Leo is almost always ${actA1_wrong.name}.`,
+      explanation: `False! When Leo is ${ACTIVITIES[a1].name}, Mia is actually almost always ${ACTIVITIES[corr].name}, not ${ACTIVITIES[wrong].name}.`
+    });
+  }
+
+  // --- TYPE 2: Reverse Direct Correlation ---
+  {
+    const corr = inverseMapping[b1];
+    const wrong = wrongFor(corr, 4);
+    poolTrue.push({
+      text: `When Mia is ${ACTIVITIES[b1].name}, Leo is almost always ${ACTIVITIES[corr].name}.`,
+      isTrue: true,
+      ruleType: 'reverse_corr',
+      explanation: `True! Whenever Mia is ${ACTIVITIES[b1].name} in Tokyo, their quantum bond entangles Leo into ${ACTIVITIES[corr].name} in London (~94% of evenings).`
+    });
+    poolFalse.push({
+      text: `When Mia is ${ACTIVITIES[b1].name}, Leo is almost always ${ACTIVITIES[wrong].name}.`,
       isTrue: false,
       ruleType: 'false_reverse_target',
-      explanation: `False! When Mia is ${actB1.name}, Leo is actually almost always ${actA1_corr.name}, not ${actA1_wrong.name}.`
-    },
-    {
-      text: `When Leo is ${actA2.name}, Mia is almost never ${actB2_corr.name}.`,
+      explanation: `False! When Mia is ${ACTIVITIES[b1].name}, Leo is actually almost always ${ACTIVITIES[corr].name}, not ${ACTIVITIES[wrong].name}.`
+    });
+  }
+
+  // --- TYPE 3: Negative Exclusion (Forward) ---
+  {
+    const corr = mapping[a2];
+    const other = wrongFor(corr, 2);
+    poolTrue.push({
+      text: `When Leo is ${ACTIVITIES[a2].name}, Mia is almost never ${ACTIVITIES[other].name}.`,
+      isTrue: true,
+      ruleType: 'forward_never',
+      explanation: `True! When Leo is ${ACTIVITIES[a2].name}, Mia is almost always ${ACTIVITIES[corr].name}—she is almost never ${ACTIVITIES[other].name} (<1% of evenings).`
+    });
+    poolFalse.push({
+      text: `When Leo is ${ACTIVITIES[a2].name}, Mia is almost never ${ACTIVITIES[corr].name}.`,
       isTrue: false,
-      ruleType: 'false_deny_true',
-      explanation: `False! In fact, whenever Leo is ${actA2.name}, Mia is almost always ${actB2_corr.name} (~94% of evenings)!`
-    },
-    {
-      text: `When Mia is ${actB2.name}, Leo is almost never ${actA2_corr.name}.`,
+      ruleType: 'false_deny_corr',
+      explanation: `False! In fact, whenever Leo is ${ACTIVITIES[a2].name}, Mia is almost always ${ACTIVITIES[corr].name} (~94% of evenings)!`
+    });
+  }
+
+  // --- TYPE 4: Negative Exclusion (Reverse) ---
+  {
+    const corr = inverseMapping[b2];
+    const other = wrongFor(corr, 5);
+    poolTrue.push({
+      text: `When Mia is ${ACTIVITIES[b2].name}, Leo is almost never ${ACTIVITIES[other].name}.`,
+      isTrue: true,
+      ruleType: 'reverse_never',
+      explanation: `True! When Mia is ${ACTIVITIES[b2].name}, Leo is almost always ${ACTIVITIES[corr].name}—he is almost never ${ACTIVITIES[other].name} (<1% of evenings).`
+    });
+    poolFalse.push({
+      text: `When Mia is ${ACTIVITIES[b2].name}, Leo is almost never ${ACTIVITIES[corr].name}.`,
       isTrue: false,
-      ruleType: 'false_deny_true_rev',
-      explanation: `False! In fact, whenever Mia is ${actB2.name}, Leo is almost always ${actA2_corr.name} (~94% of evenings)!`
-    },
-    {
-      text: `When Leo is ${actA3.name}, Mia is almost always ${actB3_wrong.name}.`,
+      ruleType: 'false_deny_rev_corr',
+      explanation: `False! In fact, whenever Mia is ${ACTIVITIES[b2].name}, Leo is almost always ${ACTIVITIES[corr].name} (~94% of evenings)!`
+    });
+  }
+
+  // --- TYPE 5: Simultaneous Synchrony / Coincidence ---
+  {
+    const act = a4;
+    const isFixed = (mapping[act] === act);
+    if (!isFixed) {
+      poolTrue.push({
+        text: `Leo and Mia are almost never both ${ACTIVITIES[act].name} on the same evening.`,
+        isTrue: true,
+        ruleType: 'sync_never',
+        explanation: `True! When Leo is ${ACTIVITIES[act].name}, Mia is almost always ${ACTIVITIES[mapping[act]].name}—they are almost never both ${ACTIVITIES[act].name} together.`
+      });
+      poolFalse.push({
+        text: `Whenever Leo is ${ACTIVITIES[act].name}, Mia is also ${ACTIVITIES[act].name}.`,
+        isTrue: false,
+        ruleType: 'false_sync_always',
+        explanation: `False! When Leo is ${ACTIVITIES[act].name}, Mia is actually almost always ${ACTIVITIES[mapping[act]].name}, not ${ACTIVITIES[act].name}.`
+      });
+    } else {
+      poolTrue.push({
+        text: `Whenever Leo is ${ACTIVITIES[act].name}, Mia is also ${ACTIVITIES[act].name}.`,
+        isTrue: true,
+        ruleType: 'sync_always',
+        explanation: `True! Under this entangled state, whenever Leo is ${ACTIVITIES[act].name}, Mia is also ${ACTIVITIES[act].name} (~94% of evenings).`
+      });
+      poolFalse.push({
+        text: `Leo and Mia are almost never both ${ACTIVITIES[act].name} on the same evening.`,
+        isTrue: false,
+        ruleType: 'false_sync_never',
+        explanation: `False! In fact, when Leo is ${ACTIVITIES[act].name}, Mia is almost always ${ACTIVITIES[act].name} as well!`
+      });
+    }
+  }
+
+  // --- TYPE 6: Mutual Exclusion of Pairs ---
+  {
+    const corr = mapping[a5];
+    const other = wrongFor(corr, 3);
+    poolTrue.push({
+      text: `Leo ${ACTIVITIES[a5].name} and Mia ${ACTIVITIES[other].name} almost never occur on the same evening.`,
+      isTrue: true,
+      ruleType: 'pair_never',
+      explanation: `True! Leo ${ACTIVITIES[a5].name} couples to Mia ${ACTIVITIES[corr].name}, so Leo ${ACTIVITIES[a5].name} and Mia ${ACTIVITIES[other].name} almost never coincide.`
+    });
+    poolFalse.push({
+      text: `Leo ${ACTIVITIES[a5].name} and Mia ${ACTIVITIES[corr].name} almost never occur on the same evening.`,
+      isTrue: false,
+      ruleType: 'false_pair_never',
+      explanation: `False! In fact, Leo ${ACTIVITIES[a5].name} and Mia ${ACTIVITIES[corr].name} are entangled partners and almost always coincide (~94% of evenings)!`
+    });
+  }
+
+  // --- TYPE 7: Alternative Possibility (Forward Disjunction) ---
+  {
+    const corr = mapping[a6];
+    const extra = wrongFor(corr, 2);
+    const wrong1 = wrongFor(corr, 4);
+    let wrong2 = wrongFor(corr, 6);
+    if (wrong2 === wrong1) wrong2 = (wrong1 + 1) % 8;
+    if (wrong2 === corr) wrong2 = (wrong2 + 1) % 8;
+
+    poolTrue.push({
+      text: `When Leo is ${ACTIVITIES[a6].name}, Mia is almost always either ${ACTIVITIES[corr].name} or ${ACTIVITIES[extra].name}.`,
+      isTrue: true,
+      ruleType: 'disjunction_forward',
+      explanation: `True! When Leo is ${ACTIVITIES[a6].name}, Mia is almost always ${ACTIVITIES[corr].name}, which fulfills this observation.`
+    });
+    poolFalse.push({
+      text: `When Leo is ${ACTIVITIES[a6].name}, Mia is almost always either ${ACTIVITIES[wrong1].name} or ${ACTIVITIES[wrong2].name}.`,
+      isTrue: false,
+      ruleType: 'false_disjunction_forward',
+      explanation: `False! When Leo is ${ACTIVITIES[a6].name}, Mia is actually almost always ${ACTIVITIES[corr].name}, neither of those two.`
+    });
+  }
+
+  // --- TYPE 8: Activity Preclusion (Other Than) ---
+  {
+    const corr = mapping[a7];
+    const other = wrongFor(corr, 4);
+    poolTrue.push({
+      text: `When Leo is ${ACTIVITIES[a7].name}, Mia is almost always engaged in an activity other than ${ACTIVITIES[other].name}.`,
+      isTrue: true,
+      ruleType: 'other_than_forward',
+      explanation: `True! When Leo is ${ACTIVITIES[a7].name}, Mia is almost always ${ACTIVITIES[corr].name}, so she is virtually never ${ACTIVITIES[other].name}.`
+    });
+    poolFalse.push({
+      text: `When Leo is ${ACTIVITIES[a7].name}, Mia is almost always engaged in an activity other than ${ACTIVITIES[corr].name}.`,
+      isTrue: false,
+      ruleType: 'false_other_than_forward',
+      explanation: `False! When Leo is ${ACTIVITIES[a7].name}, Mia is almost always ${ACTIVITIES[corr].name}—that is precisely what she is doing!`
+    });
+  }
+
+  // --- TYPE 9: Reverse Disjunction ---
+  {
+    const corr = inverseMapping[b3];
+    const extra = wrongFor(corr, 3);
+    const wrong1 = wrongFor(corr, 2);
+    let wrong2 = wrongFor(corr, 5);
+    if (wrong2 === wrong1) wrong2 = (wrong1 + 1) % 8;
+    if (wrong2 === corr) wrong2 = (wrong2 + 1) % 8;
+
+    poolTrue.push({
+      text: `When Mia is ${ACTIVITIES[b3].name}, Leo is almost always either ${ACTIVITIES[corr].name} or ${ACTIVITIES[extra].name}.`,
+      isTrue: true,
+      ruleType: 'disjunction_reverse',
+      explanation: `True! When Mia is ${ACTIVITIES[b3].name}, Leo is almost always ${ACTIVITIES[corr].name}, which fulfills this observation.`
+    });
+    poolFalse.push({
+      text: `When Mia is ${ACTIVITIES[b3].name}, Leo is almost always either ${ACTIVITIES[wrong1].name} or ${ACTIVITIES[wrong2].name}.`,
+      isTrue: false,
+      ruleType: 'false_disjunction_reverse',
+      explanation: `False! When Mia is ${ACTIVITIES[b3].name}, Leo is actually almost always ${ACTIVITIES[corr].name}, neither of those two.`
+    });
+  }
+
+  // --- TYPE 10: Additional Forward Correlation with Distinct Activity ---
+  {
+    const corr = mapping[a8];
+    const wrong = wrongFor(corr, 5);
+    poolTrue.push({
+      text: `When Leo is ${ACTIVITIES[a8].name}, Mia is almost always ${ACTIVITIES[corr].name}.`,
+      isTrue: true,
+      ruleType: 'forward_corr_2',
+      explanation: `True! Whenever Leo is ${ACTIVITIES[a8].name}, Mia is almost always ${ACTIVITIES[corr].name} across the 9,560 km.`
+    });
+    poolFalse.push({
+      text: `When Leo is ${ACTIVITIES[a8].name}, Mia is almost always ${ACTIVITIES[wrong].name}.`,
       isTrue: false,
       ruleType: 'false_forward_target_2',
-      explanation: `False! When Leo is ${actA3.name}, Mia is actually almost always ${actB3_corr.name}, not ${actB3_wrong.name}.`
-    }
-  ];
+      explanation: `False! When Leo is ${ACTIVITIES[a8].name}, Mia is actually almost always ${ACTIVITIES[corr].name}, not ${ACTIVITIES[wrong].name}.`
+    });
+  }
 
-  return {
-    poolTrue: candidateTrue,
-    poolFalse: candidateFalse
-  };
+  return { poolTrue, poolFalse };
 }
 
 /**
- * Generates a 5-statement Field Notebook page from the 10-question roster
- * using the selection seed.
+ * Generates an 8-statement Field Notebook page (4 True, 4 False)
+ * from the diverse 20-question roster using the selection seed.
  */
 export function generateStatementList(stateSeed = 1, selectionSeed = 7) {
   const config = getQuantumStateConfig(stateSeed);
@@ -242,19 +372,22 @@ export function generateStatementList(stateSeed = 1, selectionSeed = 7) {
   const shuffledTrue = shuffle(poolTrue);
   const shuffledFalse = shuffle(poolFalse);
 
-  // Pick 3 True and 2 False statements from the roster of 10
+  // Pick 4 True and 4 False statements (total 8) for balanced, diverse deduction
   const selected = [
     shuffledTrue[0],
     shuffledTrue[1],
     shuffledTrue[2],
+    shuffledTrue[3],
     shuffledFalse[0],
-    shuffledFalse[1]
+    shuffledFalse[1],
+    shuffledFalse[2],
+    shuffledFalse[3]
   ];
 
   const ordered = shuffle(selected);
 
   return ordered.map((st, index) => ({
-    id: index + 1,
+    id: index,
     text: st.text,
     isTrue: st.isTrue,
     ruleType: st.ruleType,

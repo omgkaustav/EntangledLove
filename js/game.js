@@ -5,7 +5,7 @@
  * - Observational quantum game across London (Leo) & Tokyo (Mia)
  * - 4-qubit graph state with 100% correlated moods on qubits (0, 2)
  * - Diegetic Field Notebook with tactile pencil marks [✓] and [✗]
- * - Fixed, permanent 5 questions with absolute True/False quantum truths
+ * - 8 questions with healthy variety and absolute True/False quantum truths
  * - Perfectly synchronized audio: room ambient sound plays strictly while light is ON,
  *   and instantly stops the moment the light is turned OFF or when advancing the day
  * - Keyboard shortcuts: [Z] Leo, [X] Mia, [C] Both, [N] Next Evening
@@ -940,7 +940,7 @@ export class EntangledLoveApp {
   }
 
   /**
-   * Render the fixed 5 statements in the Field Notebook with tactile pencil checkboxes
+   * Render the 8 statements in the Field Notebook with tactile pencil checkboxes
    */
   renderChecklist() {
     const container = this.dom.checklistCards;
@@ -1041,14 +1041,14 @@ export class EntangledLoveApp {
     this.dom.journalDayTally.textContent = `Day ${submittedOnDay} • Sealed`;
 
     // Rubber stamp appearance
-    const isMaster = scoring.score >= 4;
+    const isMaster = scoring.score >= 6;
     this.dom.stampSealBadge.textContent = isMaster ? 'CONFIRMED' : 'INCONCLUSIVE';
     this.dom.stampSealBadge.className = isMaster ? 'stamp-seal-badge' : 'stamp-seal-badge imperfect';
 
     let narrative = '';
-    if (scoring.score === 5) {
-      narrative = 'Flawless deduction! You decoded their 6-qubit quantum bond: Leo and Mia are entangled across this vast distance, their nocturnal activities mysteriously synchronized across continents.';
-    } else if (scoring.score >= 3) {
+    if (scoring.score === 8) {
+      narrative = 'Flawless deduction! You mastered all 8 quantum observations: Leo and Mia are entangled across this vast distance, their nocturnal routines bound by quantum synchrony across continents.';
+    } else if (scoring.score >= 5) {
       narrative = 'Strong observational insight! You detected the quantum patterns and activity correlations connecting Leo in London and Mia in Tokyo across the rift.';
     } else {
       narrative = 'Quantum superpositions can be tricky. Read the inked notes below to see how Leo and Mia are entangled across this vast distance.';
@@ -1078,7 +1078,7 @@ export class EntangledLoveApp {
   }
 
   /**
-   * Starts a fresh investigation with a new legitimate set of 5 questions
+   * Starts a fresh investigation with a new legitimate set of 8 questions
    * from the question pool, resetting the logbook and evening counter.
    */
   resetLogbook() {
@@ -1089,7 +1089,7 @@ export class EntangledLoveApp {
     this.userAnswers = {};
     this.isSubmitted = false;
 
-    // Pick a fresh legitimate set of 5 questions for the new investigation
+    // Pick a fresh legitimate set of 8 questions for the new investigation
     this.statements = generateStatementList(this.stateSeed, this.selectionSeed);
 
     // If using simulator, generate fresh batch for the new investigation
