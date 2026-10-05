@@ -3,9 +3,9 @@
  * 
  * Features:
  * - Observational quantum game across London (Leo) & Tokyo (Mia)
- * - 4-qubit graph state with 100% Bell-correlated moods on qubits (0, 2)
+ * - 4-qubit graph state with 100% correlated moods on qubits (0, 2)
  * - Diegetic Field Notebook with tactile pencil marks [✓] and [✗]
- * - Fixed, permanent 5 questions with absolute True/False Bell state truths
+ * - Fixed, permanent 5 questions with absolute True/False quantum truths
  * - Perfectly synchronized audio: room ambient sound plays strictly while light is ON,
  *   and instantly stops the moment the light is turned OFF or when advancing the day
  * - Keyboard shortcuts: [Z] Leo, [X] Mia, [C] Both, [N] Next Evening
@@ -622,7 +622,7 @@ export class EntangledLoveApp {
 
     this.dom.btnConnectAtlas.disabled = true;
     this.dom.btnPlaySimulator.disabled = true;
-    this.logStatus('Submitting 4-qubit Bell state job to Moth Atlas (5 credits)...');
+    this.logStatus('Submitting 4-qubit quantum graph state job to Moth Atlas (5 credits)...');
 
     const client = new AtlasClient(apiKey, endpoint);
 
@@ -675,7 +675,7 @@ export class EntangledLoveApp {
   }
 
   startWithSimulator() {
-    this.logStatus('Generating 1,024 shots with Local Quantum Bell State Simulator...');
+    this.logStatus('Generating 1,024 shots with Local Quantum Simulator...');
     const batchData = simulateLocalGraphBatch(this.seed, 1024, 1.0);
 
     try {
@@ -875,11 +875,11 @@ export class EntangledLoveApp {
 
     let narrative = '';
     if (scoring.score === 5) {
-      narrative = 'Flawless deduction! You decoded their quantum bond: Leo and Mia’s moods are 100% entangled in a Bell state, synchronizing their resting and active evenings across 9,560 km.';
+      narrative = 'Flawless deduction! You decoded their quantum bond: Leo and Mia are entangled across this vast distance, synchronizing their evenings in London and Tokyo.';
     } else if (scoring.score >= 3) {
-      narrative = 'Strong observational insight! You detected the golden rule: when one rests, the other always rests; when one is active, the other is active.';
+      narrative = 'Strong observational insight! You detected the pattern: when one is in bed or thinking, the other is in bed or thinking; when one is playing a game or cooking, the other is playing a game or cooking.';
     } else {
-      narrative = 'Quantum superpositions can be tricky. Read the inked notes below to see how Leo and Mia’s moods were entangled.';
+      narrative = 'Quantum superpositions can be tricky. Read the inked notes below to see how Leo and Mia are entangled across this vast distance.';
     }
     this.dom.scoreInsight.textContent = narrative;
 

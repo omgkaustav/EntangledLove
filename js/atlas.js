@@ -28,11 +28,11 @@ export function mulberry32(seed) {
 
 /**
  * Local Quantum Simulator Mode
- * Produces 1024 shots of a 4-qubit graph state with qubits 0 and 2 coupled in an exact
- * Bell state (100% correlation) and qubits 1 and 3 uncoupled (50/50 free choice).
+ * Produces 1024 shots of a 4-qubit graph state with qubits 0 and 2 coupled
+ * (100% correlation) and qubits 1 and 3 uncoupled (50/50 free choice).
  * 
- * Qubit 0, 1: Leo in London (00: bed, 01: thinking, 10: playing, 11: cooking)
- * Qubit 2, 3: Mia in Tokyo  (00: bed, 01: thinking, 10: playing, 11: cooking)
+ * Qubit 0, 1: Leo in London (00: in bed, 01: thinking, 10: playing a game, 11: cooking)
+ * Qubit 2, 3: Mia in Tokyo  (00: in bed, 01: thinking, 10: playing a game, 11: cooking)
  */
 export function simulateLocalGraphBatch(seed = 7, shotsCount = 1024, targetCorr = 1.0) {
   const rng = mulberry32(seed);
@@ -40,12 +40,12 @@ export function simulateLocalGraphBatch(seed = 7, shotsCount = 1024, targetCorr 
   const counts = {};
 
   for (let i = 0; i < shotsCount; i++) {
-    // Phase bit: Bell-state mood shared between Leo (b0) and Mia (b2)
-    // 0 = Resting Mood (bed / thinking)
-    // 1 = Active Mood (gaming / cooking)
+    // Phase bit: mood shared between Leo (b0) and Mia (b2)
+    // 0 = Quiet Mood (in bed / thinking)
+    // 1 = Active Mood (playing a game / cooking)
     const phase = rng() < 0.5 ? 0 : 1;
     const b0 = phase;
-    // When targetCorr is 1.0, b2 is 100% Bell-correlated with b0
+    // When targetCorr is 1.0, b2 is 100% correlated with b0
     const b2 = rng() < targetCorr ? b0 : (1 - b0);
 
     // Qubit 1: Leo's specific activity within his mood (50/50 independent choice)

@@ -2,8 +2,8 @@
  * stats.js - Quantum Correlation Statement Builder & Evaluator
  * 
  * Defines legitimate, sensible Field Notebook deduction questions about Leo and Mia.
- * Leo and Mia are entangled in an exact quantum Bell state on qubits (0, 2):
- * - Qubits 0 & 2 are 100% correlated: their overall moods (Resting vs Active) ALWAYS match.
+ * Leo and Mia are entangled across this vast distance on qubits (0, 2):
+ * - Qubits 0 & 2 are 100% correlated: their overall moods (Quiet vs Active) ALWAYS match.
  * - Qubits 1 & 3 are 50/50 uncoupled: their specific activity within that mood is an independent coin flip.
  * 
  * Ground truth rules are 100% absolute (True or False, no fuzzy probabilities):
@@ -15,10 +15,10 @@
 import { mulberry32 } from './atlas.js';
 
 export const ACTIVITIES = [
-  { code: 0, bits: '00', name: 'in bed', label: 'resting in bed' },
-  { code: 1, bits: '01', name: 'thinking', label: 'thinking of the other' },
+  { code: 0, bits: '00', name: 'in bed', label: 'in bed' },
+  { code: 1, bits: '01', name: 'thinking', label: 'thinking' },
   { code: 2, bits: '10', name: 'playing a game', label: 'playing a game' },
-  { code: 3, bits: '11', name: 'cooking', label: 'cooking dinner' }
+  { code: 3, bits: '11', name: 'cooking', label: 'cooking' }
 ];
 
 /**
@@ -44,8 +44,8 @@ export function computeStatistics(shots) {
   }
 
   // Mood groupings:
-  // Resting: bed (0) or thinking (1) [b0 / b2 = 0]
-  // Active:  gaming (2) or cooking (3) [b0 / b2 = 1]
+  // Quiet: in bed (0) or thinking (1) [b0 / b2 = 0]
+  // Active: playing a game (2) or cooking (3) [b0 / b2 = 1]
   const aRest = countA[0] + countA[1];
   const aActive = countA[2] + countA[3];
   const bRest = countB[0] + countB[1];
@@ -69,50 +69,50 @@ export function computeStatistics(shots) {
 }
 
 /**
- * Sensible, legitimate pool of absolute Bell-state statements about Leo and Mia
+ * Sensible, legitimate pool of absolute statements about Leo and Mia
  */
 export const POOL_TRUE = [
   {
     text: 'When Leo is cooking, Mia is never in bed.',
     isTrue: true,
     ruleType: 'never',
-    explanation: 'True! Cooking is Leo’s active mood. Because their moods are 100% entangled in a Bell state, Mia is also active (gaming or cooking) and is never asleep in bed.'
+    explanation: 'True! Cooking is Leo’s active mood. Because they are entangled across this vast distance, Mia is also active (playing a game or cooking) and is never in bed.'
   },
   {
     text: 'When Leo is in bed or thinking, Mia is always in bed or thinking.',
     isTrue: true,
     ruleType: 'always_group',
-    explanation: 'True! Resting in bed and thinking share the quiet mood. Whenever Leo rests, Mia is always resting too across the 9,560 km.'
+    explanation: 'True! In bed and thinking share the quiet mood. When Leo is in bed or thinking, Mia is always in bed or thinking too across the vast distance.'
   },
   {
     text: 'When Mia is playing a game, Leo is always playing a game or cooking.',
     isTrue: true,
     ruleType: 'always_group',
-    explanation: 'True! Mia’s gaming means she is in the active mood. Bell-state correlation guarantees Leo is also active in London (gaming or cooking).'
+    explanation: 'True! When Mia is playing a game, she is active. Quantum entanglement across this vast distance guarantees Leo is also active (playing a game or cooking).'
   },
   {
-    text: 'When Leo is thinking of Mia, Mia is always either in bed or thinking.',
+    text: 'When Leo is thinking, Mia is always in bed or thinking.',
     isTrue: true,
     ruleType: 'either_or',
-    explanation: 'True! Thinking is part of Leo’s resting mood. Mia is strictly bound to resting activities: either also thinking of Leo, or resting in bed.'
+    explanation: 'True! Thinking is part of Leo’s quiet mood. Because they are entangled across this vast distance, Mia is always in bed or thinking.'
   },
   {
-    text: 'When Mia is cooking, Leo is never resting in bed.',
+    text: 'When Mia is cooking, Leo is never in bed.',
     isTrue: true,
     ruleType: 'never',
-    explanation: 'True! When Mia cooks dinner, she is in her active mood. Leo is also active and is never asleep in bed.'
+    explanation: 'True! When Mia is cooking, she is active. Because they are entangled across this vast distance, Leo is also active and is never in bed.'
   },
   {
-    text: 'Whenever Leo is in his quiet resting mood, Mia is also resting.',
-    isTrue: true,
-    ruleType: 'always_group',
-    explanation: 'True! Their quiet hours are locked together by an exact Bell pair. One never sleeps while the other is active.'
-  },
-  {
-    text: 'When Leo is playing a game, Mia is never thinking of Leo.',
+    text: 'When Leo is in bed, Mia is never cooking.',
     isTrue: true,
     ruleType: 'never',
-    explanation: 'True! When Leo is gaming, he is active. Mia is bound to active activities (gaming or cooking), never daydreaming in the quiet mood.'
+    explanation: 'True! When Leo is in bed, Mia is always in bed or thinking. Because they are entangled across this vast distance, Mia is never cooking.'
+  },
+  {
+    text: 'When Leo is playing a game, Mia is never thinking.',
+    isTrue: true,
+    ruleType: 'never',
+    explanation: 'True! When Leo is playing a game, he is active. Because they are entangled across this vast distance, Mia is always playing a game or cooking, never thinking.'
   }
 ];
 
@@ -121,37 +121,37 @@ export const POOL_FALSE = [
     text: 'When Leo is cooking, Mia is always in bed.',
     isTrue: false,
     ruleType: 'false_opposite',
-    explanation: 'False! When Leo cooks, Mia is never in bed. They share active hours together (cooking or gaming).'
+    explanation: 'False! When Leo is cooking, Mia is never in bed. Because they are entangled across this vast distance, Mia is always playing a game or cooking.'
   },
   {
     text: 'When Mia is playing a game, Leo is always in bed.',
     isTrue: false,
     ruleType: 'false_opposite',
-    explanation: 'False! When Mia is gaming, she is active. Quantum correlation guarantees Leo is also active (gaming or cooking), never in bed.'
+    explanation: 'False! When Mia is playing a game, she is active. Because they are entangled across this vast distance, Leo is always playing a game or cooking, never in bed.'
   },
   {
     text: 'When Leo is in bed, Mia is always cooking.',
     isTrue: false,
     ruleType: 'false_opposite',
-    explanation: 'False! When Leo is resting in bed, Mia is never cooking. She is always in bed or thinking.'
+    explanation: 'False! When Leo is in bed, Mia is never cooking. Because they are entangled across this vast distance, Mia is always in bed or thinking.'
   },
   {
-    text: 'When Mia is thinking of Leo, Leo is always cooking.',
+    text: 'When Mia is thinking, Leo is always cooking.',
     isTrue: false,
     ruleType: 'false_opposite',
-    explanation: 'False! Thinking of Leo is part of Mia’s quiet mood. Leo is never in the kitchen cooking when Mia is in her quiet mood.'
+    explanation: 'False! Thinking is part of Mia’s quiet mood. Because they are entangled across this vast distance, Leo is always in bed or thinking, never cooking.'
   },
   {
-    text: 'When Leo is playing a game, Mia is always resting in bed.',
+    text: 'When Leo is playing a game, Mia is always in bed.',
     isTrue: false,
     ruleType: 'false_opposite',
-    explanation: 'False! Leo’s gaming means he is active. Mia is always active too (gaming or cooking), never resting in bed.'
+    explanation: 'False! When Leo is playing a game, he is active. Because they are entangled across this vast distance, Mia is always playing a game or cooking, never in bed.'
   },
   {
-    text: 'Whenever Leo is active, Mia is always resting.',
+    text: 'When Leo is in bed or thinking, Mia is always playing a game or cooking.',
     isTrue: false,
     ruleType: 'false_opposite',
-    explanation: 'False! Their moods are positively correlated, not opposite. When Leo is active, Mia is always active too.'
+    explanation: 'False! Their moods match. When Leo is in bed or thinking, Mia is always in bed or thinking, never playing a game or cooking.'
   }
 ];
 

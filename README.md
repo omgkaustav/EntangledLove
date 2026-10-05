@@ -56,14 +56,14 @@ Opening order does not matter: looking at Leo's window then Mia's window is the 
 - **Mia (Tokyo)**: Qubits `2` and `3`
 
 Activity bit encoding:
-- `00`: Resting in bed
-- `01`: Thinking of the other
-- `10`: Playing a game
-- `11`: Cooking in the kitchen
+- `00`: in bed
+- `01`: thinking
+- `10`: playing a game
+- `11`: cooking
 
-Qubits **0 and 2** are coupled with a quantum relationship operation (`target: 0.85`, Pauli `ZZ`), while qubits `(1, 3)` are uncoupled. Bit 0 and bit 2 tend to agree, meaning:
-- When Leo is resting (bed or thinking), Mia is usually resting (bed or thinking).
-- When Leo is active (gaming or cooking), Mia is usually active (gaming or cooking).
+Qubits **0 and 2** are coupled with a quantum relationship operation (`target: 1.0`, Pauli `ZZ`), while qubits `(1, 3)` are uncoupled. Bit 0 and bit 2 always agree, meaning:
+- When Leo is in his quiet mood (`in bed` or `thinking`), Mia is always in her quiet mood (`in bed` or `thinking`).
+- When Leo is in his active mood (`playing a game` or `cooking`), Mia is always in her active mood (`playing a game` or `cooking`).
 
 ---
 
