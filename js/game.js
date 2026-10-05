@@ -49,8 +49,12 @@ class AudioManager {
       swipe: 'assets/audio/curtain_swipe.wav',
       bed: 'assets/audio/bed_tone.wav',
       thinking: 'assets/audio/thinking_loop.wav',
+      reading: 'assets/audio/thinking_loop.wav',
+      music: 'assets/audio/curtain_swipe.wav',
       gaming: 'assets/audio/game_clicks.wav',
-      cooking: 'assets/audio/simmer_loop.wav'
+      cooking: 'assets/audio/simmer_loop.wav',
+      plants: 'assets/audio/bed_tone.wav',
+      stargazing: 'assets/audio/curtain_swipe.wav'
     };
 
     // Dedicated room sound slots for Leo (A) and Mia (B)
@@ -146,7 +150,10 @@ class AudioManager {
     }
     this.unlockAudioContext();
 
-    const actKeys = ['bed', 'thinking', 'gaming', 'cooking'];
+    const actKeys = [
+      'bed', 'thinking', 'reading', 'music',
+      'gaming', 'cooking', 'plants', 'stargazing'
+    ];
 
     // Room A (Leo in London)
     if (isLitA) {
@@ -270,21 +277,45 @@ class AudioManager {
       const gain = ctx.createGain();
 
       if (actCode === 0) {
+        // in bed: deep relaxing sine wave
         osc.type = 'sine';
         osc.frequency.setValueAtTime(55, ctx.currentTime);
-        gain.gain.setValueAtTime(0.05, ctx.currentTime);
+        gain.gain.setValueAtTime(0.04, ctx.currentTime);
       } else if (actCode === 1) {
+        // thinking: calm meditative tone
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(432, ctx.currentTime);
         gain.gain.setValueAtTime(0.02, ctx.currentTime);
       } else if (actCode === 2) {
+        // reading: quiet focused warm tone
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(330, ctx.currentTime);
+        gain.gain.setValueAtTime(0.018, ctx.currentTime);
+      } else if (actCode === 3) {
+        // listening to music: gentle melodic resonance
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        gain.gain.setValueAtTime(0.022, ctx.currentTime);
+      } else if (actCode === 4) {
+        // playing a game: retro chip synth
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(220, ctx.currentTime);
         gain.gain.setValueAtTime(0.015, ctx.currentTime);
-      } else {
+      } else if (actCode === 5) {
+        // cooking: warm kitchen sizzle
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(95, ctx.currentTime);
-        gain.gain.setValueAtTime(0.018, ctx.currentTime);
+        gain.gain.setValueAtTime(0.016, ctx.currentTime);
+      } else if (actCode === 6) {
+        // watering plants: organic calm note
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(392, ctx.currentTime);
+        gain.gain.setValueAtTime(0.02, ctx.currentTime);
+      } else {
+        // stargazing: celestial high shimmer
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        gain.gain.setValueAtTime(0.02, ctx.currentTime);
       }
 
       osc.connect(gain);
@@ -316,13 +347,14 @@ export class EntangledLoveApp {
     this.renderer = new SceneRenderer(this.canvas);
     this.audio = new AudioManager();
 
-    // Game state
-    this.seed = 7;
+    // Game state (6-qubit quantum state seed 1..24, and question selection seed)
+    this.stateSeed = Math.floor(Math.random() * 24) + 1;
+    this.selectionSeed = Math.floor(Math.random() * 10000) + 1;
     this.investigationCount = 1;
     this.shots = [];
     this.dayIndex = 0; // 0 to 1023 (player-paced)
     this.stats = null;
-    this.statements = generateStatementList(this.seed); // Sensible, legitimate questions
+    this.statements = generateStatementList(this.stateSeed, this.selectionSeed);
     this.userAnswers = {};
     this.isSubmitted = false;
     this.mode = 'simulator';
@@ -685,12 +717,12 @@ export class EntangledLoveApp {
 
     this.dom.btnConnectAtlas.disabled = true;
     this.dom.btnPlaySimulator.disabled = true;
-    this.logStatus('Submitting 4-qubit quantum graph state job to Moth Atlas (5 credits)...');
+    this.logStatus('Submitting 6-qubit quantum graph state job to Moth Atlas (5 credits)...');
 
     const client = new AtlasClient(apiKey, endpoint);
 
     try {
-      const batchData = await client.fetchBatch(this.seed, (statusText) => {
+      const batchData = await client.fetchBatch(this.stateSeed, (statusText) => {
         this.logStatus(statusText);
       });
 
@@ -717,7 +749,7 @@ export class EntangledLoveApp {
             try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, 'http://localhost:8787/api/v1'); } catch (_) {}
             
             const proxyClient = new AtlasClient(apiKey, 'http://localhost:8787/api/v1');
-            const batchData = await proxyClient.fetchBatch(this.seed, (statusText) => {
+            const batchData = await proxyClient.fetchBatch(this.stateSeed, (statusText) => {
               this.logStatus(statusText);
             });
             this.mode = 'atlas';
@@ -740,8 +772,8 @@ export class EntangledLoveApp {
   }
 
   startWithSimulator() {
-    this.logStatus('Generating 1,024 shots with Local Quantum Simulator...');
-    const batchData = simulateLocalGraphBatch(this.seed, 1024, 1.0);
+    this.logStatus('Generating 1,024 shots with Local Quantum Simulator (6 qubits)...');
+    const batchData = simulateLocalGraphBatch(this.stateSeed, 1024, this.selectionSeed);
 
     try {
       sessionStorage.setItem(STORAGE_KEY_SHOTS, JSON.stringify(batchData));
@@ -767,11 +799,12 @@ export class EntangledLoveApp {
 
   loadBatch(batchData) {
     this.shots = batchData.shots;
-    this.seed = batchData.seed || 7;
+    this.stateSeed = batchData.stateSeed || this.stateSeed || (Math.floor(Math.random() * 24) + 1);
+    this.selectionSeed = batchData.sampleSeed || this.selectionSeed || (Math.floor(Math.random() * 10000) + 1);
     this.dayIndex = 0;
 
     this.stats = computeStatistics(this.shots);
-    this.statements = generateStatementList(); // Fixed, permanent questions
+    this.statements = generateStatementList(this.stateSeed, this.selectionSeed);
     this.userAnswers = {};
     this.isSubmitted = false;
 
@@ -787,7 +820,7 @@ export class EntangledLoveApp {
     // Update HUD
     this.dom.modeBadge.textContent = this.mode === 'atlas'
       ? `Moth Atlas (${batchData.jobId ? batchData.jobId.slice(0, 8) : 'graph-v1'})`
-      : 'Local Simulator';
+      : 'Local Simulator (6-Qubit)';
     this.dom.modeBadge.className = `mode-badge ${this.mode}`;
 
     this.applyDay(0);
@@ -819,8 +852,8 @@ export class EntangledLoveApp {
     const shot = this.shots[index];
     if (!shot) return;
 
-    const actA = parseInt(shot.slice(0, 2), 2);
-    const actB = parseInt(shot.slice(2, 4), 2);
+    const actA = parseInt(shot.slice(0, 3), 2);
+    const actB = parseInt(shot.slice(3, 6), 2);
 
     this.renderer.setActivities(actA, actB);
     this.syncAudioState();
@@ -942,9 +975,9 @@ export class EntangledLoveApp {
 
     let narrative = '';
     if (scoring.score === 5) {
-      narrative = 'Flawless deduction! You decoded their quantum bond: Leo and Mia are entangled across this vast distance, synchronizing their evenings in London and Tokyo.';
+      narrative = 'Flawless deduction! You decoded their 6-qubit quantum bond: Leo and Mia are entangled across this vast distance, their nocturnal activities mysteriously synchronized across continents.';
     } else if (scoring.score >= 3) {
-      narrative = 'Strong observational insight! You detected the pattern: when one is in bed or thinking, the other is in bed or thinking; when one is playing a game or cooking, the other is playing a game or cooking.';
+      narrative = 'Strong observational insight! You detected the quantum patterns and mood alignments connecting Leo in London and Mia in Tokyo across the rift.';
     } else {
       narrative = 'Quantum superpositions can be tricky. Read the inked notes below to see how Leo and Mia are entangled across this vast distance.';
     }
@@ -978,17 +1011,18 @@ export class EntangledLoveApp {
    */
   resetLogbook() {
     this.investigationCount++;
-    this.seed = (this.seed * 31 + 17) % 9999 + 1;
+    this.stateSeed = Math.floor(Math.random() * 24) + 1;
+    this.selectionSeed = Math.floor(Math.random() * 10000) + 1;
     this.dayIndex = 0;
     this.userAnswers = {};
     this.isSubmitted = false;
 
     // Pick a fresh legitimate set of 5 questions for the new investigation
-    this.statements = generateStatementList(this.seed);
+    this.statements = generateStatementList(this.stateSeed, this.selectionSeed);
 
     // If using simulator, generate fresh batch for the new investigation
     if (this.mode === 'simulator') {
-      const batchData = simulateLocalGraphBatch(this.seed, 1024, 1.0);
+      const batchData = simulateLocalGraphBatch(this.stateSeed, 1024, this.selectionSeed);
       this.shots = batchData.shots;
       this.stats = computeStatistics(this.shots);
     }

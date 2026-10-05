@@ -713,20 +713,28 @@ export class SceneRenderer {
       ctx.save();
       ctx.globalAlpha = lightVal;
       if (!isMia) {
-        // Leo's Activities
+        // Leo's Activities (8 canonical nocturnal activities)
         switch (activityCode) {
           case 0: this.drawLeoBed(ctx, rx, ry, rw, rh); break;
           case 1: this.drawLeoThinking(ctx, rx, ry, rw, rh); break;
-          case 2: this.drawLeoGaming(ctx, rx, ry, rw, rh); break;
-          case 3: this.drawLeoCooking(ctx, rx, ry, rw, rh); break;
+          case 2: this.drawLeoReading(ctx, rx, ry, rw, rh); break;
+          case 3: this.drawLeoMusic(ctx, rx, ry, rw, rh); break;
+          case 4: this.drawLeoGaming(ctx, rx, ry, rw, rh); break;
+          case 5: this.drawLeoCooking(ctx, rx, ry, rw, rh); break;
+          case 6: this.drawLeoPlants(ctx, rx, ry, rw, rh); break;
+          case 7: this.drawLeoStargazing(ctx, rx, ry, rw, rh); break;
         }
       } else {
         // Mia's Activities (Distinct artwork, plushie, fairy lights, cat)
         switch (activityCode) {
           case 0: this.drawMiaBed(ctx, rx, ry, rw, rh); break;
           case 1: this.drawMiaThinking(ctx, rx, ry, rw, rh); break;
-          case 2: this.drawMiaGaming(ctx, rx, ry, rw, rh); break;
-          case 3: this.drawMiaCooking(ctx, rx, ry, rw, rh); break;
+          case 2: this.drawMiaReading(ctx, rx, ry, rw, rh); break;
+          case 3: this.drawMiaMusic(ctx, rx, ry, rw, rh); break;
+          case 4: this.drawMiaGaming(ctx, rx, ry, rw, rh); break;
+          case 5: this.drawMiaCooking(ctx, rx, ry, rw, rh); break;
+          case 6: this.drawMiaPlants(ctx, rx, ry, rw, rh); break;
+          case 7: this.drawMiaStargazing(ctx, rx, ry, rw, rh); break;
         }
       }
       ctx.restore();
@@ -1695,6 +1703,497 @@ export class SceneRenderer {
     ctx.restore();
   }
 
+  drawLeoReading(ctx, x, y, w, h) {
+    ctx.save();
+    const lampX = x + w - 85;
+    const lampY = y + 70;
+
+    // Vintage brass gooseneck lamp warm cone
+    const glow = ctx.createRadialGradient(lampX, lampY + 30, 10, lampX, lampY + 120, 210);
+    glow.addColorStop(0, 'rgba(255, 235, 170, 0.85)');
+    glow.addColorStop(0.35, 'rgba(255, 200, 120, 0.32)');
+    glow.addColorStop(1, 'rgba(255, 200, 120, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(lampX, lampY + 100, 200, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Brass lamp cord & shade
+    ctx.strokeStyle = '#28201a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(lampX, y);
+    ctx.lineTo(lampX, lampY);
+    ctx.stroke();
+    ctx.fillStyle = '#bfa163';
+    ctx.beginPath();
+    ctx.arc(lampX, lampY + 8, 14, Math.PI, 0);
+    ctx.fill();
+
+    // Bookshelf in background
+    ctx.fillStyle = '#382a22';
+    ctx.fillRect(x + 40, y + 55, 130, 10);
+    const bookColors = ['#8f3a3a', '#2d4a3e', '#b38234', '#423d6b', '#6b3d4f'];
+    bookColors.forEach((col, idx) => {
+      ctx.fillStyle = col;
+      ctx.fillRect(x + 45 + idx * 22, y + 22, 17, 33);
+    });
+
+    // Cozy tufted armchair
+    const chairX = x + w - 195;
+    const chairY = y + h - 175;
+    ctx.fillStyle = '#422818';
+    // Backrest
+    ctx.beginPath();
+    ctx.roundRect(chairX + 15, chairY - 20, 85, 95, 12);
+    ctx.fill();
+    // Armrest
+    ctx.fillStyle = '#533320';
+    ctx.beginPath();
+    ctx.roundRect(chairX, chairY + 25, 30, 45, 8);
+    ctx.roundRect(chairX + 85, chairY + 25, 30, 45, 8);
+    ctx.fill();
+
+    // Leo seated comfortably
+    const charX = chairX + 58;
+    const charY = chairY + 15;
+
+    // Dark forest green knitted jumper
+    ctx.fillStyle = '#263b32';
+    ctx.beginPath();
+    ctx.ellipse(charX, charY + 24, 20, 26, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Arms holding hardcover book in lap
+    ctx.strokeStyle = '#263b32';
+    ctx.lineWidth = 9;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(charX - 16, charY + 16);
+    ctx.lineTo(charX - 8, charY + 36);
+    ctx.lineTo(charX + 4, charY + 34);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(charX + 16, charY + 16);
+    ctx.lineTo(charX + 10, charY + 36);
+    ctx.lineTo(charX - 2, charY + 34);
+    ctx.stroke();
+
+    // Open book with parchment pages & ribbon bookmark
+    const bookX = charX - 16;
+    const bookY = charY + 26;
+    ctx.fillStyle = '#8f2d2d'; // Vintage crimson cover
+    ctx.fillRect(bookX - 2, bookY + 6, 36, 16);
+    ctx.fillStyle = '#f5eedb'; // Cream pages
+    ctx.beginPath();
+    ctx.moveTo(bookX, bookY + 6);
+    ctx.quadraticCurveTo(bookX + 8, bookY + 4, bookX + 16, bookY + 7);
+    ctx.lineTo(bookX + 16, bookY + 20);
+    ctx.quadraticCurveTo(bookX + 8, bookY + 17, bookX, bookY + 19);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(bookX + 16, bookY + 7);
+    ctx.quadraticCurveTo(bookX + 24, bookY + 4, bookX + 32, bookY + 6);
+    ctx.lineTo(bookX + 32, bookY + 19);
+    ctx.quadraticCurveTo(bookX + 24, bookY + 17, bookX + 16, bookY + 20);
+    ctx.closePath();
+    ctx.fill();
+    // Red ribbon bookmark hanging out
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bookX + 16, bookY + 20);
+    ctx.lineTo(bookX + 18, bookY + 26);
+    ctx.stroke();
+
+    // Leo's head tilted slightly forward absorbed in book
+    this.drawLeoHead(ctx, charX, charY - 8, 14, { expression: 'reading' });
+
+    // Side table with warm cuppa
+    ctx.fillStyle = '#3a2b22';
+    ctx.fillRect(chairX - 35, chairY + 38, 28, 38);
+    ctx.fillStyle = '#dedad2';
+    ctx.fillRect(chairX - 27, chairY + 26, 12, 12);
+    // Delicate steam
+    const steamAlpha = 0.25 + 0.25 * Math.sin(this.animTime * 3);
+    ctx.strokeStyle = `rgba(255, 255, 255, ${steamAlpha})`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(chairX - 21, chairY + 25);
+    ctx.quadraticCurveTo(chairX - 24, chairY + 15, chairX - 20, chairY + 7);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  drawLeoMusic(ctx, x, y, w, h) {
+    ctx.save();
+    const lampX = x + w - 100;
+    const lampY = y + 70;
+
+    // Warm atmospheric amber glow
+    const glow = ctx.createRadialGradient(lampX, lampY + 40, 10, lampX, lampY + 120, 220);
+    glow.addColorStop(0, 'rgba(255, 225, 150, 0.85)');
+    glow.addColorStop(0.35, 'rgba(255, 190, 100, 0.3)');
+    glow.addColorStop(1, 'rgba(255, 190, 100, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(lampX, lampY + 100, 220, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Vintage wooden stereo console & turntable
+    const consoleX = x + w - 150;
+    const consoleY = y + h - 145;
+    ctx.fillStyle = '#3a2b22';
+    ctx.fillRect(consoleX, consoleY, 110, 65);
+    ctx.fillStyle = '#4e3a2e';
+    ctx.fillRect(consoleX - 4, consoleY - 8, 118, 10);
+
+    // Spinning vinyl record
+    const turnX = consoleX + 35;
+    const turnY = consoleY - 3;
+    ctx.fillStyle = '#18181b';
+    ctx.beginPath();
+    ctx.ellipse(turnX, turnY, 26, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Center label (crimson)
+    ctx.fillStyle = '#b91c1c';
+    ctx.beginPath();
+    ctx.ellipse(turnX, turnY, 8, 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Tonearm
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(consoleX + 70, consoleY - 2);
+    ctx.lineTo(turnX + 10, turnY + 2);
+    ctx.stroke();
+
+    // Wooden stool Leo sits on
+    const charX = x + w - 210;
+    const charY = y + h - 155;
+    ctx.fillStyle = '#422818';
+    ctx.fillRect(charX - 18, charY + 50, 36, 10);
+    ctx.fillRect(charX - 14, charY + 60, 6, 30);
+    ctx.fillRect(charX + 8, charY + 60, 6, 30);
+
+    // Leo's body (sitting leaning gently into guitar, burgundy jumper)
+    ctx.fillStyle = '#6b2d35';
+    ctx.beginPath();
+    ctx.ellipse(charX, charY + 25, 20, 26, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Acoustic Guitar body & soundhole
+    const guitarX = charX + 12;
+    const guitarY = charY + 34;
+    // Lower bout
+    ctx.fillStyle = '#b45309';
+    ctx.beginPath();
+    ctx.arc(guitarX, guitarY, 19, 0, Math.PI * 2);
+    ctx.fill();
+    // Upper bout
+    ctx.beginPath();
+    ctx.arc(guitarX - 10, guitarY - 14, 13, 0, Math.PI * 2);
+    ctx.fill();
+    // Soundhole
+    ctx.fillStyle = '#1c1917';
+    ctx.beginPath();
+    ctx.arc(guitarX - 4, guitarY - 6, 6, 0, Math.PI * 2);
+    ctx.fill();
+    // Guitar neck & headstock
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(guitarX - 16, guitarY - 22);
+    ctx.lineTo(guitarX - 38, guitarY - 44);
+    ctx.stroke();
+
+    // Leo's hands on fretboard and strumming
+    ctx.strokeStyle = '#6b2d35';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(charX - 14, charY + 16);
+    ctx.lineTo(guitarX - 30, guitarY - 36);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(charX + 16, charY + 16);
+    ctx.lineTo(guitarX + 2, guitarY - 6);
+    ctx.stroke();
+
+    // Leo's head with studio over-ear headphones
+    this.drawLeoHead(ctx, charX, charY - 8, 14, { expression: 'singing' });
+
+    // Studio headphones over hair
+    ctx.strokeStyle = '#9ca3af';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.arc(charX, charY - 13, 16, Math.PI + 0.3, 2 * Math.PI - 0.3);
+    ctx.stroke();
+    // Leather earcups
+    ctx.fillStyle = '#3f3f46';
+    ctx.beginPath();
+    ctx.roundRect(charX - 17, charY - 12, 5, 12, 2);
+    ctx.roundRect(charX + 12, charY - 12, 5, 12, 2);
+    ctx.fill();
+
+    // Drifting musical notes with golden glow
+    const noteTime = this.animTime * 1.5;
+    const notes = [
+      { char: '♪', ox: -15, oy: -35, speed: 20 },
+      { char: '♫', ox: 15, oy: -55, speed: 25 },
+      { char: '♪', ox: 35, oy: -40, speed: 18 }
+    ];
+    ctx.font = 'bold 16px "Cinzel", Georgia, serif';
+    notes.forEach((n, idx) => {
+      const ny = (n.oy - noteTime * n.speed + idx * 40) % 90 - 30;
+      const nx = charX + n.ox + Math.sin(noteTime + idx) * 8;
+      const alpha = Math.max(0, 0.8 * (1 - Math.abs(ny + 30) / 70));
+      ctx.fillStyle = `rgba(251, 191, 36, ${alpha})`;
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 8;
+      ctx.fillText(n.char, nx, charY + ny);
+    });
+    ctx.shadowBlur = 0;
+
+    ctx.restore();
+  }
+
+  drawLeoPlants(ctx, x, y, w, h) {
+    ctx.save();
+    const lampX = x + w - 120;
+    const lampY = y + 70;
+
+    // Soft warm conservatory light
+    const glow = ctx.createRadialGradient(lampX, lampY + 30, 10, lampX, lampY + 120, 210);
+    glow.addColorStop(0, 'rgba(255, 235, 170, 0.82)');
+    glow.addColorStop(0.35, 'rgba(240, 210, 130, 0.28)');
+    glow.addColorStop(1, 'rgba(240, 210, 130, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(lampX, lampY + 100, 200, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Hanging macrame planter from ceiling
+    ctx.strokeStyle = '#d4c5b9';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x + 110, y);
+    ctx.lineTo(x + 100, y + 60);
+    ctx.moveTo(x + 110, y);
+    ctx.lineTo(x + 120, y + 60);
+    ctx.stroke();
+    // Terracotta hanging pot
+    ctx.fillStyle = '#b45309';
+    ctx.beginPath();
+    ctx.arc(x + 110, y + 68, 14, 0, Math.PI);
+    ctx.fill();
+    // Trailing lush ivy leaves
+    ctx.fillStyle = '#22543d';
+    const trailing = [[102, 75], [118, 78], [96, 92], [112, 98], [122, 94], [105, 115]];
+    trailing.forEach(([tx, ty]) => {
+      ctx.beginPath();
+      ctx.ellipse(x + tx, y + ty, 6, 10, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Multi-tiered wooden plant stand on left
+    const standX = x + 65;
+    const standY = y + h - 165;
+    ctx.fillStyle = '#3a2b22';
+    ctx.fillRect(standX, standY, 90, 80);
+    ctx.fillRect(standX - 10, standY + 25, 110, 8);
+    ctx.fillRect(standX + 10, standY - 20, 70, 8);
+
+    // Terracotta pots on stand: Monstera and Fern
+    // Monstera pot
+    ctx.fillStyle = '#c2410c';
+    ctx.fillRect(standX + 16, standY - 42, 22, 22);
+    ctx.fillStyle = '#15803d'; // Monstera broad leaves
+    ctx.beginPath();
+    ctx.ellipse(standX + 18, standY - 58, 14, 20, -0.4, 0, Math.PI * 2);
+    ctx.ellipse(standX + 36, standY - 60, 16, 22, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Fern pot
+    ctx.fillStyle = '#9a3412';
+    ctx.fillRect(standX + 50, standY + 3, 24, 22);
+    ctx.fillStyle = '#16a34a';
+    for (let f = 0; f < 5; f++) {
+      ctx.beginPath();
+      ctx.ellipse(standX + 54 + f * 5, standY - 10 - (f % 2) * 6, 5, 14, (f - 2) * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Leo standing on the right, watering the ferns
+    const charX = x + w - 160;
+    const charY = y + h - 150;
+
+    // Knitted mustard/tan jumper
+    ctx.fillStyle = '#8f6e3c';
+    ctx.beginPath();
+    ctx.ellipse(charX, charY + 26, 18, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Vintage copper watering can in Leo's hands
+    const canX = charX - 32;
+    const canY = charY + 28;
+    ctx.fillStyle = '#c2843a'; // Copper body
+    ctx.beginPath();
+    ctx.roundRect(canX, canY, 24, 18, 3);
+    ctx.fill();
+    // Handle
+    ctx.strokeStyle = '#92400e';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(canX + 24, canY + 8, 9, -Math.PI / 2, Math.PI / 2);
+    ctx.stroke();
+    // Long slender spout pointing left toward fern
+    ctx.beginPath();
+    ctx.moveTo(canX, canY + 12);
+    ctx.lineTo(canX - 22, canY - 2);
+    ctx.stroke();
+
+    // Arms holding watering can
+    ctx.strokeStyle = '#8f6e3c';
+    ctx.lineWidth = 8;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(charX - 8, charY + 14);
+    ctx.lineTo(canX + 16, canY + 4);
+    ctx.stroke();
+
+    // Sparkling water droplets arching from spout
+    const dropTime = this.animTime * 5;
+    for (let d = 0; d < 4; d++) {
+      const dt = ((dropTime + d * 0.7) % 2.5) / 2.5;
+      const dx = (canX - 22) - dt * 28;
+      const dy = (canY - 2) + dt * dt * 28;
+      ctx.fillStyle = 'rgba(147, 197, 253, 0.85)';
+      ctx.beginPath();
+      ctx.arc(dx, dy, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Leo's head looking down with caring smile
+    this.drawLeoHead(ctx, charX, charY - 8, 14, { expression: 'cooking', facing: 'left' });
+
+    ctx.restore();
+  }
+
+  drawLeoStargazing(ctx, x, y, w, h) {
+    ctx.save();
+    // Dim ambient observatory lighting
+    const lampX = x + w - 70;
+    const lampY = y + 70;
+    const glow = ctx.createRadialGradient(lampX, lampY + 30, 5, lampX, lampY + 90, 160);
+    glow.addColorStop(0, 'rgba(216, 180, 254, 0.45)');
+    glow.addColorStop(0.5, 'rgba(147, 197, 253, 0.15)');
+    glow.addColorStop(1, 'rgba(147, 197, 253, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(lampX, lampY + 70, 150, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Celestial map / star chart on wall
+    const chartX = x + 45;
+    const chartY = y + 50;
+    ctx.fillStyle = '#1e1b4b';
+    ctx.fillRect(chartX, chartY, 75, 55);
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(chartX, chartY, 75, 55);
+    // Constellation lines & stars on map
+    ctx.strokeStyle = 'rgba(250, 204, 21, 0.6)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(chartX + 15, chartY + 18);
+    ctx.lineTo(chartX + 32, chartY + 28);
+    ctx.lineTo(chartX + 58, chartY + 20);
+    ctx.lineTo(chartX + 62, chartY + 42);
+    ctx.stroke();
+    [[15, 18], [32, 28], [58, 20], [62, 42], [24, 38]].forEach(([cx, cy]) => {
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.arc(chartX + cx, chartY + cy, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Antique Brass Telescope on Wooden Tripod (aimed out window toward left sky)
+    const scopeX = x + w - 195;
+    const scopeY = y + h - 165;
+    // Wooden Tripod Legs
+    ctx.strokeStyle = '#4a3728';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(scopeX, scopeY);
+    ctx.lineTo(scopeX - 35, scopeY + 80);
+    ctx.moveTo(scopeX, scopeY);
+    ctx.lineTo(scopeX, scopeY + 85);
+    ctx.moveTo(scopeX, scopeY);
+    ctx.lineTo(scopeX + 32, scopeY + 80);
+    ctx.stroke();
+
+    // Tripod mount head
+    ctx.fillStyle = '#d4af37';
+    ctx.beginPath();
+    ctx.arc(scopeX, scopeY, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Polished Brass Telescope Barrel pointing up-left (-35 degrees)
+    ctx.save();
+    ctx.translate(scopeX, scopeY);
+    ctx.rotate(-0.55);
+    // Main optical tube
+    const tubeGrad = ctx.createLinearGradient(0, -7, 0, 7);
+    tubeGrad.addColorStop(0, '#fef08a');
+    tubeGrad.addColorStop(0.5, '#d4af37');
+    tubeGrad.addColorStop(1, '#92400e');
+    ctx.fillStyle = tubeGrad;
+    ctx.fillRect(-15, -6, 85, 12);
+    // Objective lens rim (wider)
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(70, -8, 8, 16);
+    // Eyepiece at back
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(-24, -4, 9, 8);
+    // Lens shimmer
+    ctx.fillStyle = 'rgba(147, 197, 253, 0.7)';
+    ctx.beginPath();
+    ctx.ellipse(78, 0, 2, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Leo standing right next to the eyepiece, looking in
+    const charX = scopeX + 28;
+    const charY = scopeY - 5;
+
+    // Bohemian dark navy wool cardigan
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.ellipse(charX, charY + 28, 18, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Hand gently touching telescope focus knob
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(charX - 8, charY + 16);
+    ctx.lineTo(scopeX + 4, scopeY - 4);
+    ctx.stroke();
+
+    // Leo's head tilted forward toward the eyepiece
+    this.drawLeoHead(ctx, charX - 8, charY - 14, 14, { expression: 'gaming', facing: 'left' });
+
+    // Notebook of star observations in other hand
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(charX + 8, charY + 24, 14, 20);
+
+    ctx.restore();
+  }
+
   /* -------------------------------------------------------------
    * MIA'S ARTWORK (Tokyo Room: Fairy Lights, Plushie, Cat, Pastel)
    * ------------------------------------------------------------- */
@@ -1977,6 +2476,488 @@ export class SceneRenderer {
 
     // Mia's head with high natural hairline, sleek top bun, red hairpin, and cooking smile
     this.drawMiaHead(ctx, cookX, cookY, 14, { expression: 'cooking' });
+
+    ctx.restore();
+  }
+
+  drawMiaReading(ctx, x, y, w, h) {
+    ctx.save();
+    const lampX = x + w - 75;
+    const lampY = y + 75;
+
+    // Glowing string fairy lights & warm pastel lavender-pink ambiance
+    const glow = ctx.createRadialGradient(lampX, lampY + 30, 10, lampX, lampY + 100, 200);
+    glow.addColorStop(0, 'rgba(255, 215, 240, 0.85)');
+    glow.addColorStop(0.35, 'rgba(232, 121, 249, 0.25)');
+    glow.addColorStop(1, 'rgba(232, 121, 249, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(lampX, lampY + 90, 200, 0, Math.PI * 2);
+    ctx.fill();
+
+    // String fairy lights along wall
+    const bulbCols = ['#fbcfe8', '#fef08a', '#c7d2fe', '#fed7aa'];
+    for (let i = 0; i < 6; i++) {
+      const bx = x + 60 + i * 45;
+      const by = y + 42 + Math.sin(i * 0.8) * 6;
+      ctx.fillStyle = bulbCols[i % bulbCols.length];
+      ctx.beginPath();
+      ctx.arc(bx, by, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Comfy oversized lavender beanbag / floor cushion
+    const cushionX = x + 125;
+    const cushionY = y + h - 140;
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.ellipse(cushionX, cushionY + 15, 52, 28, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#d8b4fe';
+    ctx.beginPath();
+    ctx.ellipse(cushionX - 4, cushionY + 8, 44, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Mia seated comfortably with knees curled
+    const charX = cushionX;
+    const charY = cushionY - 20;
+
+    // Cute oversized pastel pink sweater
+    ctx.fillStyle = '#f472b6';
+    ctx.beginPath();
+    ctx.ellipse(charX, charY + 22, 20, 25, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Arms holding open manga volume
+    ctx.strokeStyle = '#f472b6';
+    ctx.lineWidth = 8;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(charX - 14, charY + 14);
+    ctx.lineTo(charX - 5, charY + 30);
+    ctx.lineTo(charX + 4, charY + 28);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(charX + 14, charY + 14);
+    ctx.lineTo(charX + 8, charY + 30);
+    ctx.lineTo(charX - 2, charY + 28);
+    ctx.stroke();
+
+    // Open manga booklet
+    const bookX = charX - 14;
+    const bookY = charY + 20;
+    ctx.fillStyle = '#fb7185'; // Coral pink cover
+    ctx.fillRect(bookX - 2, bookY + 6, 32, 15);
+    ctx.fillStyle = '#ffffff'; // Manga pages
+    ctx.fillRect(bookX, bookY + 6, 14, 13);
+    ctx.fillRect(bookX + 15, bookY + 6, 14, 13);
+    // Manga panel lines
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bookX + 2, bookY + 8, 10, 4);
+    ctx.strokeRect(bookX + 2, bookY + 13, 10, 4);
+    ctx.strokeRect(bookX + 17, bookY + 8, 10, 9);
+
+    // Mia's head with sleek top bun, red hairpin, and reading smile
+    this.drawMiaHead(ctx, charX, charY - 8, 13, { expression: 'reading' });
+
+    // Sleepy calico cat sleeping next to cushion
+    const catX = cushionX + 58;
+    const catY = cushionY + 22;
+    const catBreath = Math.sin(this.animTime * 2) * 1.5;
+    ctx.fillStyle = '#f59e0b'; // Calico orange
+    ctx.beginPath();
+    ctx.ellipse(catX, catY, 14, 10 + catBreath, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#1e1b4b'; // Calico dark patch
+    ctx.beginPath();
+    ctx.arc(catX - 4, catY - 3, 5, 0, Math.PI * 2);
+    ctx.fill();
+    // Cat ears
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.moveTo(catX - 10, catY - 6);
+    ctx.lineTo(catX - 6, catY - 14);
+    ctx.lineTo(catX - 2, catY - 6);
+    ctx.fill();
+
+    // Small wooden tray with matcha tea
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(cushionX - 70, cushionY + 20, 26, 6);
+    ctx.fillStyle = '#10b981'; // Green matcha bowl
+    ctx.beginPath();
+    ctx.arc(cushionX - 57, cushionY + 16, 7, 0, Math.PI);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  drawMiaMusic(ctx, x, y, w, h) {
+    ctx.save();
+    const lampX = x + 130;
+    const lampY = y + 70;
+
+    // Glowing vibrant city-pop neon atmosphere (magenta & cyan)
+    const glow = ctx.createRadialGradient(lampX, lampY + 40, 10, lampX, lampY + 120, 210);
+    glow.addColorStop(0, 'rgba(244, 114, 182, 0.8)');
+    glow.addColorStop(0.4, 'rgba(168, 85, 247, 0.25)');
+    glow.addColorStop(1, 'rgba(168, 85, 247, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(lampX, lampY + 100, 210, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Kawaii City-Pop Sound Console on desk
+    const deskX = x + 40;
+    const deskY = y + h - 150;
+    ctx.fillStyle = '#fce7f3';
+    ctx.fillRect(deskX, deskY, 80, 50);
+    ctx.fillStyle = '#f472b6';
+    ctx.fillRect(deskX - 4, deskY - 6, 88, 8);
+
+    // Glowing Neon Equalizer Bars on Console
+    const barHeights = [14, 22, 10, 26, 18, 12];
+    for (let b = 0; b < barHeights.length; b++) {
+      const bh = (barHeights[b] + Math.sin(this.animTime * 6 + b) * 7);
+      ctx.fillStyle = b % 2 === 0 ? '#06b6d4' : '#ec4899';
+      ctx.fillRect(deskX + 12 + b * 10, deskY + 36 - bh, 6, bh);
+    }
+
+    // Stool & Mia sitting, gently bobbing to the music
+    const bob = Math.sin(this.animTime * 4) * 2;
+    const charX = x + 155;
+    const charY = y + h - 160 + bob;
+
+    // Stool
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.ellipse(charX, y + h - 105, 18, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#9f1239';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(charX - 10, y + h - 105);
+    ctx.lineTo(charX - 14, y + h - 75);
+    ctx.moveTo(charX + 10, y + h - 105);
+    ctx.lineTo(charX + 14, y + h - 75);
+    ctx.stroke();
+
+    // Mia's outfit: pastel lavender top & pink skirt
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.ellipse(charX, charY + 24, 18, 26, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Holding pastel phone/player with glowing screen
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.roundRect(charX - 18, charY + 22, 12, 18, 2);
+    ctx.fill();
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(charX - 12, charY + 15);
+    ctx.lineTo(charX - 14, charY + 26);
+    ctx.stroke();
+
+    // Mia's head with joyful expression
+    this.drawMiaHead(ctx, charX, charY - 8, 13, { expression: 'singing' });
+
+    // Adorable Cat-Ear Headphones on Mia's head!
+    // Headband
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.arc(charX, charY - 12, 15, Math.PI + 0.3, 2 * Math.PI - 0.3);
+    ctx.stroke();
+    // Glowing neon cat ears on headphone band
+    const earPulse = 0.8 + 0.2 * Math.sin(this.animTime * 6);
+    ctx.fillStyle = `rgba(236, 72, 153, ${earPulse})`;
+    // Left ear
+    ctx.beginPath();
+    ctx.moveTo(charX - 11, charY - 22);
+    ctx.lineTo(charX - 7, charY - 32);
+    ctx.lineTo(charX - 2, charY - 24);
+    ctx.closePath();
+    ctx.fill();
+    // Right ear
+    ctx.beginPath();
+    ctx.moveTo(charX + 2, charY - 24);
+    ctx.lineTo(charX + 7, charY - 32);
+    ctx.lineTo(charX + 11, charY - 22);
+    ctx.closePath();
+    ctx.fill();
+
+    // Glowing pastel musical notes and sparkles floating up
+    const noteTime = this.animTime * 2;
+    const notes = [
+      { char: '♪', ox: -20, oy: -35, speed: 22, col: '#f472b6' },
+      { char: '✦', ox: 18, oy: -55, speed: 26, col: '#38bdf8' },
+      { char: '♫', ox: -5, oy: -45, speed: 20, col: '#fef08a' }
+    ];
+    ctx.font = 'bold 16px "Cinzel", Georgia, serif';
+    notes.forEach((n, idx) => {
+      const ny = (n.oy - noteTime * n.speed + idx * 40) % 90 - 30;
+      const nx = charX + n.ox + Math.sin(noteTime + idx) * 8;
+      const alpha = Math.max(0, 0.85 * (1 - Math.abs(ny + 30) / 70));
+      ctx.fillStyle = n.col;
+      ctx.globalAlpha = alpha;
+      ctx.shadowColor = n.col;
+      ctx.shadowBlur = 8;
+      ctx.fillText(n.char, nx, charY + ny);
+    });
+    ctx.globalAlpha = 1.0;
+    ctx.shadowBlur = 0;
+
+    ctx.restore();
+  }
+
+  drawMiaPlants(ctx, x, y, w, h) {
+    ctx.save();
+    const lampX = x + 110;
+    const lampY = y + 70;
+
+    // Warm pastel botanical light
+    const glow = ctx.createRadialGradient(lampX, lampY + 30, 10, lampX, lampY + 110, 200);
+    glow.addColorStop(0, 'rgba(255, 230, 240, 0.85)');
+    glow.addColorStop(0.35, 'rgba(244, 114, 182, 0.22)');
+    glow.addColorStop(1, 'rgba(244, 114, 182, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(lampX, lampY + 95, 200, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tokyo Indoor Zen Botanical Stand on right
+    const standX = x + w - 165;
+    const standY = y + h - 155;
+    ctx.fillStyle = '#4a3b32';
+    ctx.fillRect(standX, standY, 95, 60);
+    ctx.fillStyle = '#785d4d';
+    ctx.fillRect(standX - 5, standY - 8, 105, 10);
+
+    // Miniature Cherry Blossom Bonsai in shallow ceramic pot
+    const potX = standX + 15;
+    const potY = standY - 14;
+    ctx.fillStyle = '#0284c7'; // Blue glazed ceramic pot
+    ctx.fillRect(potX, potY, 36, 12);
+    // Gnarled bonsai trunk
+    ctx.strokeStyle = '#573d2a';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(potX + 18, potY);
+    ctx.quadraticCurveTo(potX + 24, potY - 22, potX + 14, potY - 38);
+    ctx.stroke();
+    // Delicate cherry blossom foliage clouds (pink)
+    ctx.fillStyle = '#f472b6';
+    ctx.beginPath();
+    ctx.arc(potX + 10, potY - 42, 12, 0, Math.PI * 2);
+    ctx.arc(potX + 22, potY - 44, 10, 0, Math.PI * 2);
+    ctx.arc(potX + 16, potY - 50, 11, 0, Math.PI * 2);
+    ctx.fill();
+    // Pale pink blossom highlights
+    ctx.fillStyle = '#fbcfe8';
+    ctx.beginPath();
+    ctx.arc(potX + 8, potY - 40, 5, 0, Math.PI * 2);
+    ctx.arc(potX + 22, potY - 43, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cute animal succulent pots (cat pot with ears)
+    ctx.fillStyle = '#fde047'; // Yellow cute pot
+    ctx.fillRect(standX + 62, standY - 14, 20, 14);
+    ctx.fillStyle = '#10b981'; // Succulent rosette
+    ctx.beginPath();
+    ctx.arc(standX + 72, standY - 17, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Mia standing on the left holding cute pastel glass plant mister
+    const charX = x + 130;
+    const charY = y + h - 150;
+
+    // Pastel mint apron over pink knit sweater
+    ctx.fillStyle = '#f472b6';
+    ctx.beginPath();
+    ctx.ellipse(charX, charY + 26, 18, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#a7f3d0'; // Mint apron
+    ctx.fillRect(charX - 10, charY + 12, 20, 32);
+
+    // Chic vintage glass spray mister in hand
+    const misterX = charX + 26;
+    const misterY = charY + 22;
+    ctx.fillStyle = '#38bdf8'; // Blue glass bottle
+    ctx.beginPath();
+    ctx.arc(misterX, misterY + 10, 8, 0, Math.PI * 2);
+    ctx.fill();
+    // Brass pump
+    ctx.fillStyle = '#d4af37';
+    ctx.fillRect(misterX - 2, misterY - 2, 5, 6);
+    // Spout aimed right toward bonsai
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(misterX + 2, misterY);
+    ctx.lineTo(misterX + 10, misterY - 2);
+    ctx.stroke();
+
+    // Arm holding mister
+    ctx.strokeStyle = '#f472b6';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(charX + 8, charY + 14);
+    ctx.lineTo(misterX - 2, misterY + 6);
+    ctx.stroke();
+
+    // Shimmering fine mist spray particles towards bonsai
+    const mistTime = this.animTime * 4;
+    for (let m = 0; m < 6; m++) {
+      const mt = ((mistTime + m * 0.4) % 2.0) / 2.0;
+      const mx = (misterX + 10) + mt * 32;
+      const my = (misterY - 2) + Math.sin(m * 1.5) * 6 + mt * 4;
+      const alpha = Math.max(0, 0.7 * (1 - mt));
+      ctx.fillStyle = `rgba(186, 230, 253, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(mx, my, 1.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Mia's head with sleek bun and happy caring expression
+    this.drawMiaHead(ctx, charX, charY - 8, 14, { expression: 'cooking' });
+
+    // Calico cat sitting next to Mia batting playfully
+    const catX = charX - 32;
+    const catY = charY + 44;
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.ellipse(catX, catY, 11, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Cat ears
+    ctx.beginPath();
+    ctx.moveTo(catX - 6, catY - 6);
+    ctx.lineTo(catX - 3, catY - 12);
+    ctx.lineTo(catX, catY - 6);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  drawMiaStargazing(ctx, x, y, w, h) {
+    ctx.save();
+    // Dim ambient celestial light with star lantern
+    const lanternX = x + 80;
+    const lanternY = y + 65;
+
+    // Glowing Origami Star Lantern hanging from ceiling
+    const starGlow = ctx.createRadialGradient(lanternX, lanternY, 5, lanternX, lanternY, 140);
+    starGlow.addColorStop(0, 'rgba(254, 240, 138, 0.7)');
+    starGlow.addColorStop(0.4, 'rgba(244, 114, 182, 0.2)');
+    starGlow.addColorStop(1, 'rgba(244, 114, 182, 0)');
+    ctx.fillStyle = starGlow;
+    ctx.beginPath();
+    ctx.arc(lanternX, lanternY, 140, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cord
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(lanternX, y);
+    ctx.lineTo(lanternX, lanternY - 12);
+    ctx.stroke();
+
+    // Glowing Star Shape
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a1 = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+      const a2 = a1 + (2 * Math.PI) / 10;
+      const r1 = 12;
+      const r2 = 5;
+      if (i === 0) ctx.moveTo(lanternX + Math.cos(a1) * r1, lanternY + Math.sin(a1) * r1);
+      else ctx.lineTo(lanternX + Math.cos(a1) * r1, lanternY + Math.sin(a1) * r1);
+      ctx.lineTo(lanternX + Math.cos(a2) * r2, lanternY + Math.sin(a2) * r2);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // Sleek Modern White & Rose-Gold Telescope on Tripod (aimed out window toward right sky)
+    const scopeX = x + w - 180;
+    const scopeY = y + h - 165;
+    // Tripod legs (white metal)
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(scopeX, scopeY);
+    ctx.lineTo(scopeX - 30, scopeY + 80);
+    ctx.moveTo(scopeX, scopeY);
+    ctx.lineTo(scopeX, scopeY + 85);
+    ctx.moveTo(scopeX, scopeY);
+    ctx.lineTo(scopeX + 32, scopeY + 80);
+    ctx.stroke();
+
+    // Rose gold mount
+    ctx.fillStyle = '#fb7185';
+    ctx.beginPath();
+    ctx.arc(scopeX, scopeY, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Telescope Barrel pointing up-right (+35 degrees)
+    ctx.save();
+    ctx.translate(scopeX, scopeY);
+    ctx.rotate(0.55);
+    // Sleek white tube
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(-15, -6, 85, 12);
+    // Rose-gold accents
+    ctx.fillStyle = '#fb7185';
+    ctx.fillRect(20, -7, 6, 14);
+    ctx.fillRect(70, -8, 8, 16);
+    // Eyepiece
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(-24, -4, 9, 8);
+    // Lens glow
+    ctx.fillStyle = 'rgba(244, 114, 182, 0.7)';
+    ctx.beginPath();
+    ctx.ellipse(78, 0, 2, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Mia standing beside telescope, pointing up at the constellations
+    const charX = scopeX - 35;
+    const charY = scopeY - 5;
+
+    // Pastel lilac coat & scarf
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.ellipse(charX, charY + 28, 18, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Arm pointing up at the stars
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(charX + 8, charY + 16);
+    ctx.lineTo(charX + 28, charY - 8);
+    ctx.stroke();
+
+    // Mia's head gazing upwards at the cosmos in wonder
+    this.drawMiaHead(ctx, charX, charY - 10, 13, { expression: 'singing' });
+
+    // Calico cat sitting right beside tripod also looking up at the sky!
+    const catX = scopeX + 20;
+    const catY = scopeY + 70;
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.ellipse(catX, catY, 11, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Cat ears
+    ctx.beginPath();
+    ctx.moveTo(catX - 4, catY - 6);
+    ctx.lineTo(catX - 1, catY - 12);
+    ctx.lineTo(catX + 2, catY - 6);
+    ctx.fill();
 
     ctx.restore();
   }

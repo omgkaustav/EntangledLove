@@ -5,6 +5,8 @@
  * and local offline simulation for "Entangled Love".
  */
 
+import { getQuantumStateConfig } from './stats.js';
+
 export const ATLAS_DEFAULT_BASE_URL = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
   ? `${window.location.origin}/api/v1`
   : 'https://api.mothquantum.com/api/v1';
@@ -28,41 +30,61 @@ export function mulberry32(seed) {
 
 /**
  * Local Quantum Simulator Mode
- * Produces 1024 shots of a 4-qubit graph state with qubits 0 and 2 coupled
- * (100% correlation) and qubits 1 and 3 uncoupled (50/50 free choice).
+ * Produces 1024 shots of a 6-qubit graph state (3 qubits for Leo, 3 qubits for Mia).
+ * Realistic quantum hardware fidelity (0.94 target correlation + 0.06 readout noise).
  * 
- * Qubit 0, 1: Leo in London (00: in bed, 01: thinking, 10: playing a game, 11: cooking)
- * Qubit 2, 3: Mia in Tokyo  (00: in bed, 01: thinking, 10: playing a game, 11: cooking)
+ * Qubits 0..2: Leo in London (8 canonical nocturnal activities, 000..111)
+ * Qubits 3..5: Mia in Tokyo  (8 canonical nocturnal activities, 000..111)
  */
-export function simulateLocalGraphBatch(seed = 7, shotsCount = 1024, targetCorr = 1.0) {
-  const rng = mulberry32(seed);
+export function simulateLocalGraphBatch(stateSeed = 1, shotsCount = 1024, sampleSeed = 7) {
+  const config = getQuantumStateConfig(stateSeed);
+  const rng = mulberry32(sampleSeed || 7);
   const shots = [];
   const counts = {};
 
+  const { moodCoupling, parityCoupling, focusCoupling, fidelity } = config;
+
   for (let i = 0; i < shotsCount; i++) {
-    // Phase bit: mood shared between Leo (b0) and Mia (b2)
-    // 0 = Quiet Mood (in bed / thinking)
-    // 1 = Active Mood (playing a game / cooking)
-    const phase = rng() < 0.5 ? 0 : 1;
-    const b0 = phase;
-    // When targetCorr is 1.0, b2 is 100% correlated with b0
-    const b2 = rng() < targetCorr ? b0 : (1 - b0);
+    // Leo's 3 qubits (a0, a1, a2) - uniformly distributed across the 8 activities
+    const a0 = rng() < 0.5 ? 0 : 1;
+    const a1 = rng() < 0.5 ? 0 : 1;
+    const a2 = rng() < 0.5 ? 0 : 1;
 
-    // Qubit 1: Leo's specific activity within his mood (50/50 independent choice)
-    const b1 = rng() < 0.5 ? 0 : 1;
+    // Mia's 3 qubits (b0, b1, b2) entangled with Leo's
+    // b0 (Mood qubit: quiet vs active)
+    const targetB0 = moodCoupling === +1 ? a0 : (1 - a0);
+    const b0 = rng() < fidelity ? targetB0 : (1 - targetB0);
 
-    // Qubit 3: Mia's specific activity within her mood (50/50 independent choice)
-    const b3 = rng() < 0.5 ? 0 : 1;
+    // b1 (Parity / activity style qubit)
+    let b1;
+    if (parityCoupling === +1) {
+      b1 = rng() < fidelity ? a1 : (1 - a1);
+    } else if (parityCoupling === -1) {
+      b1 = rng() < fidelity ? (1 - a1) : a1;
+    } else {
+      b1 = rng() < 0.5 ? 0 : 1;
+    }
 
-    // A shot is four bits b0 b1 b2 b3
-    const bitstring = `${b0}${b1}${b2}${b3}`;
+    // b2 (Focus / social qubit)
+    let b2;
+    if (focusCoupling === +1) {
+      b2 = rng() < fidelity ? a2 : (1 - a2);
+    } else if (focusCoupling === -1) {
+      b2 = rng() < fidelity ? (1 - a2) : a2;
+    } else {
+      b2 = rng() < 0.5 ? 0 : 1;
+    }
+
+    // 6-bit string: a0 a1 a2 b0 b1 b2
+    const bitstring = `${a0}${a1}${a2}${b0}${b1}${b2}`;
     shots.push(bitstring);
     counts[bitstring] = (counts[bitstring] || 0) + 1;
   }
 
   return {
     source: 'simulator',
-    seed,
+    stateSeed: config.id,
+    sampleSeed,
     shots,
     counts,
     shotsCount: shots.length,
@@ -72,36 +94,25 @@ export function simulateLocalGraphBatch(seed = 7, shotsCount = 1024, targetCorr 
 
 /**
  * Normalize bitstring key from various response shapes:
- * - If integer 0..15: format as 4 bits, low qubit (qubit 0) on the right:
- *   e.g. integer k: bit0 is (k >> 0)&1, bit1 is (k >> 1)&1, bit2 is (k >> 2)&1, bit3 is (k >> 3)&1
- *   Bitstring "b0b1b2b3"
- * - If already a bitstring of length 4: keep as "b0b1b2b3"
+ * - If integer 0..63: format as 6 bits (b0b1b2b3b4b5)
+ * - If already a bitstring of length 6: keep as "b0b1b2b3b4b5"
  */
 export function normalizeBitstringKey(rawKey) {
   const str = String(rawKey).trim();
   // If numeric integer string
-  if (/^\d+$/.test(str) && str.length < 4) {
+  if (/^\d+$/.test(str) && str.length < 6) {
     const k = parseInt(str, 10);
-    // Low qubit on the right:
-    // Qubit 0 = (k >> 0) & 1
-    // Qubit 1 = (k >> 1) & 1
-    // Qubit 2 = (k >> 2) & 1
-    // Qubit 3 = (k >> 3) & 1
-    const b0 = (k >> 0) & 1;
-    const b1 = (k >> 1) & 1;
-    const b2 = (k >> 2) & 1;
-    const b3 = (k >> 3) & 1;
-    return `${b0}${b1}${b2}${b3}`;
+    return k.toString(2).padStart(6, '0');
   }
-  // If bitstring like "0101"
-  if (/^[01]{4}$/.test(str)) {
+  // If bitstring like "010101"
+  if (/^[01]{6}$/.test(str)) {
     return str;
   }
-  // If longer or shorter bitstring, pad or slice to 4
+  // If longer or shorter bitstring, pad or slice to 6
   if (/^[01]+$/.test(str)) {
-    return str.padStart(4, '0').slice(-4);
+    return str.padStart(6, '0').slice(-6);
   }
-  return str.padStart(4, '0');
+  return str.padStart(6, '0');
 }
 
 /**
@@ -211,145 +222,147 @@ export class AtlasClient {
    */
   async submitGraphJob(seed = 7, onProgress = () => {}) {
     const candidatePayloads = [
-      // Candidate 1 (Verified Working on Moth Atlas): Superpositions + ZZ relationship on pair (0, 2)
+      // Candidate 1 (Verified Working on Moth Atlas): Superpositions + ZZ relationship on pair (0, 3)
       {
-        name: 'bloch_and_relationship_zz_graph',
+        name: 'bloch_and_relationship_zz_graph_6q',
         body: {
           params: {
             mode: 'emu',
-            num_qubits: 4,
+            num_qubits: 6,
             shots: 1024,
             seed: seed,
-            coupling_map: [[0, 2], [1, 3]],
+            coupling_map: [[0, 3], [1, 4], [2, 5]],
             operations: [
               { type: 'bloch', qubit: 0, paulis: { 'X': 1.0 } },
               { type: 'bloch', qubit: 1, paulis: { 'X': 1.0 } },
               { type: 'bloch', qubit: 2, paulis: { 'X': 1.0 } },
               { type: 'bloch', qubit: 3, paulis: { 'X': 1.0 } },
-              { type: 'relationship', qubits: [0, 2], paulis: { 'ZZ': 1.0 } }
+              { type: 'bloch', qubit: 4, paulis: { 'X': 1.0 } },
+              { type: 'bloch', qubit: 5, paulis: { 'X': 1.0 } },
+              { type: 'relationship', qubits: [0, 3], paulis: { 'ZZ': 1.0 } }
             ]
           }
         }
       },
-      // Candidate 2: Direct relationship with paulis ZZ
+      // Candidate 2: Direct relationship with paulis ZZ on 6 qubits
       {
-        name: 'relationship_paulis_zz_graph',
+        name: 'relationship_paulis_zz_graph_6q',
         body: {
           params: {
             mode: 'emu',
-            num_qubits: 4,
+            num_qubits: 6,
             shots: 1024,
             seed: seed,
-            coupling_map: [[0, 2], [1, 3]],
+            coupling_map: [[0, 3], [1, 4], [2, 5]],
             operations: [
-              { type: 'relationship', qubits: [0, 2], paulis: { 'ZZ': 1.0 } }
+              { type: 'relationship', qubits: [0, 3], paulis: { 'ZZ': 1.0 } }
             ]
           }
         }
       },
-      // Candidate 3: Prompt's original schema attempt
+      // Candidate 3: Standard qubits target
       {
-        name: 'standard_qubits_target',
+        name: 'standard_qubits_target_6q',
         body: {
           params: {
             mode: 'emu',
-            num_qubits: 4,
+            num_qubits: 6,
             shots: 1024,
             seed: seed,
-            coupling_map: [[0, 2]],
+            coupling_map: [[0, 3]],
             operations: [
-              { type: 'relationship', qubits: [0, 2], target: 0.85 }
+              { type: 'relationship', qubits: [0, 3], target: 0.94 }
             ]
           }
         }
       },
       // Variant 2: op instead of type
       {
-        name: 'op_qubits_target',
+        name: 'op_qubits_target_6q',
         body: {
           params: {
             mode: 'emu',
-            num_qubits: 4,
+            num_qubits: 6,
             shots: 1024,
             seed: seed,
-            coupling_map: [[0, 2]],
+            coupling_map: [[0, 3]],
             operations: [
-              { op: 'relationship', qubits: [0, 2], target: 0.85 }
+              { op: 'relationship', qubits: [0, 3], target: 0.94 }
             ]
           }
         }
       },
       // Variant 3: name instead of type
       {
-        name: 'name_qubits_target',
+        name: 'name_qubits_target_6q',
         body: {
           params: {
             mode: 'emu',
-            num_qubits: 4,
+            num_qubits: 6,
             shots: 1024,
             seed: seed,
-            coupling_map: [[0, 2]],
+            coupling_map: [[0, 3]],
             operations: [
-              { name: 'relationship', qubits: [0, 2], target: 0.85 }
+              { name: 'relationship', qubits: [0, 3], target: 0.94 }
             ]
           }
         }
       },
       // Variant 4: edge instead of qubits
       {
-        name: 'type_edge_target',
+        name: 'type_edge_target_6q',
         body: {
           params: {
             mode: 'emu',
-            num_qubits: 4,
+            num_qubits: 6,
             shots: 1024,
             seed: seed,
-            coupling_map: [[0, 2]],
+            coupling_map: [[0, 3]],
             operations: [
-              { type: 'relationship', edge: [0, 2], target: 0.85 }
+              { type: 'relationship', edge: [0, 3], target: 0.94 }
             ]
           }
         }
       },
       // Variant 5: edge with value
       {
-        name: 'type_edge_value',
+        name: 'type_edge_value_6q',
         body: {
           params: {
             mode: 'emu',
-            num_qubits: 4,
+            num_qubits: 6,
             shots: 1024,
             seed: seed,
-            coupling_map: [[0, 2]],
+            coupling_map: [[0, 3]],
             operations: [
-              { type: 'relationship', edge: [0, 2], value: 0.85 }
+              { type: 'relationship', edge: [0, 3], value: 0.94 }
             ]
           }
         }
       },
       // Variant 6: pauli / zz operator
       {
-        name: 'type_zz_qubits_target',
+        name: 'type_zz_qubits_target_6q',
         body: {
           params: {
             mode: 'emu',
-            num_qubits: 4,
+            num_qubits: 6,
             shots: 1024,
             seed: seed,
-            coupling_map: [[0, 2]],
+            coupling_map: [[0, 3]],
             operations: [
-              { type: 'zz', qubits: [0, 2], target: 0.85 }
+              { type: 'zz', qubits: [0, 3], target: 0.94 }
             ]
           }
         }
       },
       // Ultimate fallback: drop operations & coupling_map, keep seed: 7
       {
-        name: 'fallback_untargeted_seeded',
+        name: 'fallback_untargeted_seeded_6q',
         body: {
           params: {
             mode: 'emu',
-            num_qubits: 4,
+            num_qubits: 6,
             shots: 1024,
             seed: seed
           }

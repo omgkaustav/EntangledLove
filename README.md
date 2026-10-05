@@ -2,7 +2,7 @@
 
 *An observational quantum indie game across distance and correlation*
 
-**Entangled Love** is a static indie web game portraying two long-distance lovers separated by 9,560 km: **Leo** in London and **Mia** in Tokyo. Each partner has a window looking into their flat at night. Under the hood, both windows are halves of one computational-basis measurement of a 4-qubit graph state prepared by the **Moth Atlas graph-v1** quantum engine (or local quantum simulation mode).
+**Entangled Love** is a static indie web game portraying two long-distance lovers separated by 9,560 km: **Leo** in London and **Mia** in Tokyo. Each partner has a window looking into their flat at night. Under the hood, both windows are halves of one computational-basis measurement of a 6-qubit graph state prepared by the **Moth Atlas graph-v1** quantum engine (or local quantum simulation mode).
 
 The player peeks into either room by toggling light switches, tracks the lovers' nocturnal habits as evenings pass, marks deductions with tactile pencil ticks and crosses in an investigator's field logbook, and seals their observations when confident to reveal their quantum deduction score and how many days it took.
 
@@ -11,13 +11,13 @@ The player peeks into either room by toggling light switches, tracks the lovers'
 ## Game Features & Art Direction
 
 - **Two Distant Realities Separated by a Quantum Rift**:
-  - **Left (London, UK)**: Weathered Victorian brickwork, vintage English street sign (`FLEET ST • EC4`), drifting London rain streaks, dark chimneys, glowing cast-iron streetlamp, and **Leo's flat** (knitted jumper, vintage books, tea mug, CRT console gaming, cast iron stew).
-  - **Right (Tokyo, Japan)**: Sleek modern architecture, Japanese street sign (`桜通り 2-4`), drifting cherry blossom petals, glowing izakaya lantern, skyline towers, and **Mia's flat** (pastel pink bedding, fairy lights, pet cat, smartphone chat, handheld console, ramen with chopsticks).
+  - **Left (London, UK)**: Weathered Victorian brickwork, vintage English street sign (`FLEET ST • EC4`), drifting London rain streaks, dark chimneys, glowing cast-iron streetlamp, and **Leo's flat** (knitted jumper, vintage books, acoustic guitar, telescope, watering plants, CRT gaming, cast iron stew).
+  - **Right (Tokyo, Japan)**: Sleek modern architecture, Japanese street sign (`桜通り 2-4`), drifting cherry blossom petals, glowing izakaya lantern, skyline towers, and **Mia's flat** (pastel pink bedding, cat-ear headphones, fairy lights, pet calico cat, indoor bonsai garden, rose-gold telescope, manga, ramen).
   - **Center**: A vibrant quantum dimensional tear with procedural lightning sparks and distance emblem (`⟵ 9,560 KM APART ⟶`).
 - **Tactile Light Switch Mechanic**: Rooms start dark with nocturnal streetlamp/lantern reflections and faint window silhouettes. Turning on a light switch illuminates the interior and triggers that room's ambient audio loop.
 - **Diegetic Field Notebook**:
   - Styled as an authentic investigator's journal with lined parchment paper, spiral binder rings, and red margin rule.
-  - Generates 5 intuitive qualitative statements ("never happens with", "always", "either/or").
+  - Dynamically draws 5 intuitive qualitative statements from a 10-statement roster based on the current quantum state, addressing realistic hardware fidelity with phrases like *"almost always"* and *"almost never"*.
   - Tactile pencil checkboxes: mark observations with **`[✓]` True** and **`[✗]` False** (with authentic pencil scratch audio).
   - Seal button stamps deductions with green/red rubber seals (`[VERIFIED]` / `[REFUTED]`) and ink margin annotations.
 - **No Day Limit (Player-Paced Deduction)**:
@@ -42,7 +42,7 @@ The player peeks into either room by toggling light switches, tracks the lovers'
 
 ## The Measurement Rule
 
-> **Both windows are halves of one computational-basis measurement of a 4-qubit graph state.**
+> **Both windows are halves of one computational-basis measurement of a 6-qubit graph state.**
 > **Turning on either light reveals that evening's state, and advancing the day takes the next measured shot from the batch without querying the API.**
 
 Opening order does not matter: looking at Leo's window then Mia's window is the exact same evening as peeking at both simultaneously.
@@ -51,19 +51,26 @@ Opening order does not matter: looking at Leo's window then Mia's window is the 
 
 ## The Quantum Model
 
-4 qubits:
-- **Leo (London)**: Qubits `0` and `1`
-- **Mia (Tokyo)**: Qubits `2` and `3`
+6 qubits:
+- **Leo (London)**: Qubits `0`, `1`, `2` ($2^3 = 8$ nocturnal activities)
+- **Mia (Tokyo)**: Qubits `3`, `4`, `5` ($2^3 = 8$ nocturnal activities)
 
 Activity bit encoding:
-- `00`: in bed
-- `01`: thinking
-- `10`: playing a game
-- `11`: cooking
+- `000` (0): `in bed`
+- `001` (1): `thinking`
+- `010` (2): `reading`
+- `011` (3): `listening to music`
+- `100` (4): `playing a game`
+- `101` (5): `cooking`
+- `110` (6): `watering plants`
+- `111` (7): `stargazing`
 
-Qubits **0 and 2** are coupled with a quantum relationship operation (`target: 1.0`, Pauli `ZZ`), while qubits `(1, 3)` are uncoupled. Bit 0 and bit 2 always agree, meaning:
-- When Leo is in his quiet mood (`in bed` or `thinking`), Mia is always in her quiet mood (`in bed` or `thinking`).
-- When Leo is in his active mood (`playing a game` or `cooking`), Mia is always in her active mood (`playing a game` or `cooking`).
+Activities `0..3` are **quiet moods**, while `4..7` are **active moods**.
+
+### 24 Hidden Quantum State Archetypes & Dynamic Question Roster
+- The game includes a catalogue of 24 distinct quantum state archetypes with varying mood couplings, parity alignments, and focus symmetries.
+- Real quantum hardware fidelity (~94% correlation fidelity, 6% readout noise) is modeled directly into the shots.
+- Questions in the Field Notebook are formulated with realistic quantum terminology (*"almost always"*, *"almost never"*) and sampled dynamically for high replayability!
 
 ---
 
@@ -87,7 +94,7 @@ npx serve .
 ## Playing Modes & Atlas API Key Setup
 
 ### 1. Offline / Local Quantum Simulator Mode (Recommended: Zero Setup, Zero Cost)
-- Runs an exact client-side model of the 4-qubit graph state with seed 7 and target correlation 0.85.
+- Runs an exact client-side model of the 6-qubit graph state with hidden seeds and realistic hardware noise.
 - Generates 1,024 shots with the identical probability distribution.
 - Consumes 0 API credits and works 100% offline without CORS or proxies.
 
