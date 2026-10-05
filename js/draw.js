@@ -771,76 +771,108 @@ export class SceneRenderer {
     ctx.restore();
   }
 
+  /**
+   * Modern Architectural Glass Window Casing
+   * Replaced the heavy crossbars with a sleek modern unobstructed window.
+   */
   drawWindowPanesAndFrame(ctx, win, lightVal, isMia) {
     ctx.save();
     const frameCol = isMia ? '#1a2030' : '#271d22';
     const frameHighlight = isMia ? '#2e3a54' : '#45333c';
-    const frameShadow = isMia ? '#0f131d' : '#140e11';
 
-    // 1. Thick Outer Window Casing Border
+    // 1. Sleek Modern Window Casing (Clean 10px frame, leaving interior fully open)
     ctx.strokeStyle = frameCol;
-    ctx.lineWidth = 14;
+    ctx.lineWidth = 10;
     ctx.strokeRect(win.x, win.y, win.width, win.height);
 
-    // Inner bevel rim
+    // Inner bevel highlight
     ctx.strokeStyle = frameHighlight;
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(win.x + 7, win.y + 7, win.width - 14, win.height - 14);
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(win.x + 5, win.y + 5, win.width - 10, win.height - 10);
 
-    // 2. Window Sill at bottom with 3D bevels
+    // 2. Modern Window Sill at bottom with 3D bevels
     ctx.fillStyle = isMia ? '#2b364e' : '#42313b';
-    ctx.fillRect(win.x - 14, win.y + win.height, win.width + 28, 20);
+    ctx.fillRect(win.x - 10, win.y + win.height, win.width + 20, 16);
     // Sill top highlight
     ctx.fillStyle = isMia ? '#46567a' : '#5e4854';
-    ctx.fillRect(win.x - 14, win.y + win.height, win.width + 28, 3);
+    ctx.fillRect(win.x - 10, win.y + win.height, win.width + 20, 2.5);
     // Sill bottom shadow
     ctx.fillStyle = '#06080e';
-    ctx.fillRect(win.x - 14, win.y + win.height + 17, win.width + 28, 3);
+    ctx.fillRect(win.x - 10, win.y + win.height + 13.5, win.width + 20, 2.5);
 
-    // 3. Central Vertical Mullion (divides left & right glass panes)
-    const midX = win.x + win.width / 2;
-    ctx.fillStyle = frameCol;
-    ctx.fillRect(midX - 5, win.y, 10, win.height);
-    // 3D vertical highlights
-    ctx.fillStyle = frameHighlight;
-    ctx.fillRect(midX - 5, win.y, 2, win.height);
-    ctx.fillStyle = frameShadow;
-    ctx.fillRect(midX + 3, win.y, 2, win.height);
-
-    // 4. Horizontal Transom Crossbar (divides upper & lower glass panes)
-    const midY = win.y + win.height * 0.44;
-    ctx.fillStyle = frameCol;
-    ctx.fillRect(win.x, midY - 5, win.width, 10);
-    // 3D horizontal highlights
-    ctx.fillStyle = frameHighlight;
-    ctx.fillRect(win.x, midY - 5, win.width, 2);
-    ctx.fillStyle = frameShadow;
-    ctx.fillRect(win.x, midY + 3, win.width, 2);
-
-    // 5. Central Brass Sash Latch/Lock in the intersection of the cross
-    ctx.fillStyle = '#c5a044';
-    ctx.fillRect(midX - 7, midY - 7, 14, 14);
-    ctx.strokeStyle = '#ffe89e';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(midX - 7, midY - 7, 14, 14);
-    ctx.fillStyle = '#42320b';
-    ctx.beginPath();
-    ctx.arc(midX, midY, 3, 0, Math.PI * 2);
-    ctx.fill();
+    // 3. Modern Minimalist Glass Corner Brackets (Brushed metal clips in the 4 corners)
+    ctx.fillStyle = isMia ? '#3b4866' : '#52404b';
+    const clipSize = 6;
+    ctx.fillRect(win.x + 5, win.y + 5, clipSize, clipSize);
+    ctx.fillRect(win.x + win.width - 5 - clipSize, win.y + 5, clipSize, clipSize);
+    ctx.fillRect(win.x + 5, win.y + win.height - 5 - clipSize, clipSize, clipSize);
+    ctx.fillRect(win.x + win.width - 5 - clipSize, win.y + win.height - 5 - clipSize, clipSize, clipSize);
 
     ctx.restore();
   }
 
+  /**
+   * Pixel-Art Diagonal Glass Sheen & Dashes
+   * Subtle, barely transparent diagonal dashes that indicate a clean modern glass windowpane
+   * without obstructing characters' faces or thought bubbles.
+   */
   drawGlassReflections(ctx, x, y, w, h, lightVal, isMia) {
     ctx.save();
-    const alpha = (1.0 - lightVal) * 0.16 + 0.04;
-    const glassGrad = ctx.createLinearGradient(x, y, x + w, y + h);
-    glassGrad.addColorStop(0, `rgba(255, 255, 255, ${alpha * 1.5})`);
-    glassGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
-    glassGrad.addColorStop(1, `rgba(255, 255, 255, ${alpha})`);
 
+    // 1. Gentle full-pane glass atmosphere tint
+    const alphaBase = (1.0 - lightVal) * 0.08 + 0.03;
+    const glassGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+    glassGrad.addColorStop(0, `rgba(230, 242, 255, ${alphaBase * 1.2})`);
+    glassGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
+    glassGrad.addColorStop(1, `rgba(230, 242, 255, ${alphaBase})`);
     ctx.fillStyle = glassGrad;
-    ctx.fillRect(x, y, w, h);
+    ctx.fillRect(x + 5, y + 5, w - 10, h - 10);
+
+    // 2. Pixel-Art Diagonal Glare Dashes
+    // In pixel art, clean glass has crisp parallel diagonal slashes in the corners.
+    // Barely transparent light gray/cyan dashes:
+    const dashAlpha = lightVal > 0.1 ? 0.13 : 0.06;
+    ctx.lineCap = 'round';
+
+    const drawDiagonalDash = (startX, startY, length, width, opacityScale = 1.0) => {
+      ctx.strokeStyle = `rgba(225, 238, 255, ${dashAlpha * opacityScale})`;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(startX - length * 0.707, startY + length * 0.707);
+      ctx.stroke();
+    };
+
+    if (!isMia) {
+      // Window A (London, Leo):
+      // Leo is at lower-right; thought bubble is at upper-left.
+      // Place diagonal glass dashes in the clear Upper-Right and Lower-Left corners!
+
+      // Upper-Right Glass Glint
+      drawDiagonalDash(x + w - 28, y + 22, 68, 5.5, 1.0);
+      drawDiagonalDash(x + w - 50, y + 22, 38, 3.2, 0.75);
+      drawDiagonalDash(x + w - 68, y + 22, 18, 2.0, 0.55);
+
+      // Lower-Left Glass Glint
+      drawDiagonalDash(x + 125, y + h - 95, 65, 5.5, 1.0);
+      drawDiagonalDash(x + 102, y + h - 95, 36, 3.2, 0.75);
+      drawDiagonalDash(x + 84,  y + h - 95, 18, 2.0, 0.55);
+    } else {
+      // Window B (Tokyo, Mia):
+      // Mia is at lower-left; thought bubble is at upper-right.
+      // Place diagonal glass dashes in the clear Upper-Left and Lower-Right corners!
+
+      // Upper-Left Glass Glint
+      drawDiagonalDash(x + 125, y + 22, 68, 5.5, 1.0);
+      drawDiagonalDash(x + 102, y + 22, 38, 3.2, 0.75);
+      drawDiagonalDash(x + 84,  y + 22, 18, 2.0, 0.55);
+
+      // Lower-Right Glass Glint
+      drawDiagonalDash(x + w - 28, y + h - 95, 65, 5.5, 1.0);
+      drawDiagonalDash(x + w - 50, y + h - 95, 36, 3.2, 0.75);
+      drawDiagonalDash(x + w - 68, y + h - 95, 18, 2.0, 0.55);
+    }
+
     ctx.restore();
   }
 
