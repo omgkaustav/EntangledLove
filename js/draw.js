@@ -953,15 +953,8 @@ export class SceneRenderer {
     ctx.ellipse(bedX + 35, bedY + 14, 28, 16, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Leo sleeping (messy brown hair)
-    ctx.fillStyle = '#3d271d';
-    ctx.beginPath();
-    ctx.arc(bedX + 42, bedY + 10, 15, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#ecd0b8';
-    ctx.beginPath();
-    ctx.arc(bedX + 46, bedY + 12, 10, 0, Math.PI * 2);
-    ctx.fill();
+    // Leo sleeping (messy brown hair, high natural hairline, peaceful sleeping face)
+    this.drawLeoHead(ctx, bedX + 46, bedY + 12, 11, { sleeping: true });
 
     // Open paperback book fallen on quilt
     ctx.fillStyle = '#f0e6d2';
@@ -977,6 +970,258 @@ export class SceneRenderer {
     ctx.lineTo(bedX + 45, bedY + 55);
     ctx.closePath();
     ctx.fill();
+
+    ctx.restore();
+  }
+
+  /**
+   * Draw Leo's Head with High Natural Hairline & Expressive Features
+   * Ensures face is fully visible, open, and never obscured by hair.
+   */
+  drawLeoHead(ctx, hx, hy, r, options = {}) {
+    ctx.save();
+
+    // 1. Face Base
+    ctx.fillStyle = '#ecd0b8';
+    ctx.beginPath();
+    ctx.arc(hx, hy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. High Natural Hairline & Messy Dark Curls
+    // Hairline sits at hy - r * 0.45, leaving upper 45% of forehead completely clear.
+    const hairY = hy - r * 0.45;
+    const dy = hy - hairY;
+    const dx = Math.sqrt(Math.max(0, r * r - dy * dy));
+
+    ctx.fillStyle = '#3d271d'; // Leo's dark brunette hair
+    ctx.beginPath();
+    // Voluminous dome over skull crown
+    ctx.arc(hx, hy - 1, r + 1.8, Math.PI + 0.47, 2 * Math.PI - 0.47, false);
+    // Smooth natural arched hairline across upper forehead
+    ctx.quadraticCurveTo(hx, hairY - 2.5, hx - dx, hairY);
+    ctx.fill();
+
+    // Fluffy curls on the crown (above skull, adds volume without touching face)
+    const curls = [
+      [hx - r * 0.72, hairY - 2, r * 0.28],
+      [hx - r * 0.35, hy - r - 2, r * 0.36],
+      [hx + r * 0.35, hy - r - 2, r * 0.34],
+      [hx + r * 0.72, hairY - 2, r * 0.28],
+      [hx - r * 0.08, hairY - 2.2, r * 0.22]
+    ];
+    for (const [cx, cy, cr] of curls) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Sideburns framing the ears
+    ctx.beginPath();
+    ctx.moveTo(hx - r + 0.5, hairY);
+    ctx.lineTo(hx - r - 1.5, hy + r * 0.15);
+    ctx.lineTo(hx - r + 2.5, hairY);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(hx + r - 0.5, hairY);
+    ctx.lineTo(hx + r + 1.5, hy + r * 0.15);
+    ctx.lineTo(hx + r - 2.5, hairY);
+    ctx.fill();
+
+    // 3. Facial Features (Open, expressive, and visible)
+    if (options.sleeping) {
+      // Peaceful sleeping face on pillow
+      ctx.fillStyle = 'rgba(251, 146, 60, 0.4)';
+      ctx.beginPath();
+      ctx.arc(hx + r * 0.2, hy + r * 0.25, r * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Sleeping closed eye (curved gently downward)
+      ctx.strokeStyle = '#3d271d';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(hx + r * 0.15, hy, r * 0.2, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.stroke();
+    } else {
+      const isFacingRight = options.facing === 'right';
+      const eyeCenterY = hy + r * 0.05;
+
+      // Soft warm blush cheeks
+      ctx.fillStyle = 'rgba(251, 146, 60, 0.5)';
+      ctx.beginPath();
+      ctx.arc(hx - r * 0.48, hy + r * 0.32, r * 0.22, 0, Math.PI * 2);
+      ctx.arc(hx + r * 0.48, hy + r * 0.32, r * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Wire round glasses
+      ctx.strokeStyle = '#27272a';
+      ctx.lineWidth = 1.4;
+      const gR = r * 0.24;
+      const gX1 = hx - r * 0.36;
+      const gX2 = hx + r * 0.36;
+
+      ctx.beginPath();
+      ctx.arc(gX1, eyeCenterY, gR, 0, Math.PI * 2);
+      ctx.arc(gX2, eyeCenterY, gR, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(gX1 + gR, eyeCenterY);
+      ctx.lineTo(gX2 - gR, eyeCenterY);
+      ctx.stroke();
+
+      // Eyes behind glasses
+      ctx.strokeStyle = '#3d271d';
+      ctx.lineWidth = 1.5;
+      if (options.expression === 'gaming') {
+        // Focused dot pupils looking towards arcade screen
+        ctx.fillStyle = '#1e1b4b';
+        ctx.beginPath();
+        ctx.arc(gX1 + (isFacingRight ? 1.5 : 0), eyeCenterY, 1.8, 0, Math.PI * 2);
+        ctx.arc(gX2 + (isFacingRight ? 1.5 : 0), eyeCenterY, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Happy curved closed smiling eyes ^ ^
+        ctx.beginPath();
+        ctx.arc(gX1, eyeCenterY, gR * 0.6, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(gX2, eyeCenterY, gR * 0.6, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+      }
+
+      // Gentle smile
+      ctx.beginPath();
+      ctx.arc(hx, hy + r * 0.38, r * 0.22, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Draw Mia's Head with High Natural Hairline & Expressive Features
+   * Features sleek dark hair, neat top bun, signature red chopstick hairpin, and open luminous face.
+   */
+  drawMiaHead(ctx, hx, hy, r, options = {}) {
+    ctx.save();
+
+    // 1. Face Base
+    ctx.fillStyle = '#fce7dc';
+    ctx.beginPath();
+    ctx.arc(hx, hy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. High Sleek Top Bun & Red Chopstick Hairpin (drawn on crown)
+    if (!options.sleeping) {
+      const bunY = hy - r - r * 0.45;
+      const bunR = r * 0.48;
+
+      // Dark bun
+      ctx.fillStyle = '#1e1c24';
+      ctx.beginPath();
+      ctx.arc(hx + 1, bunY, bunR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Red hairpin chopstick angled through bun
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(hx - r * 0.65, bunY - r * 0.25);
+      ctx.lineTo(hx + r * 0.75, bunY + r * 0.25);
+      ctx.stroke();
+    } else {
+      // Sleeping bun resting on pillow
+      ctx.fillStyle = '#1e1c24';
+      ctx.beginPath();
+      ctx.arc(hx + r * 0.55, hy - r * 0.35, r * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+      // Red hairpin
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(hx + r * 0.2, hy - r * 0.7);
+      ctx.lineTo(hx + r * 0.9, hy - r * 0.1);
+      ctx.stroke();
+    }
+
+    // 3. High Natural Hairline
+    // Hairline sits at hy - r * 0.45, leaving upper 45% of forehead completely clear.
+    const hairY = hy - r * 0.45;
+    const dy = hy - hairY;
+    const dx = Math.sqrt(Math.max(0, r * r - dy * dy));
+
+    ctx.fillStyle = '#1e1c24'; // Mia's sleek raven hair
+    ctx.beginPath();
+    // Voluminous dome over skull crown
+    ctx.arc(hx, hy - 1, r + 1.5, Math.PI + 0.47, 2 * Math.PI - 0.47, false);
+    // Smooth natural arched hairline across upper forehead
+    ctx.quadraticCurveTo(hx, hairY - 2.5, hx - dx, hairY);
+    ctx.fill();
+
+    // Delicate side locks framing the temples
+    ctx.beginPath();
+    ctx.moveTo(hx - r + 0.5, hairY);
+    ctx.lineTo(hx - r - 1.5, hy + r * 0.2);
+    ctx.lineTo(hx - r + 2.5, hairY);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(hx + r - 0.5, hairY);
+    ctx.lineTo(hx + r + 1.5, hy + r * 0.2);
+    ctx.lineTo(hx + r - 2.5, hairY);
+    ctx.fill();
+
+    // 4. Facial Features (Open, expressive, and luminous)
+    if (options.sleeping) {
+      // Peaceful sleeping face on pillow
+      ctx.fillStyle = 'rgba(251, 113, 133, 0.5)';
+      ctx.beginPath();
+      ctx.arc(hx - r * 0.2, hy + r * 0.25, r * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Sleeping closed eye (curved gently downward)
+      ctx.strokeStyle = '#1e1c24';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(hx - r * 0.15, hy, r * 0.2, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.stroke();
+    } else {
+      const eyeCenterY = hy + r * 0.05;
+
+      // Rosy blush cheeks
+      ctx.fillStyle = 'rgba(251, 113, 133, 0.6)';
+      ctx.beginPath();
+      ctx.arc(hx - r * 0.48, hy + r * 0.32, r * 0.22, 0, Math.PI * 2);
+      ctx.arc(hx + r * 0.48, hy + r * 0.32, r * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Eyes
+      ctx.strokeStyle = '#1e1c24';
+      ctx.lineWidth = 1.6;
+      const eyeR = r * 0.22;
+      const eX1 = hx - r * 0.35;
+      const eX2 = hx + r * 0.35;
+
+      if (options.expression === 'gaming') {
+        // Focused cute anime eyes looking down-left at the Switch
+        ctx.fillStyle = '#1e1b4b';
+        ctx.beginPath();
+        ctx.arc(eX1 - 1, eyeCenterY, 1.8, 0, Math.PI * 2);
+        ctx.arc(eX2 - 1, eyeCenterY, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Happy curved closed smiling eyes ^ ^
+        ctx.beginPath();
+        ctx.arc(eX1, eyeCenterY, eyeR, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(eX2, eyeCenterY, eyeR, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+      }
+
+      // Sweet smile
+      ctx.beginPath();
+      ctx.arc(hx, hy + r * 0.38, r * 0.22, 0.1 * Math.PI, 0.9 * Math.PI);
+      ctx.stroke();
+    }
 
     ctx.restore();
   }
@@ -1072,51 +1317,8 @@ export class SceneRenderer {
     ctx.stroke();
 
     if (targetIsMia) {
-      // Leo thinking of Mia!
-      // Mia cute face
-      ctx.fillStyle = '#fce7dc';
-      ctx.beginPath();
-      ctx.arc(px, py + 1, 15, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Blushing pink cheeks
-      ctx.fillStyle = 'rgba(251, 113, 133, 0.65)';
-      ctx.beginPath();
-      ctx.arc(px - 8, py + 5, 4, 0, Math.PI * 2);
-      ctx.arc(px + 8, py + 5, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Sleek dark hair & top bun
-      ctx.fillStyle = '#1e1c24';
-      ctx.beginPath();
-      ctx.arc(px, py - 3, 16, Math.PI * 0.8, Math.PI * 2.2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(px + 1, py - 17, 7.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Red hairpin chopstick
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(px - 9, py - 20);
-      ctx.lineTo(px + 11, py - 14);
-      ctx.stroke();
-
-      // Happy closed curved eyes ^ _ ^
-      ctx.strokeStyle = '#1e1c24';
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.arc(px - 5, py, 2.8, Math.PI * 1.1, Math.PI * 1.9);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(px + 5, py, 2.8, Math.PI * 1.1, Math.PI * 1.9);
-      ctx.stroke();
-
-      // Sweet smile
-      ctx.beginPath();
-      ctx.arc(px, py + 4.5, 3.5, 0.1 * Math.PI, 0.9 * Math.PI);
-      ctx.stroke();
+      // Leo thinking of Mia (cameo with high natural hairline, sleek bun, red hairpin)
+      this.drawMiaHead(ctx, px, py + 1, 15, { expression: 'cameo' });
 
       // Floating animated pink hearts on the right
       const hPulse = 0.9 + 0.1 * Math.sin(this.animTime * 3);
@@ -1138,63 +1340,8 @@ export class SceneRenderer {
       ctx.textAlign = 'center';
       ctx.fillText('MIA ♡', cx + 28, cy + 24);
     } else {
-      // Mia thinking of Leo!
-      // Leo cute face
-      ctx.fillStyle = '#ecd0b8';
-      ctx.beginPath();
-      ctx.arc(px, py + 1, 15, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Blushing warm cheeks
-      ctx.fillStyle = 'rgba(251, 146, 60, 0.55)';
-      ctx.beginPath();
-      ctx.arc(px - 8, py + 5, 4, 0, Math.PI * 2);
-      ctx.arc(px + 8, py + 5, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Leo dark messy curls
-      ctx.fillStyle = '#3d271d';
-      ctx.beginPath();
-      ctx.arc(px, py - 3, 16.5, Math.PI * 0.8, Math.PI * 2.2);
-      ctx.fill();
-      const curls = [
-        [px - 11, py - 10, 5],
-        [px - 3, py - 16, 5.5],
-        [px + 7, py - 15, 5],
-        [px + 12, py - 8, 4.5]
-      ];
-      for (const [cuX, cuY, cuR] of curls) {
-        ctx.beginPath();
-        ctx.arc(cuX, cuY, cuR, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Wire round glasses
-      ctx.strokeStyle = '#27272a';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(px - 5, py, 4, 0, Math.PI * 2);
-      ctx.arc(px + 5, py, 4, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(px - 1, py);
-      ctx.lineTo(px + 1, py);
-      ctx.stroke();
-
-      // Happy smiling closed eyes behind glasses
-      ctx.strokeStyle = '#3d271d';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(px - 5, py, 2, Math.PI * 1.1, Math.PI * 1.9);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(px + 5, py, 2, Math.PI * 1.1, Math.PI * 1.9);
-      ctx.stroke();
-
-      // Sweet smile
-      ctx.beginPath();
-      ctx.arc(px, py + 4.5, 3.5, 0.1 * Math.PI, 0.9 * Math.PI);
-      ctx.stroke();
+      // Mia thinking of Leo (cameo with high natural hairline, messy curls, wire glasses)
+      this.drawLeoHead(ctx, px, py + 1, 15, { expression: 'cameo' });
 
       // Floating animated golden hearts on the right
       const hPulse = 0.9 + 0.1 * Math.sin(this.animTime * 3);
@@ -1279,15 +1426,8 @@ export class SceneRenderer {
     ctx.lineTo(charX - 12, charY - 8);
     ctx.stroke();
 
-    // Leo head & messy curls
-    ctx.fillStyle = '#ecd0b8';
-    ctx.beginPath();
-    ctx.arc(charX, charY - 8, 14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#3d271d';
-    ctx.beginPath();
-    ctx.arc(charX + 2, charY - 12, 15, Math.PI * 0.8, Math.PI * 2.2);
-    ctx.fill();
+    // Leo head with high natural hairline, messy curls, wire glasses, and daydreaming smile
+    this.drawLeoHead(ctx, charX, charY - 8, 14, { expression: 'thinking' });
 
     // Floating Thought Bubble: Leo thinking of Mia (in clear upper-left room space)
     this.drawThoughtBubble(ctx, x + 26, y + 36, 150, 88, true);
@@ -1372,26 +1512,19 @@ export class SceneRenderer {
     ctx.ellipse(charX, charY + 18, 18, 22, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Leo's head & messy curls
-    ctx.fillStyle = '#ecd0b8';
-    ctx.beginPath();
-    ctx.arc(charX + 2, charY - 10, 13, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#3d271d';
-    ctx.beginPath();
-    ctx.arc(charX + 2, charY - 13, 14, Math.PI * 0.9, Math.PI * 2.1);
-    ctx.fill();
+    // Leo's head & messy curls with high natural hairline, wire glasses, and focused gaze
+    this.drawLeoHead(ctx, charX + 2, charY - 10, 13, { expression: 'gaming', facing: 'right' });
 
     // Over-ear Gaming Headphones!
     ctx.strokeStyle = '#0284c7';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(charX + 2, charY - 12, 14, Math.PI * 0.8, Math.PI * 2.2);
+    ctx.arc(charX + 2, charY - 12, 14.5, Math.PI * 0.8, Math.PI * 2.2);
     ctx.stroke();
     // Blue headphone earcup
     ctx.fillStyle = '#0284c7';
     ctx.beginPath();
-    ctx.arc(charX + 11, charY - 10, 5, 0, Math.PI * 2);
+    ctx.arc(charX + 13, charY - 10, 5, 0, Math.PI * 2);
     ctx.fill();
 
     // Handheld Gamepad / Controller in Leo's hands!
@@ -1487,14 +1620,8 @@ export class SceneRenderer {
     ctx.lineTo(stoveX, counterY - 26);
     ctx.stroke();
 
-    ctx.fillStyle = '#ecd0b8';
-    ctx.beginPath();
-    ctx.arc(cookX, cookY, 14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#3d271d';
-    ctx.beginPath();
-    ctx.arc(cookX, cookY - 3, 15, Math.PI * 0.8, Math.PI * 2.2);
-    ctx.fill();
+    // Leo's head with high natural hairline, wire glasses, and cooking smile
+    this.drawLeoHead(ctx, cookX, cookY, 14, { expression: 'cooking', facing: 'left' });
 
     ctx.restore();
   }
@@ -1543,15 +1670,8 @@ export class SceneRenderer {
     ctx.ellipse(bedX + 165, bedY + 14, 28, 16, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Mia sleeping (hair tied in cute soft bun with clip)
-    ctx.fillStyle = '#1e1c24';
-    ctx.beginPath();
-    ctx.arc(bedX + 160, bedY + 8, 14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#fce7dc';
-    ctx.beginPath();
-    ctx.arc(bedX + 156, bedY + 10, 9, 0, Math.PI * 2);
-    ctx.fill();
+    // Mia sleeping (hair tied in cute soft bun with clip, high natural hairline, peaceful sleeping face)
+    this.drawMiaHead(ctx, bedX + 156, bedY + 10, 10, { sleeping: true });
 
     // Cute plushie (totoro / bear) tucked into the bed
     ctx.fillStyle = '#94a3b8';
@@ -1644,20 +1764,8 @@ export class SceneRenderer {
     ctx.lineTo(charX - 16, charY - 8);
     ctx.stroke();
 
-    // Mia head & cute bun
-    ctx.fillStyle = '#fce7dc';
-    ctx.beginPath();
-    ctx.arc(charX - 6, charY - 8, 13, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#1e1c24';
-    ctx.beginPath();
-    ctx.arc(charX - 6, charY - 11, 14, Math.PI * 0.8, Math.PI * 2.2);
-    ctx.fill();
-    // Bun on top
-    ctx.beginPath();
-    ctx.arc(charX - 4, charY - 22, 7, 0, Math.PI * 2);
-    ctx.fill();
+    // Mia head with high natural hairline, sleek bun, red hairpin, and daydreaming gaze
+    this.drawMiaHead(ctx, charX - 6, charY - 8, 13, { expression: 'thinking' });
 
     // Floating Thought Bubble: Mia thinking of Leo (in clear upper-right room space)
     this.drawThoughtBubble(ctx, x + w - 176, y + 36, 150, 88, false);
@@ -1712,15 +1820,8 @@ export class SceneRenderer {
     ctx.fillStyle = '#fef08a';
     ctx.fillRect(swX + 8, swY + 2, 12, 10);
 
-    // Mia head & headset with cute cat ears
-    ctx.fillStyle = '#fce7dc';
-    ctx.beginPath();
-    ctx.arc(charX - 4, charY - 10, 13, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#1e1c24';
-    ctx.beginPath();
-    ctx.arc(charX - 4, charY - 13, 14, Math.PI * 0.9, Math.PI * 2.1);
-    ctx.fill();
+    // Mia head & high natural hairline with focused gaming gaze
+    this.drawMiaHead(ctx, charX - 4, charY - 10, 13, { expression: 'gaming' });
 
     // Cat ear gaming headset glowing pink
     ctx.fillStyle = '#ec4899';
@@ -1805,18 +1906,8 @@ export class SceneRenderer {
     ctx.lineTo(stoveX + 4, counterY - 26);
     ctx.stroke();
 
-    ctx.fillStyle = '#fce7dc';
-    ctx.beginPath();
-    ctx.arc(cookX, cookY, 14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#1e1c24';
-    ctx.beginPath();
-    ctx.arc(cookX, cookY - 3, 15, Math.PI * 0.8, Math.PI * 2.2);
-    ctx.fill();
-    // Bun
-    ctx.beginPath();
-    ctx.arc(cookX + 2, cookY - 18, 7, 0, Math.PI * 2);
-    ctx.fill();
+    // Mia's head with high natural hairline, sleek top bun, red hairpin, and cooking smile
+    this.drawMiaHead(ctx, cookX, cookY, 14, { expression: 'cooking' });
 
     ctx.restore();
   }
