@@ -24,6 +24,11 @@ The player peeks into either room by toggling light switches, tracks the lovers'
   - Advance evenings at your own pace (`Day 1, 2, 3...`).
   - Submit whenever you feel confident in your observations.
   - Final results celebrate your score and display the exact number of days you took to decode the quantum state!
+- **Observational Measurement History Log (`H`)**:
+  - Openable at any time via the HUD button (`📜 History`), floating canvas pill (`[H] History`), logbook button, or keyboard shortcut (`H`).
+  - View all quantum measurements observed across all elapsed days seen so far (`Day 1` up to current day).
+  - Filter measurements by Leo's or Mia's activity to verify specific conditional hypotheses.
+  - Interactive **Correlation Matrix View**: an 8×8 empirical heatmap table of co-occurrence frequencies between Leo and Mia across all elapsed days.
 - **Smooth Day Transitions**: Advancing an evening triggers a time-lapse celestial transit with shifting sky gradients and a chime.
 
 ---
@@ -34,6 +39,8 @@ The player peeks into either room by toggling light switches, tracks the lovers'
 - **`X`** (or Click Right Window): Toggle light in **Mia's Flat (Tokyo)**
 - **`C`**: Toggle **both lights** simultaneously
 - **`N`**: Advance to the **Next Evening** (triggers time-lapse celestial transition)
+- **`H`** (or `📜 History`): Toggle **Observational Measurement History Log** (Table & Correlation Matrix)
+- **`Esc`**: Close any active modal
 - **`⚙️ Settings`**: Open Quantum Engine configuration modal (Atlas API token, base URL, simulator toggle)
 - **`🔊 Audio`**: Toggle sound effects and ambient room loops
 - **`❓ About / Guide`**: Open the About & Rules modal with complete game rules and quantum entanglement explanation

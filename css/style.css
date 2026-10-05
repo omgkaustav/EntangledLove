@@ -1301,6 +1301,322 @@ html, body {
 }
 
 /* ==========================================================================
+   Observational Measurement History Modal
+   ========================================================================== */
+.modal-window-wide {
+  max-width: 860px;
+  width: 95%;
+  max-height: 88vh;
+}
+
+.history-subtitle {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-top: 2px;
+  letter-spacing: 0.2px;
+}
+
+.history-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+}
+
+.history-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.history-filter-label {
+  font-size: 0.74rem;
+  color: #cbd5e1;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.history-select {
+  background: #090c14;
+  border: 1px solid #28324e;
+  border-radius: 5px;
+  color: #f1f5f9;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.history-select:focus {
+  border-color: var(--accent-gold);
+}
+
+.history-view-toggles {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-history-toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-history-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.btn-history-toggle.active {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: var(--accent-gold);
+  color: #ffe89e;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.25);
+}
+
+.history-scroll-container {
+  max-height: 480px;
+  overflow-y: auto;
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(5, 7, 13, 0.75);
+}
+
+/* Measurement History Table */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.history-table th {
+  position: sticky;
+  top: 0;
+  background: #0d1120;
+  color: var(--accent-gold);
+  font-family: var(--font-cinzel);
+  font-size: 0.76rem;
+  letter-spacing: 0.5px;
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 2;
+  white-space: nowrap;
+}
+
+.history-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: #cbd5e1;
+  vertical-align: middle;
+}
+
+.history-table tr:hover td {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.history-table tr.current-day-row td {
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.history-day-badge {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.history-current-tag {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  background: rgba(212, 175, 55, 0.18);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.history-act-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.history-act-badge.leo {
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.history-act-badge.mia {
+  background: rgba(244, 114, 182, 0.12);
+  color: #f472b6;
+  border: 1px solid rgba(244, 114, 182, 0.25);
+}
+
+.history-entangled-symbol {
+  color: var(--accent-gold);
+  font-size: 1rem;
+  opacity: 0.8;
+  display: inline-block;
+}
+
+.history-shot-badge {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  background: #07090f;
+  color: #a5b4fc;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(165, 180, 252, 0.2);
+  letter-spacing: 1.2px;
+  white-space: nowrap;
+}
+
+.history-empty-state {
+  text-align: center;
+  padding: 36px 16px;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Correlation Matrix */
+.matrix-description {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin-bottom: 12px;
+  line-height: 1.45;
+  text-align: center;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+}
+
+.history-matrix-wrapper {
+  overflow-x: auto;
+  padding: 4px;
+  display: flex;
+  justify-content: center;
+}
+
+.history-matrix-table {
+  border-collapse: collapse;
+  font-size: 0.74rem;
+  text-align: center;
+}
+
+.history-matrix-table th,
+.history-matrix-table td {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 5px 6px;
+}
+
+.matrix-corner-header {
+  background: #0a0d18;
+  color: #94a3b8;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+
+.matrix-col-header {
+  background: #0d1120;
+  color: #f472b6;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  padding: 6px 8px;
+}
+
+.matrix-row-header {
+  background: #0d1120;
+  color: #7dd3fc;
+  font-size: 0.68rem;
+  text-align: right;
+  white-space: nowrap;
+  padding: 5px 8px;
+}
+
+.matrix-cell {
+  width: 36px;
+  height: 32px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.78rem;
+  cursor: default;
+  transition: transform 0.1s ease;
+}
+
+.matrix-cell:hover {
+  transform: scale(1.12);
+  outline: 1px solid var(--accent-gold);
+  z-index: 5;
+  position: relative;
+}
+
+.matrix-cell-zero {
+  color: #475569;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.matrix-cell-total {
+  background: #0a0d18;
+  color: #fde047;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.76rem;
+  padding: 5px 8px;
+}
+
+.history-footer-hint {
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.history-footer-hint kbd {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+/* ==========================================================================
    Responsive Adaptations
    ========================================================================== */
 @media (max-width: 900px) {

@@ -33,6 +33,8 @@ import {
   WINDOW_B
 } from './draw.js';
 
+export const ACTIVITY_ICONS = ['🛏️', '💭', '📖', '🎵', '🎮', '🍳', '🪴', '🔭'];
+
 /**
  * Audio Manager: tactile light switches, pencil scribbles, celestial transition chime,
  * and isolated room ambient loops that stop instantly when light switches off.
@@ -431,6 +433,11 @@ export class EntangledLoveApp {
     this.isSubmitted = false;
     this.mode = 'simulator';
 
+    // History Modal view state
+    this.historyViewMode = 'table';
+    this.historyFilterLeo = 'all';
+    this.historyFilterMia = 'all';
+
     // UI Element References
     this.dom = {
       // HUD
@@ -439,12 +446,14 @@ export class EntangledLoveApp {
       btnAudioToggle: document.getElementById('btn-audio-toggle'),
       btnSettings: document.getElementById('btn-settings'),
       btnGuide: document.getElementById('btn-guide'),
+      btnHistory: document.getElementById('btn-history'),
       btnReturnMenu: document.getElementById('btn-return-menu'),
 
       // Canvas Floating Controls
       btnLightA: document.getElementById('btn-light-a'),
       btnLightB: document.getElementById('btn-light-b'),
       btnLightBoth: document.getElementById('btn-light-both'),
+      btnHudHistory: document.getElementById('btn-hud-history'),
       btnNextDay: document.getElementById('btn-next-day'),
 
       // Diegetic Field Notebook
@@ -456,6 +465,7 @@ export class EntangledLoveApp {
       scoreInsight: document.getElementById('score-insight'),
       checklistCards: document.getElementById('checklist-cards'),
       btnSubmitChecklist: document.getElementById('btn-submit-checklist'),
+      btnNotebookHistory: document.getElementById('btn-notebook-history'),
       btnResetChecklist: document.getElementById('btn-new-journey'),
       btnNotebookMenu: document.getElementById('btn-notebook-menu'),
 
@@ -486,6 +496,22 @@ export class EntangledLoveApp {
       guideModal: document.getElementById('guide-modal'),
       btnCloseGuide: document.getElementById('btn-close-guide'),
       btnGuideGotit: document.getElementById('btn-guide-gotit'),
+
+      // Measurement History Modal
+      historyModal: document.getElementById('history-modal'),
+      btnCloseHistory: document.getElementById('btn-close-history'),
+      btnCloseHistoryFooter: document.getElementById('btn-close-history-footer'),
+      historySubtitle: document.getElementById('history-subtitle'),
+      historyFilterLeo: document.getElementById('history-filter-leo'),
+      historyFilterMia: document.getElementById('history-filter-mia'),
+      btnHistoryViewTable: document.getElementById('btn-history-view-table'),
+      btnHistoryViewMatrix: document.getElementById('btn-history-view-matrix'),
+      historyTableContainer: document.getElementById('history-table-container'),
+      historyMatrixContainer: document.getElementById('history-matrix-container'),
+      historyTableBody: document.getElementById('history-table-body'),
+      historyEmptyState: document.getElementById('history-empty-state'),
+      historyMatrixTable: document.getElementById('history-matrix-table'),
+      matrixDayCount: document.getElementById('matrix-day-count'),
 
       // CORS Modal
       corsModal: document.getElementById('cors-modal'),
@@ -601,6 +627,54 @@ export class EntangledLoveApp {
       this.dom.corsModal.classList.add('hidden');
     });
 
+    // Observational Measurement History Modal Open/Close
+    if (this.dom.btnHistory) {
+      this.dom.btnHistory.addEventListener('click', () => this.openHistoryModal());
+    }
+    if (this.dom.btnHudHistory) {
+      this.dom.btnHudHistory.addEventListener('click', () => this.openHistoryModal());
+    }
+    if (this.dom.btnNotebookHistory) {
+      this.dom.btnNotebookHistory.addEventListener('click', () => this.openHistoryModal());
+    }
+    if (this.dom.btnCloseHistory) {
+      this.dom.btnCloseHistory.addEventListener('click', () => this.closeHistoryModal());
+    }
+    if (this.dom.btnCloseHistoryFooter) {
+      this.dom.btnCloseHistoryFooter.addEventListener('click', () => this.closeHistoryModal());
+    }
+    if (this.dom.historyModal) {
+      this.dom.historyModal.addEventListener('click', (e) => {
+        if (e.target === this.dom.historyModal) {
+          this.closeHistoryModal();
+        }
+      });
+    }
+
+    // History Filters and Views
+    if (this.dom.historyFilterLeo) {
+      this.dom.historyFilterLeo.addEventListener('change', (e) => {
+        this.historyFilterLeo = e.target.value;
+        this.renderHistoryTable();
+      });
+    }
+    if (this.dom.historyFilterMia) {
+      this.dom.historyFilterMia.addEventListener('change', (e) => {
+        this.historyFilterMia = e.target.value;
+        this.renderHistoryTable();
+      });
+    }
+    if (this.dom.btnHistoryViewTable) {
+      this.dom.btnHistoryViewTable.addEventListener('click', () => {
+        this.setHistoryViewMode('table');
+      });
+    }
+    if (this.dom.btnHistoryViewMatrix) {
+      this.dom.btnHistoryViewMatrix.addEventListener('click', () => {
+        this.setHistoryViewMode('matrix');
+      });
+    }
+
     // Main Menu actions
     if (this.dom.btnMenuPlay) {
       this.dom.btnMenuPlay.addEventListener('click', () => this.onMenuPlay());
@@ -680,10 +754,12 @@ export class EntangledLoveApp {
    * X: Toggle Mia's Light (Tokyo)
    * C: Toggle Both Lights
    * N: Next Evening
+   * H: Toggle Observational Measurement History Log
+   * Esc: Close modals
    */
   initKeyboardBindings() {
     window.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
 
       const key = e.key.toLowerCase();
       if (key === 'z') {
@@ -698,6 +774,19 @@ export class EntangledLoveApp {
       } else if (key === 'n') {
         e.preventDefault();
         this.nextDay();
+      } else if (key === 'h') {
+        e.preventDefault();
+        this.toggleHistoryModal();
+      } else if (e.key === 'Escape') {
+        if (!this.dom.historyModal.classList.contains('hidden')) {
+          this.closeHistoryModal();
+        } else if (!this.dom.guideModal.classList.contains('hidden')) {
+          this.dom.guideModal.classList.add('hidden');
+        } else if (!this.dom.settingsModal.classList.contains('hidden')) {
+          this.dom.settingsModal.classList.add('hidden');
+        } else if (!this.dom.corsModal.classList.contains('hidden')) {
+          this.dom.corsModal.classList.add('hidden');
+        }
       }
     });
   }
@@ -766,6 +855,7 @@ export class EntangledLoveApp {
     this.dom.guideModal.classList.add('hidden');
     this.dom.settingsModal.classList.add('hidden');
     this.dom.corsModal.classList.add('hidden');
+    if (this.dom.historyModal) this.dom.historyModal.classList.add('hidden');
     if (this.dom.mainMenu) {
       this.dom.mainMenu.classList.remove('hidden');
     }
@@ -915,6 +1005,9 @@ export class EntangledLoveApp {
       this.audio.playDayTransition();
       this.applyDay(this.dayIndex);
       this.updateControlsUI();
+      if (this.dom.historyModal && !this.dom.historyModal.classList.contains('hidden')) {
+        this.renderHistory();
+      }
     } else {
       alert('You have reached the end of this 1,024-shot batch! Take your time to review your field notes.');
     }
@@ -1116,6 +1209,194 @@ export class EntangledLoveApp {
     this.audio.stopAllLoops();
     this.applyDay(0);
     this.updateControlsUI();
+    if (this.dom.historyModal && !this.dom.historyModal.classList.contains('hidden')) {
+      this.renderHistory();
+    }
+  }
+
+  toggleHistoryModal() {
+    if (!this.dom.historyModal) return;
+    if (this.dom.historyModal.classList.contains('hidden')) {
+      this.openHistoryModal();
+    } else {
+      this.closeHistoryModal();
+    }
+  }
+
+  openHistoryModal() {
+    if (!this.dom.historyModal) return;
+    this.audio.unlockAudioContext();
+    this.audio.playPencilCheck();
+    this.dom.historyModal.classList.remove('hidden');
+    this.renderHistory();
+  }
+
+  closeHistoryModal() {
+    if (!this.dom.historyModal) return;
+    this.dom.historyModal.classList.add('hidden');
+  }
+
+  setHistoryViewMode(mode) {
+    this.historyViewMode = mode;
+    if (this.dom.btnHistoryViewTable) {
+      this.dom.btnHistoryViewTable.classList.toggle('active', mode === 'table');
+    }
+    if (this.dom.btnHistoryViewMatrix) {
+      this.dom.btnHistoryViewMatrix.classList.toggle('active', mode === 'matrix');
+    }
+    if (this.dom.historyTableContainer) {
+      this.dom.historyTableContainer.classList.toggle('hidden', mode !== 'table');
+    }
+    if (this.dom.historyMatrixContainer) {
+      this.dom.historyMatrixContainer.classList.toggle('hidden', mode !== 'matrix');
+    }
+    this.renderHistory();
+  }
+
+  renderHistory() {
+    if (this.historyViewMode === 'table') {
+      this.renderHistoryTable();
+    } else {
+      this.renderHistoryMatrix();
+    }
+  }
+
+  renderHistoryTable() {
+    if (!this.dom.historyTableBody) return;
+    const totalDays = this.dayIndex + 1;
+    let matchCount = 0;
+    const tbody = this.dom.historyTableBody;
+    tbody.innerHTML = '';
+
+    for (let d = 0; d < totalDays; d++) {
+      const shot = this.shots[d];
+      if (!shot) continue;
+      const actA = parseInt(shot.slice(0, 3), 2);
+      const actB = parseInt(shot.slice(3, 6), 2);
+
+      if (this.historyFilterLeo !== 'all' && parseInt(this.historyFilterLeo) !== actA) continue;
+      if (this.historyFilterMia !== 'all' && parseInt(this.historyFilterMia) !== actB) continue;
+
+      matchCount++;
+      const tr = document.createElement('tr');
+      const isCurrent = (d === this.dayIndex);
+      if (isCurrent) tr.className = 'current-day-row';
+
+      tr.innerHTML = `
+        <td>
+          <span class="history-day-badge">Day ${d + 1}</span>
+          ${isCurrent ? '<span class="history-current-tag">CURRENT</span>' : ''}
+        </td>
+        <td>
+          <span class="history-act-badge leo">${ACTIVITY_ICONS[actA]} ${ACTIVITIES[actA].name}</span>
+        </td>
+        <td style="text-align: center;">
+          <span class="history-entangled-symbol" title="Entangled correlation">⟷</span>
+        </td>
+        <td>
+          <span class="history-act-badge mia">${ACTIVITY_ICONS[actB]} ${ACTIVITIES[actB].name}</span>
+        </td>
+        <td style="text-align: right;">
+          <code class="history-shot-badge">${shot.slice(0, 3)} ${shot.slice(3, 6)}</code>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    if (this.dom.historyEmptyState) {
+      this.dom.historyEmptyState.classList.toggle('hidden', matchCount > 0);
+    }
+
+    if (this.dom.historySubtitle) {
+      if (this.historyFilterLeo === 'all' && this.historyFilterMia === 'all') {
+        this.dom.historySubtitle.textContent = `Showing Days 1 to ${totalDays} • ${totalDays} Measurement${totalDays === 1 ? '' : 's'} Observed`;
+      } else {
+        this.dom.historySubtitle.textContent = `Showing ${matchCount} of ${totalDays} Measurement${totalDays === 1 ? '' : 's'} Observed (Days 1 to ${totalDays})`;
+      }
+    }
+  }
+
+  renderHistoryMatrix() {
+    if (!this.dom.historyMatrixTable) return;
+    const totalDays = this.dayIndex + 1;
+    if (this.dom.matrixDayCount) {
+      this.dom.matrixDayCount.textContent = totalDays;
+    }
+
+    // 8x8 frequency counts
+    const counts = Array.from({ length: 8 }, () => new Array(8).fill(0));
+    const rowTotals = new Array(8).fill(0);
+    const colTotals = new Array(8).fill(0);
+    let maxCount = 0;
+
+    for (let d = 0; d < totalDays; d++) {
+      const shot = this.shots[d];
+      if (!shot) continue;
+      const actA = parseInt(shot.slice(0, 3), 2);
+      const actB = parseInt(shot.slice(3, 6), 2);
+      counts[actA][actB]++;
+      rowTotals[actA]++;
+      colTotals[actB]++;
+      if (counts[actA][actB] > maxCount) {
+        maxCount = counts[actA][actB];
+      }
+    }
+
+    const table = this.dom.historyMatrixTable;
+    table.innerHTML = '';
+
+    // Header Row (Mia's activities as columns)
+    const thead = document.createElement('thead');
+    const headerTr = document.createElement('tr');
+    headerTr.innerHTML = '<th class="matrix-corner-header">Leo \\ Mia</th>';
+    for (let b = 0; b < 8; b++) {
+      headerTr.innerHTML += `<th class="matrix-col-header" title="Mia: ${ACTIVITIES[b].name}">${ACTIVITY_ICONS[b]} ${ACTIVITIES[b].name}</th>`;
+    }
+    headerTr.innerHTML += '<th class="matrix-cell-total">Total</th>';
+    thead.appendChild(headerTr);
+    table.appendChild(thead);
+
+    // Body Rows (Leo's activities as rows)
+    const tbody = document.createElement('tbody');
+    for (let a = 0; a < 8; a++) {
+      const row = document.createElement('tr');
+      row.innerHTML = `<th class="matrix-row-header" title="Leo: ${ACTIVITIES[a].name}">${ACTIVITY_ICONS[a]} ${ACTIVITIES[a].name}</th>`;
+
+      for (let b = 0; b < 8; b++) {
+        const count = counts[a][b];
+        const pct = totalDays > 0 ? ((count / totalDays) * 100).toFixed(1) : 0;
+        let cellBg = 'rgba(255, 255, 255, 0.02)';
+        let cellColor = '#475569';
+
+        if (count > 0 && maxCount > 0) {
+          const alpha = 0.18 + 0.65 * (count / maxCount);
+          cellBg = `rgba(212, 175, 55, ${alpha.toFixed(2)})`;
+          cellColor = '#fff';
+        }
+
+        row.innerHTML += `
+          <td class="matrix-cell ${count === 0 ? 'matrix-cell-zero' : ''}"
+              style="background: ${cellBg}; color: ${cellColor};"
+              title="Leo (${ACTIVITIES[a].name}) & Mia (${ACTIVITIES[b].name}): observed ${count} time${count === 1 ? '' : 's'} (${pct}%)">
+            ${count > 0 ? count : '·'}
+          </td>
+        `;
+      }
+
+      row.innerHTML += `<td class="matrix-cell-total">${rowTotals[a]}</td>`;
+      tbody.appendChild(row);
+    }
+
+    // Footer Row (Column Totals)
+    const footerTr = document.createElement('tr');
+    footerTr.innerHTML = '<th class="matrix-row-header">Total</th>';
+    for (let b = 0; b < 8; b++) {
+      footerTr.innerHTML += `<td class="matrix-cell-total">${colTotals[b]}</td>`;
+    }
+    footerTr.innerHTML += `<th class="matrix-cell-total" style="color: var(--accent-gold); font-size: 0.82rem;">${totalDays}</th>`;
+    tbody.appendChild(footerTr);
+
+    table.appendChild(tbody);
   }
 
   startRenderLoop() {

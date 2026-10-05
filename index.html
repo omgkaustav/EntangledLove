@@ -24,6 +24,7 @@
         <button id="btn-audio-toggle" class="hud-icon-btn" title="Toggle Sound">🔊</button>
         <button id="btn-settings" class="hud-icon-btn" title="Quantum Engine Settings">⚙️</button>
         <button id="btn-guide" class="hud-icon-btn" title="About & Rules">❓</button>
+        <button id="btn-history" class="hud-text-btn" title="View Measurement History (Shortcut: H)">📜 History</button>
         <button id="btn-return-menu" class="hud-text-btn" title="Return to Title Menu">☰ Menu</button>
       </div>
     </header>
@@ -46,6 +47,9 @@
             </button>
             <button id="btn-light-both" class="keybind-pill" title="Shortcut: C">
               <kbd>C</kbd> Turn Both On
+            </button>
+            <button id="btn-hud-history" class="keybind-pill" title="Shortcut: H">
+              <kbd>H</kbd> History 📜
             </button>
             <button id="btn-next-day" class="keybind-pill keybind-primary" title="Shortcut: N">
               <kbd>N</kbd> Next Evening ➔
@@ -105,6 +109,9 @@
               <button id="btn-submit-checklist" class="wax-seal-btn" title="Seal and submit your deductions">
                 <span class="wax-seal-icon">✦</span>
                 <span class="wax-seal-text">SEAL OBSERVATIONS</span>
+              </button>
+              <button id="btn-notebook-history" class="btn-subtle-turn" title="View history of all measurements seen so far (Shortcut: H)">
+                <span>📜 Measurement History</span>
               </button>
               <button id="btn-new-journey" class="btn-subtle-turn" title="Start a new investigation with a fresh logbook">
                 <span>↻ New Investigation</span>
@@ -318,6 +325,101 @@
       </div>
       <div class="modal-footer" style="justify-content: flex-end;">
         <button id="btn-guide-gotit" class="btn btn-neutral">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Observational Measurement History Modal -->
+  <div id="history-modal" class="modal-backdrop hidden">
+    <div class="modal-window modal-window-wide">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">OBSERVATIONAL MEASUREMENT LOG</h2>
+          <div id="history-subtitle" class="history-subtitle">Showing Days 1 to 1 • 1 Measurement Observed</div>
+        </div>
+        <button id="btn-close-history" class="modal-close" title="Close (Shortcut: Esc or H)">✕</button>
+      </div>
+
+      <!-- Controls & Filters Toolbar -->
+      <div class="history-toolbar">
+        <div class="history-filter-group">
+          <label for="history-filter-leo" class="history-filter-label">Leo (London):</label>
+          <select id="history-filter-leo" class="history-select">
+            <option value="all">All Activities</option>
+            <option value="0">🛏️ in bed</option>
+            <option value="1">💭 thinking</option>
+            <option value="2">📖 reading</option>
+            <option value="3">🎵 listening to music</option>
+            <option value="4">🎮 playing a game</option>
+            <option value="5">🍳 cooking</option>
+            <option value="6">🪴 watering plants</option>
+            <option value="7">🔭 stargazing</option>
+          </select>
+        </div>
+
+        <div class="history-filter-group">
+          <label for="history-filter-mia" class="history-filter-label">Mia (Tokyo):</label>
+          <select id="history-filter-mia" class="history-select">
+            <option value="all">All Activities</option>
+            <option value="0">🛏️ in bed</option>
+            <option value="1">💭 thinking</option>
+            <option value="2">📖 reading</option>
+            <option value="3">🎵 listening to music</option>
+            <option value="4">🎮 playing a game</option>
+            <option value="5">🍳 cooking</option>
+            <option value="6">🪴 watering plants</option>
+            <option value="7">🔭 stargazing</option>
+          </select>
+        </div>
+
+        <div class="history-view-toggles">
+          <button id="btn-history-view-table" class="btn-history-toggle active" title="Chronological Table View">
+            📋 Table View
+          </button>
+          <button id="btn-history-view-matrix" class="btn-history-toggle" title="Empirical Correlation Matrix">
+            📊 Correlation Matrix
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-body" style="padding-top: 0;">
+        <!-- Chronological Table Container -->
+        <div id="history-table-container" class="history-scroll-container">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Leo in London</th>
+                <th style="text-align: center;">Entangled</th>
+                <th>Mia in Tokyo</th>
+                <th style="text-align: right;">6-Qubit Shot</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body">
+              <!-- Rendered rows -->
+            </tbody>
+          </table>
+          <div id="history-empty-state" class="history-empty-state hidden">
+            No measurements match the selected activity filters.
+          </div>
+        </div>
+
+        <!-- Empirical Correlation Matrix Container (Hidden by default) -->
+        <div id="history-matrix-container" class="history-scroll-container hidden">
+          <div class="matrix-description">
+            Empirical co-occurrence frequency of Leo &amp; Mia's activities across all <strong><span id="matrix-day-count">1</span></strong> observed evenings so far. Higher frequencies highlight the underlying quantum entangled states.
+          </div>
+          <div class="history-matrix-wrapper">
+            <table class="history-matrix-table" id="history-matrix-table">
+              <!-- Rendered matrix -->
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="flex-direction: row; justify-content: space-between; align-items: center;">
+        <span class="history-footer-hint">Press <kbd>H</kbd> or <kbd>Esc</kbd> to return to investigation</span>
+        <button id="btn-close-history-footer" class="btn btn-neutral">Close Log</button>
       </div>
     </div>
   </div>
