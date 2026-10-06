@@ -232,6 +232,12 @@ html, body {
   border: 1px solid rgba(212, 175, 55, 0.4);
 }
 
+.mode-badge.atlas.qpu {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
 .hud-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-subtle);
@@ -1045,6 +1051,66 @@ html, body {
 .btn-neutral:hover {
   background: #242e49;
   color: #fff;
+}
+
+.btn-danger {
+  background: #7f1d1d;
+  color: #fecaca;
+  border-color: #ef4444;
+}
+
+.btn-danger:hover {
+  background: #991b1b;
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.45);
+}
+
+/* Execution Target Selector (Emulator vs QPU) */
+.target-mode-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: #090c14;
+  border: 1px solid #1e263d;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.target-radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.target-radio-label:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.target-radio-label input[type="radio"] {
+  margin-top: 2px;
+  accent-color: var(--accent-gold);
+  cursor: pointer;
+}
+
+.target-label-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.target-label-text strong {
+  font-size: 0.8rem;
+  color: #e2e8f0;
+}
+
+.target-label-text small {
+  font-size: 0.71rem;
+  color: #94a3b8;
+  line-height: 1.25;
 }
 
 .modal-sub-link {

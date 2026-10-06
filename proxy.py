@@ -14,7 +14,7 @@ TARGET_BASE = "https://api.mothquantum.com"
 class ProxyHandler(BaseHTTPRequestHandler):
     def _send_cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "*")
 
     def do_OPTIONS(self):
@@ -27,6 +27,9 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         self._forward_request("POST")
+
+    def do_DELETE(self):
+        self._forward_request("DELETE")
 
     def _forward_request(self, method):
         url = TARGET_BASE + self.path

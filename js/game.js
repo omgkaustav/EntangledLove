@@ -432,6 +432,8 @@ export class EntangledLoveApp {
     this.userAnswers = {};
     this.isSubmitted = false;
     this.mode = 'simulator';
+    this.atlasTargetMode = 'emu';
+    this.activeAtlasClient = null;
 
     // History Modal view state
     this.historyViewMode = 'table';
@@ -488,6 +490,7 @@ export class EntangledLoveApp {
       btnSetDirect: document.getElementById('btn-set-direct'),
       statusLog: document.getElementById('status-log'),
       btnConnectAtlas: document.getElementById('btn-connect-atlas'),
+      btnAbortAtlas: document.getElementById('btn-abort-atlas'),
       btnPlaySimulator: document.getElementById('btn-play-simulator'),
       btnResumeCache: document.getElementById('btn-resume-cache'),
       btnCorsHelp: document.getElementById('btn-cors-help'),
@@ -713,6 +716,26 @@ export class EntangledLoveApp {
     });
     this.dom.btnResumeCache.addEventListener('click', () => this.resumeCachedBatch());
 
+    // Execution Target radios (Emulator vs Real QPU)
+    const targetRadios = document.querySelectorAll('input[name="atlas-target-mode"]');
+    targetRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          this.atlasTargetMode = e.target.value;
+        }
+      });
+    });
+
+    // Abort button
+    if (this.dom.btnAbortAtlas) {
+      this.dom.btnAbortAtlas.addEventListener('click', () => {
+        if (this.activeAtlasClient) {
+          this.logStatus('Aborting quantum request and canceling polling...');
+          this.activeAtlasClient.abort();
+        }
+      });
+    }
+
     // API Key visibility toggle
     this.dom.btnToggleKeyVisibility.addEventListener('click', () => {
       const isPass = this.dom.inputApiKey.type === 'password';
@@ -879,24 +902,32 @@ export class EntangledLoveApp {
 
     this.dom.btnConnectAtlas.disabled = true;
     this.dom.btnPlaySimulator.disabled = true;
-    this.logStatus('Submitting 6-qubit quantum graph state job to Moth Atlas (5 credits)...');
+    if (this.dom.btnAbortAtlas) this.dom.btnAbortAtlas.classList.remove('hidden');
+
+    const targetMode = this.atlasTargetMode === 'qpu' ? 'qpu' : 'emu';
+    const targetLabel = targetMode === 'qpu' ? 'Real Quantum Hardware (QPU)' : 'Cloud Emulator (emu)';
+    this.logStatus(`Submitting 6-qubit quantum graph state job to Moth Atlas (${targetLabel}, 5 credits)...`);
 
     const client = new AtlasClient(apiKey, endpoint);
+    this.activeAtlasClient = client;
 
     try {
       const batchData = await client.fetchBatch(this.stateSeed, (statusText) => {
         this.logStatus(statusText);
-      });
+      }, targetMode);
 
       this.mode = 'atlas';
       this.loadBatch(batchData);
       this.dom.settingsModal.classList.add('hidden');
       if (this.dom.mainMenu) this.dom.mainMenu.classList.add('hidden');
-      this.dom.btnConnectAtlas.disabled = false;
-      this.dom.btnPlaySimulator.disabled = false;
     } catch (err) {
       console.error('Atlas API Error:', err);
       let errMsg = err.message || 'Unknown API error';
+
+      if (errMsg.includes('aborted') || errMsg.includes('Aborted')) {
+        this.logStatus('Quantum job request was aborted by user. Switched back to idle.');
+        return;
+      }
 
       if (errMsg.includes('CORS') || errMsg.includes('Network')) {
         this.logStatus('Browser CORS policy detected. Testing local proxy on http://localhost:8787...');
@@ -911,25 +942,32 @@ export class EntangledLoveApp {
             try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, 'http://localhost:8787/api/v1'); } catch (_) {}
             
             const proxyClient = new AtlasClient(apiKey, 'http://localhost:8787/api/v1');
+            this.activeAtlasClient = proxyClient;
             const batchData = await proxyClient.fetchBatch(this.stateSeed, (statusText) => {
               this.logStatus(statusText);
-            });
+            }, targetMode);
             this.mode = 'atlas';
             this.loadBatch(batchData);
             this.dom.settingsModal.classList.add('hidden');
             if (this.dom.mainMenu) this.dom.mainMenu.classList.add('hidden');
-            this.dom.btnConnectAtlas.disabled = false;
-            this.dom.btnPlaySimulator.disabled = false;
             return;
           }
-        } catch (_) {}
+        } catch (proxyErr) {
+          if (proxyErr.message && (proxyErr.message.includes('aborted') || proxyErr.message.includes('Aborted'))) {
+            this.logStatus('Quantum job request was aborted by user. Switched back to idle.');
+            return;
+          }
+        }
 
         errMsg = 'Direct browser connection was blocked by CORS. Run "python3 proxy.py" in your terminal, click "Use Local Proxy", or switch to Local Simulator Mode.';
       }
 
       this.logStatus(errMsg, true);
+    } finally {
+      if (this.dom.btnAbortAtlas) this.dom.btnAbortAtlas.classList.add('hidden');
       this.dom.btnConnectAtlas.disabled = false;
       this.dom.btnPlaySimulator.disabled = false;
+      this.activeAtlasClient = null;
     }
   }
 
@@ -980,10 +1018,17 @@ export class EntangledLoveApp {
     `;
 
     // Update HUD
-    this.dom.modeBadge.textContent = this.mode === 'atlas'
-      ? `Moth Atlas (${batchData.jobId ? batchData.jobId.slice(0, 8) : 'graph-v1'})`
-      : 'Local Simulator (6-Qubit)';
-    this.dom.modeBadge.className = `mode-badge ${this.mode}`;
+    let modeText = 'Local Simulator (6-Qubit)';
+    if (this.mode === 'atlas') {
+      const isQpu = batchData.targetMode === 'qpu';
+      const targetTag = isQpu ? 'QPU' : 'Emu';
+      const jId = batchData.jobId ? batchData.jobId.slice(0, 8) : 'graph-v1';
+      modeText = `Moth Atlas (${targetTag} • ${jId})`;
+      this.dom.modeBadge.className = `mode-badge atlas${isQpu ? ' qpu' : ''}`;
+    } else {
+      this.dom.modeBadge.className = 'mode-badge simulator';
+    }
+    this.dom.modeBadge.textContent = modeText;
 
     this.applyDay(0);
   }

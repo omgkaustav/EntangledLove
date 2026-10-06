@@ -195,6 +195,27 @@
             </span>
           </div>
 
+          <!-- Execution Target Selection (Emulator vs Real QPU) -->
+          <div class="form-group" style="margin-top: 2px;">
+            <label class="form-label">Execution Target</label>
+            <div class="target-mode-selector">
+              <label class="target-radio-label">
+                <input type="radio" name="atlas-target-mode" value="emu" checked>
+                <span class="target-label-text">
+                  <strong>⚡ Cloud Emulator (emu)</strong>
+                  <small>Fast (~2-5s), simulated graph execution on Atlas servers</small>
+                </span>
+              </label>
+              <label class="target-radio-label">
+                <input type="radio" name="atlas-target-mode" value="qpu">
+                <span class="target-label-text">
+                  <strong>⚛️ Real Quantum Hardware (qpu)</strong>
+                  <small>Dispatched to physical QPU. May queue; abort anytime if slow</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
           <!-- Advanced Endpoint & Proxy -->
           <div class="form-group">
             <a href="#" id="advanced-toggle" class="form-link">Advanced: Endpoint & CORS Proxy Settings ▾</a>
@@ -218,9 +239,12 @@
             Ready to observe. Click "Run with Local Simulator" or connect your Moth Atlas token.
           </div>
 
-          <div style="display: flex; gap: 8px; margin-top: 6px;">
+          <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center;">
             <button id="btn-connect-atlas" class="btn btn-atlas" style="flex: 1;">
               ✦ Launch with Moth Atlas (5 Credits)
+            </button>
+            <button id="btn-abort-atlas" class="btn btn-danger hidden" title="Abort in-flight quantum job and cancel polling">
+              ⛔ Abort Request
             </button>
             <button id="btn-resume-cache" class="btn btn-neutral hidden">
               Resume Cached Batch

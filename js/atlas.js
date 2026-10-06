@@ -187,6 +187,9 @@ export class AtlasClient {
   constructor(apiKey = '', baseUrl = ATLAS_DEFAULT_BASE_URL) {
     this.apiKey = apiKey.trim();
     this.baseUrl = (baseUrl || ATLAS_DEFAULT_BASE_URL).replace(/\/+$/, '');
+    this.abortController = null;
+    this.isAborted = false;
+    this.currentJobId = null;
   }
 
   setApiKey(key) {
@@ -204,14 +207,32 @@ export class AtlasClient {
     };
   }
 
+  abort() {
+    this.isAborted = true;
+    if (this.currentJobId) {
+      try {
+        fetch(`${this.baseUrl}/jobs/${this.currentJobId}/cancel`, {
+          method: 'POST',
+          headers: this.getHeaders()
+        }).catch(() => {});
+      } catch (_) {}
+    }
+    if (this.abortController) {
+      try {
+        this.abortController.abort();
+      } catch (_) {}
+    }
+  }
+
   /**
    * Submit job with 422 schema fallback retry list.
-   * Per requirements:
-   * Try relationship with qubits [0, 2], target 0.85.
-   * On 422, read errors[] and retry small set of reasonable shapes.
-   * If none validate, drop operations and coupling_map, keep seed: 7, continue.
+   * Supports mode: 'emu' (Emulator) or 'qpu' (Quantum Processing Unit / Hardware).
    */
-  async submitGraphJob(seed = 7, onProgress = () => {}) {
+  async submitGraphJob(seed = 7, onProgress = () => {}, mode = 'emu') {
+    if (this.isAborted) {
+      throw new Error('Operation aborted by user');
+    }
+    const targetMode = mode === 'qpu' ? 'qpu' : 'emu';
     const candidatePayloads = [
       // Candidate 1 (Verified Working on Moth Atlas): Superpositions + ZZ relationship on pair (0, 3)
       {
@@ -361,21 +382,27 @@ export class AtlasClient {
       }
     ];
 
+    candidatePayloads.forEach(c => {
+      c.body.params.mode = targetMode;
+    });
+
     let lastError = null;
 
     for (const candidate of candidatePayloads) {
-      onProgress(`Attempting graph-v1 payload schema: [${candidate.name}]...`);
+      if (this.isAborted) throw new Error('Operation aborted by user');
+      onProgress(`Attempting graph-v1 payload schema: [${candidate.name}] (${targetMode.toUpperCase()})...`);
       try {
         const resp = await fetch(`${this.baseUrl}/engines/graph-v1/process`, {
           method: 'POST',
           headers: this.getHeaders(),
-          body: JSON.stringify(candidate.body)
+          body: JSON.stringify(candidate.body),
+          signal: this.abortController?.signal
         });
 
         if (resp.status === 200 || resp.status === 202) {
           const data = await resp.json();
-          console.log(`[Atlas API] Successfully accepted payload [${candidate.name}]:`, data);
-          onProgress(`Payload [${candidate.name}] accepted! Job ID: ${data.job_id || 'direct'}`);
+          console.log(`[Atlas API] Successfully accepted payload [${candidate.name}] (${targetMode}):`, data);
+          onProgress(`Payload [${candidate.name}] accepted on ${targetMode.toUpperCase()}! Job ID: ${data.job_id || 'direct'}`);
           return {
             jobId: data.job_id || data.id,
             status: data.status || 'queued',
@@ -396,6 +423,9 @@ export class AtlasClient {
           throw new Error(`API returned HTTP ${resp.status}: ${errText}`);
         }
       } catch (err) {
+        if (this.isAborted || err.name === 'AbortError') {
+          throw new Error('Operation aborted by user');
+        }
         if (err.name === 'TypeError' && err.message.includes('fetch')) {
           throw new Error(`Network/CORS error connecting to ${this.baseUrl}. If accessing from browser, consider using the proxy or simulator mode.`);
         }
@@ -411,15 +441,23 @@ export class AtlasClient {
   }
 
   /**
-   * Poll job status until completed, failed, or cancelled
+   * Poll job status until completed, failed, or cancelled.
+   * Respects user abort signal and supports extended timeout for QPU hardware queues.
    */
-  async pollJobUntilDone(jobId, onProgress = () => {}, intervalMs = 2000, maxAttempts = 60) {
+  async pollJobUntilDone(jobId, onProgress = () => {}, intervalMs = 2000, maxAttempts = 180, targetMode = 'emu') {
+    this.currentJobId = jobId;
+    const modeTag = targetMode === 'qpu' ? ' • QPU Queue' : '';
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      onProgress(`Polling job ${jobId}... (attempt ${attempt})`);
+      if (this.isAborted) {
+        throw new Error('Operation aborted by user');
+      }
+      onProgress(`Polling job ${String(jobId).slice(0, 8)}... (attempt ${attempt}${modeTag})`);
       
       const resp = await fetch(`${this.baseUrl}/jobs/${jobId}/status`, {
         method: 'GET',
-        headers: this.getHeaders()
+        headers: this.getHeaders(),
+        signal: this.abortController?.signal
       });
 
       if (!resp.ok) {
@@ -438,8 +476,17 @@ export class AtlasClient {
         throw new Error(`Job ended with status: ${status}. ${JSON.stringify(statusData.error || '')}`);
       }
 
-      // Wait 2 seconds before next poll
-      await new Promise(r => setTimeout(r, intervalMs));
+      // Abort-aware sleep
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(resolve, intervalMs);
+        if (this.abortController) {
+          const onAbort = () => {
+            clearTimeout(timer);
+            reject(new Error('Operation aborted by user'));
+          };
+          this.abortController.signal.addEventListener('abort', onAbort, { once: true });
+        }
+      });
     }
 
     throw new Error(`Job ${jobId} polling timed out after ${maxAttempts * (intervalMs / 1000)}s`);
@@ -451,7 +498,8 @@ export class AtlasClient {
   async getJobResult(jobId) {
     const resp = await fetch(`${this.baseUrl}/jobs/${jobId}/result`, {
       method: 'GET',
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
+      signal: this.abortController?.signal
     });
 
     if (!resp.ok) {
@@ -463,17 +511,28 @@ export class AtlasClient {
   }
 
   /**
-   * Run full batch pipeline: submit -> poll -> fetch result -> normalize
+   * Run full batch pipeline: submit -> poll -> fetch result -> normalize.
+   * Mode can be 'emu' (Fast Cloud Emulator) or 'qpu' (Real Quantum Processing Unit).
    */
-  async fetchBatch(seed = 7, onProgress = () => {}) {
-    onProgress('Submitting 1024-shot job to Moth Atlas graph-v1 engine (5 credits)...');
-    const submission = await this.submitGraphJob(seed, onProgress);
+  async fetchBatch(seed = 7, onProgress = () => {}, mode = 'emu') {
+    this.isAborted = false;
+    this.currentJobId = null;
+    this.abortController = new AbortController();
+
+    const targetMode = mode === 'qpu' ? 'qpu' : 'emu';
+    const modeLabel = targetMode === 'qpu' ? 'Real Quantum Hardware (QPU)' : 'Cloud Emulator (emu)';
+    onProgress(`Submitting 1024-shot job to Moth Atlas (${modeLabel}, 5 credits)...`);
+
+    const submission = await this.submitGraphJob(seed, onProgress, targetMode);
+    this.currentJobId = submission.jobId || null;
 
     let rawResult;
     if (submission.directResult) {
       rawResult = submission.directResult;
     } else if (submission.jobId) {
-      await this.pollJobUntilDone(submission.jobId, onProgress);
+      const maxAttempts = targetMode === 'qpu' ? 240 : 60; // 8 mins for QPU, 2 mins for emu
+      await this.pollJobUntilDone(submission.jobId, onProgress, 2000, maxAttempts, targetMode);
+      if (this.isAborted) throw new Error('Operation aborted by user');
       onProgress('Job completed! Retrieving measurement histogram...');
       rawResult = await this.getJobResult(submission.jobId);
     } else {
@@ -490,6 +549,7 @@ export class AtlasClient {
 
     const batchData = {
       source: 'atlas',
+      targetMode,
       jobId: submission.jobId || 'direct',
       successfulPayloadName: submission.successfulPayloadName,
       seed,

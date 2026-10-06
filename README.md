@@ -105,6 +105,9 @@ npx serve .
 
 ### 2. Live Moth Atlas graph-v1 Engine Mode
 - Click the **⚙️ Settings** icon in the top HUD and paste your Moth Atlas API token.
+- **Execution Target Selection**:
+  - **⚡ Cloud Emulator (`emu`)**: Fast (~2-5 seconds) execution on Moth Atlas cloud servers.
+  - **⚛️ Real Quantum Hardware (`qpu`)**: Jobs are dispatched to physical Quantum Processing Units (QPU). If the hardware queue takes too long, you can click **`⛔ Abort Request`** at any time to halt polling and switch targets.
 - **Security & Privacy**: The key is stored **strictly in your browser's `sessionStorage`**. It is never committed to Git, written to disk, sent to any third-party server, or saved in cookies.
 - **Credit Cost**: Exactly **5 credits** per batch (1 job with 1,024 shots). The app **never** calls the API on window switch or evening advance.
 - Cached shots are stored in `sessionStorage` so refreshing the tab does not spend more credits.
