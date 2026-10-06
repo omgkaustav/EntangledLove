@@ -83,11 +83,17 @@ Activity bit encoding:
 
 Because this is a pure static web app without complex build tooling or bundlers, you can serve it with any local HTTP server:
 
-### Option 1: Python 3 (Recommended)
+### Option 1: Unified Server with Built-in Proxy (Recommended: Zero-CORS)
+```bash
+python3 serve.py 8000
+```
+Open [http://localhost:8000](http://localhost:8000) in your browser. This serves the game AND proxies `/api/v1/*` to Moth Atlas on the same port, completely eliminating CORS friction!
+
+### Option 2: Python 3 Standard Server
 ```bash
 python3 -m http.server 8000
 ```
-Open [http://localhost:8000](http://localhost:8000) in your browser.
+*(If connecting to live Atlas, also run `python3 proxy.py` on port 8787 or use the built-in auto-proxy failover)*
 
 ### Option 2: Node / npx
 ```bash

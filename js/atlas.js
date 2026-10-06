@@ -7,9 +7,31 @@
 
 import { getQuantumStateConfig } from './stats.js';
 
-export const ATLAS_DEFAULT_BASE_URL = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
-  ? `${window.location.origin}/api/v1`
-  : 'https://api.mothquantum.com/api/v1';
+export function getDefaultAtlasEndpoint() {
+  if (typeof window === 'undefined') {
+    return 'https://api.mothquantum.com/api/v1';
+  }
+
+  const host = window.location.hostname;
+  const isLocal = host === 'localhost' || host === '127.0.0.1' || window.location.protocol === 'file:';
+
+  // 1. If deployed on Vercel or any remote domain, ALWAYS use same-origin /api/v1
+  // Same-origin calls NEVER suffer from browser CORS blocking!
+  if (!isLocal) {
+    return `${window.location.origin}/api/v1`;
+  }
+
+  // 2. On localhost: check if a valid non-direct endpoint is cached in sessionStorage
+  const cached = sessionStorage.getItem(STORAGE_KEY_ENDPOINT);
+  if (cached && !cached.includes('api.mothquantum.com')) {
+    return cached;
+  }
+
+  // 3. On localhost: default to local proxy port 8787
+  return 'http://localhost:8787/api/v1';
+}
+
+export const ATLAS_DEFAULT_BASE_URL = getDefaultAtlasEndpoint();
 export const STORAGE_KEY_API_KEY = 'entangled_love_atlas_api_key';
 export const STORAGE_KEY_ENDPOINT = 'entangled_love_atlas_endpoint';
 export const STORAGE_KEY_SHOTS = 'entangled_love_shots_cache';
@@ -426,8 +448,12 @@ export class AtlasClient {
         if (this.isAborted || err.name === 'AbortError') {
           throw new Error('Operation aborted by user');
         }
-        if (err.name === 'TypeError' && err.message.includes('fetch')) {
-          throw new Error(`Network/CORS error connecting to ${this.baseUrl}. If accessing from browser, consider using the proxy or simulator mode.`);
+        const isNetworkOrCors = err.name === 'TypeError' ||
+          err.message?.includes('fetch') ||
+          err.message?.includes('Load failed') ||
+          err.message?.includes('NetworkError');
+        if (isNetworkOrCors) {
+          throw new Error(`Network/CORS error connecting to ${this.baseUrl}. Direct browser calls to Moth Atlas are blocked by CORS policy. Please use the proxy or simulator mode.`);
         }
         if (err.message.includes('Authentication failed')) {
           throw err;

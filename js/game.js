@@ -17,7 +17,8 @@ import {
   STORAGE_KEY_API_KEY,
   STORAGE_KEY_ENDPOINT,
   STORAGE_KEY_SHOTS,
-  ATLAS_DEFAULT_BASE_URL
+  ATLAS_DEFAULT_BASE_URL,
+  getDefaultAtlasEndpoint
 } from './atlas.js';
 
 import {
@@ -486,6 +487,7 @@ export class EntangledLoveApp {
       btnToggleKeyVisibility: document.getElementById('btn-toggle-key-visibility'),
       advancedToggle: document.getElementById('advanced-toggle'),
       advancedFields: document.getElementById('advanced-fields'),
+      btnSetAuto: document.getElementById('btn-set-auto'),
       btnSetProxy: document.getElementById('btn-set-proxy'),
       btnSetDirect: document.getElementById('btn-set-direct'),
       statusLog: document.getElementById('status-log'),
@@ -534,8 +536,12 @@ export class EntangledLoveApp {
       this.dom.inputApiKey.value = cachedKey;
     }
     const cachedEndpoint = sessionStorage.getItem(STORAGE_KEY_ENDPOINT);
-    if (cachedEndpoint) {
+    if (cachedEndpoint && !cachedEndpoint.includes('api.mothquantum.com')) {
       this.dom.inputEndpoint.value = cachedEndpoint;
+    } else {
+      const autoEndpoint = getDefaultAtlasEndpoint();
+      this.dom.inputEndpoint.value = autoEndpoint;
+      try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, autoEndpoint); } catch (_) {}
     }
 
     const cachedShotsRaw = sessionStorage.getItem(STORAGE_KEY_SHOTS);
@@ -750,6 +756,15 @@ export class EntangledLoveApp {
     });
 
     // Proxy preset buttons
+    if (this.dom.btnSetAuto) {
+      this.dom.btnSetAuto.addEventListener('click', () => {
+        const autoEndpoint = getDefaultAtlasEndpoint();
+        this.dom.inputEndpoint.value = autoEndpoint;
+        try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, autoEndpoint); } catch (_) {}
+        this.logStatus('Base URL switched to Auto-Proxy (Zero-CORS): ' + autoEndpoint);
+      });
+    }
+
     if (this.dom.btnSetProxy) {
       this.dom.btnSetProxy.addEventListener('click', () => {
         this.dom.inputEndpoint.value = 'http://localhost:8787/api/v1';
@@ -760,9 +775,9 @@ export class EntangledLoveApp {
 
     if (this.dom.btnSetDirect) {
       this.dom.btnSetDirect.addEventListener('click', () => {
-        this.dom.inputEndpoint.value = ATLAS_DEFAULT_BASE_URL;
-        try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, ATLAS_DEFAULT_BASE_URL); } catch (_) {}
-        this.logStatus('Base URL switched to direct: ' + ATLAS_DEFAULT_BASE_URL);
+        this.dom.inputEndpoint.value = 'https://api.mothquantum.com/api/v1';
+        try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, 'https://api.mothquantum.com/api/v1'); } catch (_) {}
+        this.logStatus('Base URL set to direct: https://api.mothquantum.com/api/v1 (Note: Direct browser calls are blocked by CORS unless via proxy)');
       });
     }
 
@@ -893,7 +908,12 @@ export class EntangledLoveApp {
       return;
     }
 
-    const endpoint = this.dom.inputEndpoint.value.trim() || ATLAS_DEFAULT_BASE_URL;
+    // Determine initial endpoint: if empty or raw direct URL, auto-resolve to zero-CORS proxy
+    let endpoint = this.dom.inputEndpoint.value.trim();
+    if (!endpoint || endpoint === 'https://api.mothquantum.com/api/v1') {
+      endpoint = getDefaultAtlasEndpoint();
+      this.dom.inputEndpoint.value = endpoint;
+    }
 
     try {
       sessionStorage.setItem(STORAGE_KEY_API_KEY, apiKey);
@@ -929,37 +949,74 @@ export class EntangledLoveApp {
         return;
       }
 
-      if (errMsg.includes('CORS') || errMsg.includes('Network')) {
-        this.logStatus('Browser CORS policy detected. Testing local proxy on http://localhost:8787...');
-        try {
-          const testProxy = await fetch('http://localhost:8787/api/v1/engines', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${apiKey}` }
-          });
-          if (testProxy.ok) {
-            this.logStatus('Local CORS Proxy active! Routing through http://localhost:8787/api/v1...');
-            this.dom.inputEndpoint.value = 'http://localhost:8787/api/v1';
-            try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, 'http://localhost:8787/api/v1'); } catch (_) {}
-            
-            const proxyClient = new AtlasClient(apiKey, 'http://localhost:8787/api/v1');
-            this.activeAtlasClient = proxyClient;
-            const batchData = await proxyClient.fetchBatch(this.stateSeed, (statusText) => {
-              this.logStatus(statusText);
-            }, targetMode);
-            this.mode = 'atlas';
-            this.loadBatch(batchData);
-            this.dom.settingsModal.classList.add('hidden');
-            if (this.dom.mainMenu) this.dom.mainMenu.classList.add('hidden');
-            return;
-          }
-        } catch (proxyErr) {
-          if (proxyErr.message && (proxyErr.message.includes('aborted') || proxyErr.message.includes('Aborted'))) {
-            this.logStatus('Quantum job request was aborted by user. Switched back to idle.');
-            return;
+      if (errMsg.includes('Authentication failed')) {
+        this.logStatus(errMsg, true);
+        return;
+      }
+
+      // Check if blocked by browser CORS policy or network failure
+      const isCorsOrNetwork = errMsg.includes('CORS') || 
+                              errMsg.includes('Network') || 
+                              errMsg.includes('fetch') || 
+                              errMsg.includes('Failed to fetch') || 
+                              errMsg.includes('Load failed') ||
+                              errMsg.includes('NetworkError');
+
+      if (isCorsOrNetwork) {
+        this.logStatus('Direct browser connection was blocked by CORS. Auto-probing zero-CORS proxy failovers...');
+
+        const isLocal = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' || 
+                        window.location.protocol === 'file:';
+
+        // Candidates in priority order
+        const candidates = [];
+        if (!isLocal) {
+          candidates.push(`${window.location.origin}/api/v1`);
+        } else {
+          candidates.push('http://localhost:8787/api/v1');
+          candidates.push(`${window.location.origin}/api/v1`);
+          candidates.push('https://entangledlove.vercel.app/api/v1');
+        }
+
+        const fallbackCandidates = candidates.filter(c => c !== endpoint);
+
+        for (const candidateUrl of fallbackCandidates) {
+          try {
+            this.logStatus(`Probing proxy failover: ${candidateUrl}...`);
+            const testProxy = await fetch(`${candidateUrl}/engines`, {
+              method: 'GET',
+              headers: { 'Authorization': `Bearer ${apiKey}` }
+            });
+            if (testProxy.ok || testProxy.status === 200 || testProxy.status === 401 || testProxy.status === 403) {
+              if (testProxy.status === 401 || testProxy.status === 403) {
+                this.logStatus('Proxy connected, but Moth API token was rejected (401/403). Please verify your token.', true);
+                return;
+              }
+              this.logStatus(`Connected via Zero-CORS proxy (${candidateUrl})! Submitting quantum job...`);
+              this.dom.inputEndpoint.value = candidateUrl;
+              try { sessionStorage.setItem(STORAGE_KEY_ENDPOINT, candidateUrl); } catch (_) {}
+              
+              const proxyClient = new AtlasClient(apiKey, candidateUrl);
+              this.activeAtlasClient = proxyClient;
+              const batchData = await proxyClient.fetchBatch(this.stateSeed, (statusText) => {
+                this.logStatus(statusText);
+              }, targetMode);
+              this.mode = 'atlas';
+              this.loadBatch(batchData);
+              this.dom.settingsModal.classList.add('hidden');
+              if (this.dom.mainMenu) this.dom.mainMenu.classList.add('hidden');
+              return;
+            }
+          } catch (proxyErr) {
+            if (proxyErr.message && (proxyErr.message.includes('aborted') || proxyErr.message.includes('Aborted'))) {
+              this.logStatus('Quantum job request was aborted by user. Switched back to idle.');
+              return;
+            }
           }
         }
 
-        errMsg = 'Direct browser connection was blocked by CORS. Run "python3 proxy.py" in your terminal, click "Use Local Proxy", or switch to Local Simulator Mode.';
+        errMsg = 'Direct browser connection was blocked by CORS. Run "python3 proxy.py" in your terminal, play on https://entangledlove.vercel.app, or use Local Simulator Mode.';
       }
 
       this.logStatus(errMsg, true);
